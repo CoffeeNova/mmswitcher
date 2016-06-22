@@ -1,0 +1,179 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+//using System.Windows.Forms;
+using System.IO;
+using System.Drawing;
+
+namespace mmswitcherAPI
+{
+    public static class Interop
+    {
+        public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        public enum ShellEvents : int
+        {
+            HSHELL_WINDOWCREATED = 1,
+            HSHELL_WINDOWDESTROYED = 2,
+            HSHELL_ACTIVATESHELLWINDOW = 3,
+            HSHELL_WINDOWACTIVATED = 4,
+            HSHELL_GETMINRECT = 5,
+            HSHELL_REDRAW = 6,
+            HSHELL_TASKMAN = 7,
+            HSHELL_LANGUAGE = 8,
+            HSHELL_ACCESSIBILITYSTATE = 11,
+            HSHELL_APPCOMMAND = 12
+        }
+
+        [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        public static extern int RegisterWindowMessage(string lpString);
+        [DllImport("user32", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        public static extern int DeregisterShellHookWindow(IntPtr hWnd);
+        [DllImport("user32", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        public static extern int RegisterShellHookWindow(IntPtr hWnd);
+        [DllImport("user32", EntryPoint = "GetWindowTextA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        public static extern int GetWindowText(IntPtr hwnd, System.Text.StringBuilder lpString, int cch);
+        [DllImport("user32", EntryPoint = "GetWindowTextLengthA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        public static extern int GetWindowTextLength(IntPtr hwnd);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr SetWindowsHookEx(int id, LowLevelKeyboardProc callback, IntPtr hMod, uint dwThreadId);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool UnhookWindowsHookEx(IntPtr hook);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr CallNextHookEx(IntPtr hook, int nCode, IntPtr wp, IntPtr lp);
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr GetModuleHandle(string name);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        //public static extern short GetAsyncKeyState(Keys key);
+        //[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        //private static extern uint SendInput(uint numberOfInputs, INPUT[] inputs, int sizeOfInputStructure);
+
+        [DllImport("User32.dll", EntryPoint = "FindWindow", CharSet = CharSet.Auto)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern bool PostMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("User32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern IntPtr GetKeyboardLayout(uint dwLayout);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, IntPtr ProcessId);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
+
+        [DllImport("user32.dll")]
+        public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
+        [DllImport("user32.dll")]
+        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
+
+        [DllImport("kernel32.dll")]
+        public static extern bool DefineDosDevice(uint dwFlags, string lpDeviceName, string lpTargetPath);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        public static extern IntPtr CreateFile(
+                                                string lpFileName,
+                                                FileAccess dwDesiredAccess,
+                                                uint dwShareMode,
+                                                IntPtr SecurityAttributes,
+                                                FileMode dwCreationDisposition,
+                                                uint dwFlagsAndAttributes,
+                                                IntPtr hTemplateFile
+                                              );
+        [DllImport("Kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool DeviceIoControl(
+                                                IntPtr hDevice,
+                                                uint dwIoControlCode,
+                                                ref KeyboardIndicatorParameters InBuffer,
+                                                uint nInBufferSize,
+                                                IntPtr OutBuffer,
+                                                int nOutBufferSize,
+                                                out uint pBytesReturned,
+                                                IntPtr lpOverlapped);
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+
+        [DllImport("user32.dll")]
+        public static extern int SetActiveWindow(int hwnd);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport("user32.dll", ExactSpelling = true, CharSet = CharSet.Auto)]
+        public static extern IntPtr GetParent(IntPtr hWnd);
+
+        [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        public static extern bool SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SendMessage(int hWnd, int Msg, int wparam, int lparam);
+
+        [DllImport("user32.dll")]
+        public static extern void SwitchToThisWindow(IntPtr hWnd, bool turnon);
+        [DllImport("user32.dll")]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        public static extern bool ShowWindow(IntPtr hWnd, ShowWindowEnum flags);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr WindowFromPoint(Point p);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetLastActivePopup(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetShellWindow();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [DllImport("user32.dll", EntryPoint = "GetClassName", ExactSpelling = false,
+            CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int GetClassName(IntPtr hwnd, StringBuilder lpClassName,
+            int nMaxCount);
+
+
+
+        //http://stackoverflow.com/questions/3019066/get-all-window-handles-for-a-process
+        public delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
+
+        //[DllImport("user32.dll")]
+        //public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.Dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool EnumChildWindows(IntPtr parentHandle, Win32Callback callback, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern uint MapVirtualKey(uint uCode, uint uMapType);
+    }
+    public struct WINDOWPLACEMENT
+    {
+        public int length;
+        public int flags;
+        public ShowWindowCommands showCmd;
+        public System.Drawing.Point ptMinPosition;
+        public System.Drawing.Point ptMaxPosition;
+        public System.Drawing.Rectangle rcNormalPosition;
+    }
+}
