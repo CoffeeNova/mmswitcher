@@ -9,10 +9,10 @@ namespace mmswitcher
 {
     public class WindowConditionMonitor : MsgMonitor
     {
-        public WindowConditionMonitor()
-        {
+        //public WindowConditionMonitor()
+        //{
 
-        }
+        //}
         protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             throw new NotImplementedException();
