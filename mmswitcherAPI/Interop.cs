@@ -46,7 +46,7 @@ namespace mmswitcherAPI
         public static extern IntPtr CallNextHookEx(IntPtr hook, int nCode, IntPtr wp, IntPtr lp);
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr GetModuleHandle(string name);
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        //[DllImport("user32.dll", CharSet = CharSet.Auto)]
         //public static extern short GetAsyncKeyState(Keys key);
         //[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         //private static extern uint SendInput(uint numberOfInputs, INPUT[] inputs, int sizeOfInputStructure);
@@ -97,7 +97,7 @@ namespace mmswitcherAPI
         public static extern bool DeviceIoControl(
                                                 IntPtr hDevice,
                                                 uint dwIoControlCode,
-                                                ref KeyboardIndicatorParameters InBuffer,
+                                                ref Tools.KeyboardIndicatorParameters InBuffer,
                                                 uint nInBufferSize,
                                                 IntPtr OutBuffer,
                                                 int nOutBufferSize,
@@ -129,7 +129,7 @@ namespace mmswitcherAPI
         public static extern void SwitchToThisWindow(IntPtr hWnd, bool turnon);
         [DllImport("user32.dll")]
         [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
-        public static extern bool ShowWindow(IntPtr hWnd, ShowWindowEnum flags);
+        public static extern bool ShowWindow(IntPtr hWnd, Tools.ShowWindowEnum flags);
 
         [DllImport("user32.dll")]
         public static extern IntPtr WindowFromPoint(Point p);
@@ -145,7 +145,7 @@ namespace mmswitcherAPI
         public static extern IntPtr GetShellWindow();
 
         [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        public static extern bool GetWindowRect(IntPtr hWnd, out Tools.RECT lpRect);
 
         [DllImport("user32.dll", EntryPoint = "GetClassName", ExactSpelling = false,
             CharSet = CharSet.Auto, SetLastError = true)]
@@ -171,7 +171,7 @@ namespace mmswitcherAPI
     {
         public int length;
         public int flags;
-        public ShowWindowCommands showCmd;
+        public Tools.ShowWindowCommands showCmd;
         public System.Drawing.Point ptMinPosition;
         public System.Drawing.Point ptMaxPosition;
         public System.Drawing.Rectangle rcNormalPosition;

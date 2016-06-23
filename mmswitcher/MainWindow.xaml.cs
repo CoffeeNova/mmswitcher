@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Interop;
+using mmswitcherAPI;
 
 namespace mmswitcher
 {
@@ -22,28 +23,23 @@ namespace mmswitcher
     public partial class MainWindow : Window
     {
         private readonly int _msgNotify;
+        private MsgMonitor _msgMon;
 
         public MainWindow()
         {
             InitializeComponent();
-
+            
         }
 
         protected override void OnSourceInitialized(EventArgs e)
         {
-            // Hook on to the shell
-            _msgNotify = Interop.RegisterWindowMessage("SHELLHOOK");
-
-            base.OnSourceInitialized(e);
-            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
-            source.AddHook(WndProc);
+            _msgMon = MsgMonitor.Instanse(this);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            
-
             return IntPtr.Zero;
+
         }
 
         
