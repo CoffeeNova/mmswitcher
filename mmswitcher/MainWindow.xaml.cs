@@ -24,16 +24,25 @@ namespace mmswitcher
     {
         private readonly int _msgNotify;
         private MsgMonitor _msgMon;
+        private WindowConditionMonitor wcm;
+        private int m = 0;
 
         public MainWindow()
         {
             InitializeComponent();
             
+            
         }
 
         protected override void OnSourceInitialized(EventArgs e)
         {
-            _msgMon = MsgMonitor.Instanse(this);
+            wcm = new WindowConditionMonitor(this);
+            wcm.onMessageTraced += wcm_onMessageTraced;
+        }
+
+        void wcm_onMessageTraced(object sender, IntPtr hWnd, Interop.ShellEvents shell)
+        {
+            Console.WriteLine(m = m+1);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

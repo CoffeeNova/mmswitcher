@@ -152,8 +152,6 @@ namespace mmswitcherAPI
         public static extern int GetClassName(IntPtr hwnd, StringBuilder lpClassName,
             int nMaxCount);
 
-
-
         //http://stackoverflow.com/questions/3019066/get-all-window-handles-for-a-process
         public delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
 
