@@ -4,31 +4,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
-using Gma.UserActivityMonitor;
 using mmswitcherAPI;
 using mmswitcherAPI.winmsg;
+using System.Windows;
+using System.Windows.Forms;
 
 namespace mmswitcherAPI.AltTabSimulator
 {
-    //http://csharpindepth.com/articles/general/singleton.aspx - about singltons
-
     /// <summary>
     /// Класс реализует функционал, аналогичный (максимально приближенный) работе с переключением окон сочетанием клавиш alt+tab
+    ///<remarks>Singleton</remarks>
     /// </summary>
-    public sealed class AltTabSimulator
+    internal sealed class ActiveWindowStack
     {
         private WindowMessagesMonitor _winMesMon;
-        private static readonly Lazy<AltTabSimulator> _instance = new Lazy<AltTabSimulator>(() => new AltTabSimulator());
+        private static ActiveWindowStack _instance;
+        private static readonly object _locker = new object();
 
-        public static AltTabSimulator Instance
+        private List<IntPtr> _windowStack;
+        public List<IntPtr> WindowStack
         {
-            get { return _instance.Value; }
-        }
-
-        private List<IntPtr> _altTabList;
-        public List<IntPtr> AltTabList
-        {
-            get { return _altTabList; }
+            get { return _windowStack; }
         }
 
         private bool started = false;
@@ -37,24 +33,54 @@ namespace mmswitcherAPI.AltTabSimulator
             get { return started; }
         }
 
-        private  bool suspended = true;
-        public  bool Suspended
+        private bool suspended = true;
+        public bool Suspended
         {
             get { return suspended; }
         }
 
-        private AltTabSimulator() 
+        private ActiveWindowStack(Window window)
         {
-            _winMesMon = new WindowMessagesMonitor()
+            _winMesMon = new WindowMessagesMonitor(window);
+        }
 
+        private ActiveWindowStack(Form window)
+        {
+            //todo
+        }
+
+        public static ActiveWindowStack Instance(Form window)
+        {
+            if (_instance == null)
+            {
+                lock (_locker)
+                {
+                    if (_instance == null)
+                        _instance = new ActiveWindowStack(window);
+                }
+            }
+            return _instance;
+        }
+
+        public static ActiveWindowStack Instance(Window window)
+        {
+            if (_instance == null)
+            {
+                lock (_locker)
+                {
+                    if (_instance == null)
+                        _instance = new ActiveWindowStack(window);
+                }
+            }
+            return _instance;
         }
 
         public void Start()
         {
             if (!started && suspended)
             {
-                RefreshAltTabList();
-                systemProcessHook.WindowEvent += systemProcessHook_WindowEvent;
+                RefreshStack();
+                _winMesMon.onMessageTraced += _winMesMon_onMessageTraced;
                 HookManager.ForegroundChanged += HookManager_ForegroundChanged;
                 started = true;
                 suspended = false;
@@ -66,7 +92,7 @@ namespace mmswitcherAPI.AltTabSimulator
             if (!suspended && started)
             {
                 ClearAltTabList();
-                systemProcessHook.WindowEvent -= systemProcessHook_WindowEvent;
+                _winMesMon.onMessageTraced -= _winMesMon_onMessageTraced;
                 HookManager.ForegroundChanged -= HookManager_ForegroundChanged;
                 suspended = true;
                 started = false;
@@ -75,13 +101,14 @@ namespace mmswitcherAPI.AltTabSimulator
         /// <summary>
         ///Обновляет список видимых окон, как в списке альт таба (почти как, еще добавлет закрытые окна, окторые в вин10 почему-то остаются висеть в процессах, типа calc.exe)
         /// </summary>
-        private void RefreshAltTabList()
+        private void RefreshStack()
         {
-            _altTabList = OpenWindowGetter.GetAltTabWindowsHandles(); 
+            _windowStack = OpenWindowGetter.GetAltTabWindowsHandles();
         }
+
         private void ClearAltTabList()
         {
-            _altTabList.Clear();
+            _windowStack.Clear();
         }
         private void HookManager_ForegroundChanged(object sender, EventArgs e)
         {
@@ -91,26 +118,19 @@ namespace mmswitcherAPI.AltTabSimulator
             try
             {
                 // try to find new foreground window in alt tab list
-                foreach (IntPtr hWnd in _altTabList)
+                foreach (IntPtr hWnd in _windowStack)
                     if (hWnd == fore)
                     {
                         newWindow = false;
                         break;
                     }
-                //Thread.Sleep(10);
-                //if (newWindow && OpenWindowGetter.KeepWindowHandleInAltTabList(fore))
-                //{
-                //    altTabList.Insert(0, fore);
-                //    Console.WriteLine(WowDisableWinKeyTools.GetWindowTitle(fore) + " " + fore.ToString());
-                //}
                 if (!newWindow)
                 {
-                    IntPtr windowHWnd = _altTabList.Find(x => x == fore);
+                    IntPtr windowHWnd = _windowStack.Find(x => x == fore);
                     if (windowHWnd != IntPtr.Zero)
                     {
-                        _altTabList.Remove(windowHWnd);
-                        _altTabList.Insert(0, windowHWnd);
-                        _tabOrWindow = SwitchTo.Window;
+                        _windowStack.Remove(windowHWnd);
+                        _windowStack.Insert(0, windowHWnd);
                     }
                 }
                 //check if window exists, remove from list if not
@@ -120,28 +140,24 @@ namespace mmswitcherAPI.AltTabSimulator
 
         }
 
-        private void systemProcessHook_WindowEvent(object sender, IntPtr handle, Interop.ShellEvents shell)
+        void _winMesMon_onMessageTraced(object sender, IntPtr hWnd, Interop.ShellEvents shell)
         {
             if (shell == Interop.ShellEvents.HSHELL_WINDOWDESTROYED)
-                if (_altTabList.Remove(handle))
-                    Console.WriteLine("hwnd:{0}, title:{1} removed. altTabList cound ={2}", handle.ToString(), WowDisableWinKeyTools.GetWindowTitle(handle), _altTabList.Count.ToString());
-            if (shell == Interop.ShellEvents.HSHELL_WINDOWCREATED && OpenWindowGetter.KeepWindowHandleInAltTabList(handle))
-            {
-                _altTabList.Insert(0, handle);
-                Console.WriteLine("hwnd:{0}, title:{1} inserted. altTabList cound ={2}", handle.ToString(), WowDisableWinKeyTools.GetWindowTitle(handle), _altTabList.Count.ToString());
-                _tabOrWindow = SwitchTo.Window;
-            }
+                _windowStack.Remove(hWnd);
+
+            if (shell == Interop.ShellEvents.HSHELL_WINDOWCREATED && OpenWindowGetter.KeepWindowHandleInAltTabList(hWnd))
+                _windowStack.Insert(0, hWnd);
         }
         private void Dispose()
         {
             try
             {
-                systemProcessHook.WindowEvent -= systemProcessHook_WindowEvent;
+                _winMesMon.onMessageTraced -= _winMesMon_onMessageTraced;
                 HookManager.ForegroundChanged -= HookManager_ForegroundChanged;
             }
             catch { }
         }
-        ~AltTabSimulator()
+        ~ActiveWindowStack()
         {
             Dispose();
         }

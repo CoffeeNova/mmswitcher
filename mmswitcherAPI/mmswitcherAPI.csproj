@@ -49,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AltTabSimulator\AltTabSimulator.cs" />
+    <Compile Include="AltTabSimulator\HookManager.Callbacks.cs" />
+    <Compile Include="AltTabSimulator\HookManager.cs" />
     <Compile Include="AltTabSimulator\OpenWindowGetter.cs" />
     <Compile Include="AltTabSimulator\WinApi.cs" />
     <Compile Include="AltTabSimulator\WindowContainer.cs" />
@@ -56,7 +58,9 @@
     <Compile Include="Interop.cs" />
     <Compile Include="Messanger.cs" />
     <Compile Include="Window Messages\MessageMonitors.cs" />
-    <Compile Include="Window Messages\MsgMonitor.cs" />
+    <Compile Include="Window Messages\MsgMonitor.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Structs and enums.cs" />
     <Compile Include="Window Messages\Window messages.cs" />

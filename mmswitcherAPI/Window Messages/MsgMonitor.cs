@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Interop;
 using System.Windows;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace mmswitcherAPI.winmsg
 {
@@ -14,10 +15,12 @@ namespace mmswitcherAPI.winmsg
     /// </summary>
     public abstract class MsgMonitor
     {
-        private static Window _window;
+        private object _window;
         private readonly int _msgNotify;
         private bool _disposed = false;
         private HwndSource _hwndWindow;
+        private MControl _msgReceiver;
+        private bool _isWpfSpecial = false;
 
         public delegate void EventHandler(object sender, IntPtr hWnd, Interop.ShellEvents shell);
 
@@ -25,29 +28,55 @@ namespace mmswitcherAPI.winmsg
         public event EventHandler onMessageTraced;
 
         /// <summary>
-        /// Конструктор для общих сообщений
+        /// Конструктор для общих сообщений.
         /// </summary>
         /// <param name="window">Окно WPF.</param>
-        /// <param name="msgNotify">Значение сообщения. См. http://wiki.winehq.org/List_Of_Windows_Messages</param>
+        /// <param name="msgNotify">Значение сообщения. См. http://wiki.winehq.org/List_Of_Windows_Messages </param>
         public MsgMonitor(Window window, int msgNotify)
         {
+            _isWpfSpecial = true;
             _window = window;
             _msgNotify = msgNotify;
-            _hwndWindow = PresentationSource.FromVisual(_window) as HwndSource;
+            _hwndWindow = PresentationSource.FromVisual(_window as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
         }
 
         /// <summary>
-        /// Конструктор для shell сообщений
+        /// Конструктор для shell сообщений. 
         /// </summary>
         /// <param name="window">Окно WPF.</param>
+        /// <remarks>Рекомендуется использовать этот конструктор при разработке WPF приложения.</remarks>
         public MsgMonitor(Window window)
         {
+            _isWpfSpecial = true;
             _window = window;
             _msgNotify = Interop.RegisterWindowMessage("SHELLHOOK");
             Interop.RegisterShellHookWindow(new WindowInteropHelper(window).Handle);
-            _hwndWindow = PresentationSource.FromVisual(_window) as HwndSource;
+            _hwndWindow = PresentationSource.FromVisual(_window as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
+        }
+
+        /// <summary>
+        /// Конструктор для общих сообщений.
+        /// </summary>
+        /// <param name="msgNotify">Значение сообщения. См. http://wiki.winehq.org/List_Of_Windows_Messages. </param>
+        /// <remarks>Рекомендуется использовать этот конструктор при разработке WPF приложения.</remarks>
+        public MsgMonitor(int msgNotify)
+        {
+            _msgReceiver = new MControl();
+            _msgNotify = msgNotify;
+            _msgReceiver.onWndProc += MessageTrace;
+        }
+
+        /// <summary>
+        /// Конструктор для shell сообщений.
+        /// </summary>
+        public MsgMonitor()
+        {
+            _msgReceiver = new MControl();
+            _msgNotify = Interop.RegisterWindowMessage("SHELLHOOK");
+            Interop.RegisterShellHookWindow(_msgReceiver.Handle);
+            _msgReceiver.onWndProc += MessageTrace;
         }
 
         //Callback функция хука
@@ -85,7 +114,10 @@ namespace mmswitcherAPI.winmsg
 
                 try
                 {
-                    _hwndWindow.RemoveHook(new HwndSourceHook(MessageTrace));
+                    if (_isWpfSpecial)
+                        _hwndWindow.RemoveHook(new HwndSourceHook(MessageTrace));
+                    else
+                        Interop.DeregisterShellHookWindow(_msgReceiver.Handle);
                 }
                 catch { }
                 _disposed = true;
@@ -101,6 +133,21 @@ namespace mmswitcherAPI.winmsg
         ~MsgMonitor()
         {
             Dispose(false);
+        }
+    }
+
+    internal class MControl : Control 
+    {
+        private delegate IntPtr WndProcDelegate(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled);
+        public event WndProcDelegate onWndProc;
+
+        protected override void WndProc(ref Message m)
+        {
+            var handler = onWndProc;
+            bool handled = false;
+            if (handler != null)
+                handler(m.HWnd, m.Msg, m.WParam, m.LParam, ref handled);
+            base.WndProc(ref m);
         }
     }
 }

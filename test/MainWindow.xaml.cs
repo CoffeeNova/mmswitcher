@@ -12,31 +12,32 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Windows.Interop;
 using mmswitcherAPI;
 using mmswitcherAPI.winmsg;
 
-namespace mmswitcher
+namespace test
 {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-
+        private readonly int _msgNotify;
+        private int m = 0;
+        WindowMessagesMonitor _wmm;
+        
 
         public MainWindow()
         {
             InitializeComponent();
+            _wmm.onMessageTraced += _wmm_onMessageTraced;
         }
 
-        protected override void OnSourceInitialized(EventArgs e)
+
+        void _wmm_onMessageTraced(object sender, IntPtr hWnd, Interop.ShellEvents shell)
         {
+            Console.WriteLine(m = m + 1);
         }
 
-
-        
     }
-
-
 }

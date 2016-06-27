@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using mmswitcherAPI;
 using System.Windows;
+using System.Windows.Forms;
 
 namespace mmswitcherAPI.winmsg
 {
@@ -13,8 +14,12 @@ namespace mmswitcherAPI.winmsg
     /// </summary>
     public class WindowMessagesMonitor : MsgMonitor
     {
+        //конструктор для wpf приложения
         public WindowMessagesMonitor(Window window)
             : base(window) { }
+        //общий конструктор
+        public WindowMessagesMonitor()
+            : base() { }
 
         protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
@@ -32,8 +37,13 @@ namespace mmswitcherAPI.winmsg
 
     public class SetTextMessageMonitor : MsgMonitor
     {
+        //конструктор для wpf приложения
         public SetTextMessageMonitor(Window window)
             : base(window, (int)WindowMessage.WM_SETTEXT) { }
+
+        //общий конструктор
+        public SetTextMessageMonitor()
+            : base((int)WindowMessage.WM_SETTEXT) { }
 
         protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
