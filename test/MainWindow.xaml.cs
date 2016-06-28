@@ -32,12 +32,6 @@ namespace test
         public MainWindow()
         {
             InitializeComponent();
-            int k = 1;
-            if(k==1)
-            {
-
-            }
-
         }
 
         protected override void OnSourceInitialized(EventArgs e)

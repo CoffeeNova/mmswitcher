@@ -86,7 +86,7 @@ namespace mmswitcherAPI.AltTabSimulator
             if (window == Interop.GetShellWindow() || Interop.GetWindowTextLength(window) == 0)   //Desktop or without title
                 return false;
 
-            if (!IsWindowThreadAliveEz(window))
+            if (!IsWindowThreadAlive(window))
                 return false;
             //uint processId = 0;
             //Interop.GetWindowThreadProcessId(window, out processId);
@@ -153,7 +153,8 @@ namespace mmswitcherAPI.AltTabSimulator
         //    return true;
         //}
 
-        private static bool IsWindowThreadAliveEz(IntPtr hWnd)
+        //Определяет имеет ли процесс статус "Suspended"
+        private static bool IsWindowThreadAlive(IntPtr hWnd)
         {
             int processId;
             IntPtr temp = (IntPtr)6227102;

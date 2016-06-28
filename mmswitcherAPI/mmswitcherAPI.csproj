@@ -48,6 +48,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AltTabSimulator\ActiveWindowStack.cs" />
     <Compile Include="AltTabSimulator\AltTabSimulator.cs" />
     <Compile Include="AltTabSimulator\HookManager.Callbacks.cs" />
     <Compile Include="AltTabSimulator\HookManager.cs" />
