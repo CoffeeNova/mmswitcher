@@ -138,7 +138,7 @@ namespace mmswitcherAPI.winmsg
 
     internal class MControl : Control 
     {
-        private delegate IntPtr WndProcDelegate(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled);
+        public delegate IntPtr WndProcDelegate(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled);
         public event WndProcDelegate onWndProc;
 
         protected override void WndProc(ref Message m)

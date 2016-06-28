@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace mmswitcherAPI.AltTabSimulator
 {
@@ -85,6 +86,8 @@ namespace mmswitcherAPI.AltTabSimulator
             if (window == Interop.GetShellWindow() || Interop.GetWindowTextLength(window) == 0)   //Desktop or without title
                 return false;
 
+            if (!IsWindowThreadAliveEz(window))
+                return false;
             //uint processId = 0;
             //Interop.GetWindowThreadProcessId(window, out processId);
             //System.Diagnostics.Process process = System.Diagnostics.Process.GetProcessById((int)processId);
@@ -97,7 +100,7 @@ namespace mmswitcherAPI.AltTabSimulator
             //2. Then walk back down the visible last active popup chain until you find a visible window.
             //3. If you're back to where you're started, (look for exceptions) then put the window in the Alt+Tab list.
             IntPtr root = WinApi.GetAncestor(window, WinApi.GaFlags.GA_ROOTOWNER);
-
+            IntPtr temp = (IntPtr)6227102;
             if (GetLastVisibleActivePopUpOfWindow(root) == window)
             {
                 Me.Catx.Native.WindowInfo wi = new Me.Catx.Native.WindowInfo(window);
@@ -107,7 +110,8 @@ namespace mmswitcherAPI.AltTabSimulator
                     (wi.ClassName == "Button" && wi.WindowText == "Start") ||   //Windows startmenu-button.
                     wi.ClassName == "MsgrIMEWindowClass" ||                     //Live messenger's notifybox i think
                     wi.ClassName == "SysShadow" ||                              //Live messenger's shadow-hack
-                    wi.ClassName.StartsWith("WMP9MediaBarFlyout"))             //WMP's "now playing" taskbar-toolbar
+                    wi.ClassName.StartsWith("WMP9MediaBarFlyout") ||            //WMP's "now playing" taskbar-toolbar
+                    wi.ClassName == "ApplicationFrameWindow")                   //win10 applications like calendar, xbox frame and other
                     return false;
 
                 return true;
@@ -131,8 +135,42 @@ namespace mmswitcherAPI.AltTabSimulator
                 return GetLastVisibleActivePopUpOfWindow(lastPopUp);
         }
 
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="hWnd"></param>
+        ///// <returns></returns>
+        //private static bool IsWindowThreadAlive(IntPtr hWnd)
+        //{
+        //    uint threadProcessId = WinApi.GetWindowThreadProcessId(hWnd, IntPtr.Zero);
+        //    IntPtr threadHandle = WinApi.OpenThread(WinApi.ThreadAccess.QUERY_INFORMATION, false, threadProcessId);
+        //    uint exitCode;
+        //    IntPtr threadId = WinApi.GetThreadId(hWnd);
+        //    bool result = WinApi.GetExitCodeThread(threadHandle, out exitCode);
+        //    WinApi.CloseHandle(threadHandle);
+        //    if (exitCode != 259)
+        //        return false;
+        //    return true;
+        //}
 
-
+        private static bool IsWindowThreadAliveEz(IntPtr hWnd)
+        {
+            int processId;
+            IntPtr temp = (IntPtr)6227102;
+            uint threadProcessId = WinApi.GetWindowThreadProcessId(hWnd, out processId);
+            try
+            {
+                var proc = Process.GetProcessById((int)processId);
+                var threadCollection = proc.Threads.Cast<ProcessThread>();
+                int suspendedThreads = threadCollection.Count((p) => { return p.ThreadState == ThreadState.Wait && p.WaitReason == ThreadWaitReason.Suspended; });
+                //if all threads have status Suspended then all process is suspended (i believe)
+                var t = threadCollection.Count();
+                if (threadCollection.Count() == suspendedThreads)
+                    return false;
+            }
+            catch { return false; }
+            return true;
+        }
 
     }
 }

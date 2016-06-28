@@ -15,11 +15,14 @@ namespace mmswitcherAPI.AltTabSimulator
     /// Класс реализует функционал, аналогичный (максимально приближенный) работе с переключением окон сочетанием клавиш alt+tab
     ///<remarks>Singleton</remarks>
     /// </summary>
-    internal sealed class ActiveWindowStack
+    public sealed class ActiveWindowStack
     {
         private WindowMessagesMonitor _winMesMon;
         private static ActiveWindowStack _instance;
         private static readonly object _locker = new object();
+        public delegate void StackActionDelegate(StackAction action, IntPtr hWnd);
+
+        public event StackActionDelegate onActiveWindowStackChanged;
 
         private List<IntPtr> _windowStack;
         public List<IntPtr> WindowStack
@@ -104,6 +107,12 @@ namespace mmswitcherAPI.AltTabSimulator
         private void RefreshStack()
         {
             _windowStack = OpenWindowGetter.GetAltTabWindowsHandles();
+#if DEBUG
+            var windows = OpenWindowGetter.GetAltTabWindows();
+            var testHexStack = new List<string>();
+            testHexStack = _windowStack.Select((IntPtr p) => { return p.ToString("X"); }).ToList();
+            
+#endif
         }
 
         private void ClearAltTabList()
@@ -126,11 +135,12 @@ namespace mmswitcherAPI.AltTabSimulator
                     }
                 if (!newWindow)
                 {
-                    IntPtr windowHWnd = _windowStack.Find(x => x == fore);
-                    if (windowHWnd != IntPtr.Zero)
+                    IntPtr hWnd = _windowStack.Find(x => x == fore);
+                    if (hWnd != IntPtr.Zero)
                     {
-                        _windowStack.Remove(windowHWnd);
-                        _windowStack.Insert(0, windowHWnd);
+                        _windowStack.Remove(hWnd);
+                        _windowStack.Insert(0, hWnd);
+                        onActiveWindowStackChanged(StackAction.MovedToFore, hWnd);
                     }
                 }
                 //check if window exists, remove from list if not
@@ -143,10 +153,16 @@ namespace mmswitcherAPI.AltTabSimulator
         void _winMesMon_onMessageTraced(object sender, IntPtr hWnd, Interop.ShellEvents shell)
         {
             if (shell == Interop.ShellEvents.HSHELL_WINDOWDESTROYED)
+            {
                 _windowStack.Remove(hWnd);
+                onActiveWindowStackChanged(StackAction.Removed, hWnd);
+            }
 
             if (shell == Interop.ShellEvents.HSHELL_WINDOWCREATED && OpenWindowGetter.KeepWindowHandleInAltTabList(hWnd))
+            {
                 _windowStack.Insert(0, hWnd);
+                onActiveWindowStackChanged(StackAction.Added, hWnd);
+            }
         }
         private void Dispose()
         {
@@ -162,10 +178,12 @@ namespace mmswitcherAPI.AltTabSimulator
             Dispose();
         }
     }
-    public enum SwitchTo
+
+    public enum StackAction
     {
-        Tab = 0,
-        Window = 1
-    }
+        Added,
+        Removed,
+        MovedToFore
+        }
 
 }

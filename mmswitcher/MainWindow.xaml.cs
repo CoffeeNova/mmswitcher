@@ -14,7 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Interop;
 using mmswitcherAPI;
-using mmswitcherAPI.winmsg;
+
 
 namespace mmswitcher
 {
