@@ -45,6 +45,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="UIAutomationClient" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -56,15 +57,23 @@
     <Compile Include="AltTabSimulator\WinApi.cs" />
     <Compile Include="AltTabSimulator\WindowContainer.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="GlobalBindController\GlobalBindController.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="GlobalBindController\WinApi.cs" />
     <Compile Include="Interop.cs" />
-    <Compile Include="Messanger.cs" />
+    <Compile Include="Messangers\Messanger.cs" />
     <Compile Include="Window Messages\MessageMonitors.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Structs and enums.cs" />
     <Compile Include="Window Messages\MsgMonitor.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Structs and enums.cs" />
     <Compile Include="Window Messages\Window messages.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Messangers\Desktop\" />
+    <Folder Include="Messangers\Web\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

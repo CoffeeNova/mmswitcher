@@ -97,7 +97,7 @@ namespace mmswitcherAPI
         public static extern bool DeviceIoControl(
                                                 IntPtr hDevice,
                                                 uint dwIoControlCode,
-                                                ref Tools.KeyboardIndicatorParameters InBuffer,
+                                                ref KeyboardIndicatorParameters InBuffer,
                                                 uint nInBufferSize,
                                                 IntPtr OutBuffer,
                                                 int nOutBufferSize,
@@ -129,7 +129,7 @@ namespace mmswitcherAPI
         public static extern void SwitchToThisWindow(IntPtr hWnd, bool turnon);
         [DllImport("user32.dll")]
         [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
-        public static extern bool ShowWindow(IntPtr hWnd, Tools.ShowWindowEnum flags);
+        public static extern bool ShowWindow(IntPtr hWnd, ShowWindowEnum flags);
 
         [DllImport("user32.dll")]
         public static extern IntPtr WindowFromPoint(Point p);
@@ -145,7 +145,7 @@ namespace mmswitcherAPI
         public static extern IntPtr GetShellWindow();
 
         [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool GetWindowRect(IntPtr hWnd, out Tools.RECT lpRect);
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
 
         [DllImport("user32.dll", EntryPoint = "GetClassName", ExactSpelling = false,
             CharSet = CharSet.Auto, SetLastError = true)]
@@ -169,7 +169,7 @@ namespace mmswitcherAPI
     {
         public int length;
         public int flags;
-        public Tools.ShowWindowCommands showCmd;
+        public ShowWindowCommands showCmd;
         public System.Drawing.Point ptMinPosition;
         public System.Drawing.Point ptMaxPosition;
         public System.Drawing.Rectangle rcNormalPosition;

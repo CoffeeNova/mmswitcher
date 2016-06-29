@@ -60,7 +60,6 @@ namespace mmswitcherAPI.winmsg
         /// Конструктор для общих сообщений.
         /// </summary>
         /// <param name="msgNotify">Значение сообщения. См. http://wiki.winehq.org/List_Of_Windows_Messages. </param>
-        /// <remarks>Рекомендуется использовать этот конструктор при разработке WPF приложения.</remarks>
         public MsgMonitor(int msgNotify)
         {
             _msgReceiver = new MControl();
@@ -136,7 +135,7 @@ namespace mmswitcherAPI.winmsg
         }
     }
 
-    internal class MControl : Control 
+    internal class MControl : Control
     {
         public delegate IntPtr WndProcDelegate(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled);
         public event WndProcDelegate onWndProc;
