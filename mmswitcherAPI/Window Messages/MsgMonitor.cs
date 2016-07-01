@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Interop;
 using System.Windows;
-using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace mmswitcherAPI.winmsg
@@ -22,7 +21,7 @@ namespace mmswitcherAPI.winmsg
         private MControl _msgReceiver;
         private bool _isWpfSpecial = false;
 
-        public delegate void EventHandler(object sender, IntPtr hWnd, Interop.ShellEvents shell);
+        public delegate void EventHandler(object sender, IntPtr hWnd, ShellEvents shell);
 
         //Происходит при обнаружении нужного сообщения
         public event EventHandler onMessageTraced;
@@ -50,8 +49,8 @@ namespace mmswitcherAPI.winmsg
         {
             _isWpfSpecial = true;
             _window = window;
-            _msgNotify = Interop.RegisterWindowMessage("SHELLHOOK");
-            Interop.RegisterShellHookWindow(new WindowInteropHelper(window).Handle);
+            _msgNotify = WinApi.RegisterWindowMessage("SHELLHOOK");
+            WinApi.RegisterShellHookWindow(new WindowInteropHelper(window).Handle);
             _hwndWindow = PresentationSource.FromVisual(_window as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
         }
@@ -73,8 +72,8 @@ namespace mmswitcherAPI.winmsg
         public MsgMonitor()
         {
             _msgReceiver = new MControl();
-            _msgNotify = Interop.RegisterWindowMessage("SHELLHOOK");
-            Interop.RegisterShellHookWindow(_msgReceiver.Handle);
+            _msgNotify = WinApi.RegisterWindowMessage("SHELLHOOK");
+            WinApi.RegisterShellHookWindow(_msgReceiver.Handle);
             _msgReceiver.onWndProc += MessageTrace;
         }
 
@@ -86,7 +85,7 @@ namespace mmswitcherAPI.winmsg
                 {
                     var handler = onMessageTraced;
                     if (handler != null)
-                        handler(_window, lParam, (Interop.ShellEvents)wParam.ToInt32());
+                        handler(_window, lParam, (ShellEvents)wParam.ToInt32());
                 }
             return IntPtr.Zero;
         }
@@ -116,7 +115,7 @@ namespace mmswitcherAPI.winmsg
                     if (_isWpfSpecial)
                         _hwndWindow.RemoveHook(new HwndSourceHook(MessageTrace));
                     else
-                        Interop.DeregisterShellHookWindow(_msgReceiver.Handle);
+                        WinApi.DeregisterShellHookWindow(_msgReceiver.Handle);
                 }
                 catch { }
                 _disposed = true;

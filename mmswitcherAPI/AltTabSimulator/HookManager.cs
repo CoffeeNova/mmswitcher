@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace mmswitcherAPI.AltTabSimulator
 {
-    public static partial class HookManager
+    internal partial class HookManager
     {
-        private static event EventHandler s_ForegroundChanged;
+        private event EventHandler s_ForegroundChanged;
         /// <summary>
         /// 
         /// </summary>
-        public static event EventHandler ForegroundChanged
+        public event EventHandler ForegroundChanged
         {
             add
             {

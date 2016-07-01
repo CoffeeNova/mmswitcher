@@ -15,7 +15,7 @@ namespace mmswitcherAPI.AltTabSimulator
         /// <returns>A dictionary that contains the handle and title of all the open windows.</returns>
         public static IDictionary<IntPtr, string> GetAltTabWindows()
         {
-            IntPtr shellWindow = Interop.GetShellWindow();
+            IntPtr shellWindow = WinApi.GetShellWindow();
             Dictionary<IntPtr, string> windows = new Dictionary<IntPtr, string>();
 
             WinApi.EnumWindows(delegate(IntPtr hWnd, int lParam)
@@ -25,9 +25,9 @@ namespace mmswitcherAPI.AltTabSimulator
 
                 if (!KeepWindowHandleInAltTabList(hWnd))
                     return true;
-                int length = Interop.GetWindowTextLength(hWnd);
+                int length = WinApi.GetWindowTextLength(hWnd);
                 StringBuilder builder = new StringBuilder(length);
-                Interop.GetWindowText(hWnd, builder, length + 1);
+                WinApi.GetWindowText(hWnd, builder, length + 1);
 
                 windows[hWnd] = builder.ToString();
                 return true;
@@ -42,7 +42,7 @@ namespace mmswitcherAPI.AltTabSimulator
         /// <returns></returns>
         public static List<IntPtr> GetAltTabWindowsHandles()
         {
-            IntPtr shellWindow = Interop.GetShellWindow();
+            IntPtr shellWindow = WinApi.GetShellWindow();
             List<IntPtr> windows = new List<IntPtr>();
 
             WinApi.EnumWindows(delegate(IntPtr hWnd, int lParam)
@@ -70,9 +70,9 @@ namespace mmswitcherAPI.AltTabSimulator
 
             if (!KeepWindowHandleInAltTabList(hWnd))
                 return window;
-            int length = Interop.GetWindowTextLength(hWnd);
+            int length = WinApi.GetWindowTextLength(hWnd);
             StringBuilder builder = new StringBuilder(length);
-            Interop.GetWindowText(hWnd, builder, length + 1);
+            WinApi.GetWindowText(hWnd, builder, length + 1);
 
             return new KeyValuePair<IntPtr, string>(hWnd, builder.ToString());
         }
@@ -83,7 +83,7 @@ namespace mmswitcherAPI.AltTabSimulator
         /// <returns></returns>
         public static bool KeepWindowHandleInAltTabList(IntPtr window)
         {
-            if (window == Interop.GetShellWindow() || Interop.GetWindowTextLength(window) == 0)   //Desktop or without title
+            if (window == WinApi.GetShellWindow() || WinApi.GetWindowTextLength(window) == 0)   //Desktop or without title
                 return false;
 
             if (!IsWindowThreadAlive(window))
@@ -126,8 +126,8 @@ namespace mmswitcherAPI.AltTabSimulator
         private static IntPtr GetLastVisibleActivePopUpOfWindow(IntPtr window)
         {
 
-            IntPtr lastPopUp = Interop.GetLastActivePopup(window);
-            if (Interop.IsWindowVisible(lastPopUp))
+            IntPtr lastPopUp = WinApi.GetLastActivePopup(window);
+            if (WinApi.IsWindowVisible(lastPopUp))
                 return lastPopUp;
             else if (lastPopUp == window)
                 return IntPtr.Zero;

@@ -10,22 +10,9 @@ using System.Drawing;
 
 namespace mmswitcherAPI
 {
-    public static class Interop
+    public static class WinApi
     {
         public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
-        public enum ShellEvents : int
-        {
-            HSHELL_WINDOWCREATED = 1,
-            HSHELL_WINDOWDESTROYED = 2,
-            HSHELL_ACTIVATESHELLWINDOW = 3,
-            HSHELL_WINDOWACTIVATED = 4,
-            HSHELL_GETMINRECT = 5,
-            HSHELL_REDRAW = 6,
-            HSHELL_TASKMAN = 7,
-            HSHELL_LANGUAGE = 8,
-            HSHELL_ACCESSIBILITYSTATE = 11,
-            HSHELL_APPCOMMAND = 12
-        }
 
         [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         public static extern int RegisterWindowMessage(string lpString);
@@ -164,14 +151,9 @@ namespace mmswitcherAPI
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern uint MapVirtualKey(uint uCode, uint uMapType);
+
+        public delegate void WinEventHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime);
+
     }
-    public struct WINDOWPLACEMENT
-    {
-        public int length;
-        public int flags;
-        public ShowWindowCommands showCmd;
-        public System.Drawing.Point ptMinPosition;
-        public System.Drawing.Point ptMaxPosition;
-        public System.Drawing.Rectangle rcNormalPosition;
-    }
+
 }

@@ -20,6 +20,7 @@ namespace mmswitcherAPI.AltTabSimulator
         private WindowMessagesMonitor _winMesMon;
         private static ActiveWindowStack _instance;
         private static readonly object _locker = new object();
+        private HookManager _hManager;
         public delegate void StackActionDelegate(StackAction action, IntPtr hWnd);
 
         /// <summary>
@@ -59,6 +60,7 @@ namespace mmswitcherAPI.AltTabSimulator
         private ActiveWindowStack(Window window)
         {
             _winMesMon = new WindowMessagesMonitor(window);
+            _hManager = new HookManager();
         }
 
         //конструктор для Windows.Forms приложения
@@ -111,7 +113,7 @@ namespace mmswitcherAPI.AltTabSimulator
             {
                 RefreshStack();
                 _winMesMon.onMessageTraced += _winMesMon_onMessageTraced;
-                HookManager.ForegroundChanged += HookManager_ForegroundChanged;
+                _hManager.ForegroundChanged += HookManager_ForegroundChanged;
                 started = true;
                 suspended = false;
             }
@@ -126,7 +128,7 @@ namespace mmswitcherAPI.AltTabSimulator
             {
                 ClearAltTabList();
                 _winMesMon.onMessageTraced -= _winMesMon_onMessageTraced;
-                HookManager.ForegroundChanged -= HookManager_ForegroundChanged;
+                _hManager.ForegroundChanged -= HookManager_ForegroundChanged;
                 suspended = true;
                 started = false;
             }
@@ -182,15 +184,15 @@ namespace mmswitcherAPI.AltTabSimulator
         }
 
         //Вызывается при создании или закрытии любого окна Windows
-        void _winMesMon_onMessageTraced(object sender, IntPtr hWnd, Interop.ShellEvents shell)
+        void _winMesMon_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
         {
-            if (shell == Interop.ShellEvents.HSHELL_WINDOWDESTROYED)
+            if (shell == ShellEvents.HSHELL_WINDOWDESTROYED)
             {
                 _windowStack.Remove(hWnd);
                 onActiveWindowStackChanged(StackAction.Removed, hWnd);
             }
 
-            if (shell == Interop.ShellEvents.HSHELL_WINDOWCREATED && OpenWindowGetter.KeepWindowHandleInAltTabList(hWnd))
+            if (shell == ShellEvents.HSHELL_WINDOWCREATED && OpenWindowGetter.KeepWindowHandleInAltTabList(hWnd))
             {
                 _windowStack.Insert(0, hWnd);
                 onActiveWindowStackChanged(StackAction.Added, hWnd);
@@ -201,7 +203,7 @@ namespace mmswitcherAPI.AltTabSimulator
             try
             {
                 _winMesMon.onMessageTraced -= _winMesMon_onMessageTraced;
-                HookManager.ForegroundChanged -= HookManager_ForegroundChanged;
+                _hManager.ForegroundChanged -= HookManager_ForegroundChanged;
             }
             catch { }
         }

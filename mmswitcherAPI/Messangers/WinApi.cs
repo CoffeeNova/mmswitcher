@@ -5,55 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace mmswitcherAPI.AltTabSimulator
+namespace mmswitcherAPI.Messangers
 {
     internal class WinApi
     {
-        internal delegate bool EnumWindowsProc(IntPtr hWnd, int lParam);
-
-        [DllImport("USER32.DLL")]
-        internal static extern bool EnumWindows(EnumWindowsProc enumFunc, int lParam);
-
-        [DllImport("USER32.DLL")]
-        internal static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-        [DllImport("USER32.DLL")]
-        internal static extern int GetWindowTextLength(IntPtr hWnd);
-
-        [DllImport("USER32.DLL")]
-        internal static extern bool IsWindowVisible(IntPtr hWnd);
-
-        [DllImport("USER32.DLL")]
-        internal static extern IntPtr GetShellWindow();
-
-        [DllImport("user32.dll", ExactSpelling = true)]
-        internal static extern IntPtr GetAncestor(IntPtr hwnd, GaFlags flags);
-
-        [DllImport("user32.dll")]
-        internal static extern IntPtr GetLastActivePopup(IntPtr hWnd);
-
-        [DllImport("Kernel32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, SetLastError = true)]
-        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, IntPtr ProcessId);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, SetLastError = true)]
-        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int ProcessId);
-
-        [DllImport("Kernel32.dll")]
-        internal static extern IntPtr GetThreadId(IntPtr hWnd);
-
-        [DllImport("Kernel32.dll")]
-        internal static extern IntPtr OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [System.Runtime.ConstrainedExecution.ReliabilityContract(System.Runtime.ConstrainedExecution.Consistency.WillNotCorruptState, System.Runtime.ConstrainedExecution.Cer.Success)]
-        [System.Security.SuppressUnmanagedCodeSecurity]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool CloseHandle(IntPtr hObject);
-
         internal delegate void WinEventHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime);
         /// <summary>
         /// Sets an event hook function for a range of events.
@@ -107,35 +62,5 @@ namespace mmswitcherAPI.AltTabSimulator
         /// </returns>
         [DllImport("user32.dll")]
         internal static extern bool UnhookWinEvent(int hWinEventHook);
-
-        internal enum GaFlags
-        {
-            /// <summary>
-            /// Retrieves the parent window. This does not include the owner, as it does with the GetParent function. 
-            /// </summary>
-            GA_PARENT = 1,
-            /// <summary>
-            /// Retrieves the root window by walking the chain of parent windows.
-            /// </summary>
-            GA_ROOT = 2,
-            /// <summary>
-            /// Retrieves the owned root window by walking the chain of parent and owner windows returned by GetParent. 
-            /// </summary>
-            GA_ROOTOWNER = 3
-        }
-
-        [Flags]
-        internal enum ThreadAccess : int
-        {
-            TERMINATE = (0x0001),
-            SUSPEND_RESUME = (0x0002),
-            GET_CONTEXT = (0x0008),
-            SET_CONTEXT = (0x0010),
-            SET_INFORMATION = (0x0020),
-            QUERY_INFORMATION = (0x0040),
-            SET_THREAD_TOKEN = (0x0080),
-            IMPERSONATE = (0x0100),
-            DIRECT_IMPERSONATION = (0x0200)
-        }
     }
 }

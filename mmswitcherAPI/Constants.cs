@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace mmswitcherAPI
 {
-    public static class Constants
+    internal static class Constants
     {
         internal const int KEY_REGISTER_ID = 0;
         internal const int SHIFTKEY_REGISTER_ID = 1;

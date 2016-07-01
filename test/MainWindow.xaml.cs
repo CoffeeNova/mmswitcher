@@ -54,15 +54,15 @@ namespace test
             Console.WriteLine("----------------------------------------------");
             foreach (IntPtr handle in aws.WindowStack)
             {
-                int len = Interop.GetWindowTextLength(handle);
+                int len = WinApi.GetWindowTextLength(handle);
                 StringBuilder buid = new StringBuilder(len);
-                Interop.GetWindowText(handle, buid, len + 1);
+                WinApi.GetWindowText(handle, buid, len + 1);
                 Console.WriteLine(buid.ToString());
             }
         }
 
 
-        void _wmm_onMessageTraced(object sender, IntPtr hWnd, Interop.ShellEvents shell)
+        void _wmm_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
         {
             //Console.WriteLine(m = m + 1);
         }

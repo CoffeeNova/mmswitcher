@@ -24,11 +24,11 @@ namespace mmswitcherAPI.winmsg
         protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             // Receive shell messages
-            switch ((Interop.ShellEvents)wParam.ToInt32())
+            switch ((ShellEvents)wParam.ToInt32())
             {
-                case Interop.ShellEvents.HSHELL_WINDOWCREATED:
-                case Interop.ShellEvents.HSHELL_WINDOWDESTROYED:
-                case Interop.ShellEvents.HSHELL_WINDOWACTIVATED:
+                case ShellEvents.HSHELL_WINDOWCREATED:
+                case ShellEvents.HSHELL_WINDOWDESTROYED:
+                case ShellEvents.HSHELL_WINDOWACTIVATED:
                     return true;
             }
             return false;
@@ -48,11 +48,11 @@ namespace mmswitcherAPI.winmsg
         protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             // Receive shell messages
-            switch ((Interop.ShellEvents)wParam.ToInt32())
+            switch ((ShellEvents)wParam.ToInt32())
             {
-                case Interop.ShellEvents.HSHELL_WINDOWCREATED:
-                case Interop.ShellEvents.HSHELL_WINDOWDESTROYED:
-                case Interop.ShellEvents.HSHELL_WINDOWACTIVATED:
+                case ShellEvents.HSHELL_WINDOWCREATED:
+                case ShellEvents.HSHELL_WINDOWDESTROYED:
+                case ShellEvents.HSHELL_WINDOWACTIVATED:
                     return true;
             }
             return false;

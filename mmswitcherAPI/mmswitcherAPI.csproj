@@ -61,7 +61,11 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="GlobalBindController\WinApi.cs" />
-    <Compile Include="Interop.cs" />
+    <Compile Include="Messangers\WebHookManager.Designer.cs" />
+    <Compile Include="Messangers\WinApi.cs" />
+    <Compile Include="WinApi.cs" />
+    <Compile Include="Messangers\WebHookManager.Callbacks.cs" />
+    <Compile Include="Messangers\WebHookManager.cs" />
     <Compile Include="Messangers\Messanger.cs" />
     <Compile Include="Window Messages\MessageMonitors.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

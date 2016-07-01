@@ -5,14 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
+using mmswitcherAPI.AltTabSimulator;
 
 namespace mmswitcherAPI.AltTabSimulator
 {
-    public static partial class HookManager
+    internal partial class HookManager
     {
-        private static int s_ForegroundChangedHookHandle;
-        private static WinApi.WinEventHookProc s_ForegroundChangedDelegate;
-        private static void ForegroundChangedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
+        private int s_ForegroundChangedHookHandle;
+        private WinApi.WinEventHookProc s_ForegroundChangedDelegate;
+        private void ForegroundChangedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
 #if DEBUG
             Console.WriteLine(string.Format("hWinEventHook: {0}, iEvent: {1}, hWnd: {2},  idObject: {3}, idChild: {4}, dwEventThread: {5}, dwmsEventTime:{6}", hWinEventHook, iEvent, hWnd, idObject, idChild, dwEventThread, dwmsEventTime));
@@ -26,7 +27,7 @@ namespace mmswitcherAPI.AltTabSimulator
             { Console.WriteLine(ex.Message); }
         }
 
-        private static void EnsureSubscribedToForegroundChangedEvent()
+        private void EnsureSubscribedToForegroundChangedEvent()
         {
             // install Focus hook only if it is not installed and must be installed
             if (s_ForegroundChangedHookHandle == 0)
@@ -50,7 +51,7 @@ namespace mmswitcherAPI.AltTabSimulator
             }
 
         }
-        private static void TryUnsubscribeFromForegroundChangedEvent()
+        private void TryUnsubscribeFromForegroundChangedEvent()
         {
             //if no subsribers are registered unsubsribe from hook
             if (s_ForegroundChanged == null)
@@ -59,7 +60,7 @@ namespace mmswitcherAPI.AltTabSimulator
             }
         }
 
-        private static void ForceUnsunscribeFromForegroundChangedEvent()
+        private void ForceUnsunscribeFromForegroundChangedEvent()
         {
             if (s_ForegroundChangedHookHandle != 0)
             {

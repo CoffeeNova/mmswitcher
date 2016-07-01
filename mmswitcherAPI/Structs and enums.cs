@@ -7,11 +7,51 @@ using System.Windows.Input;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace mmswitcherAPI
 {
-    public static partial class Tools
+    internal static partial class Tools
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="processName"></param>
+        /// <returns></returns>
+        internal static Process UIProcess(string processName)
+        {
+            Process uiProcess = null;
+            Process[] procs = null;
+
+            if (String.IsNullOrEmpty(processName))
+                return null;
+            procs = Process.GetProcessesByName(processName);
+            if (procs.Length == 0)
+                return null;
+            else
+                // the process must have a window
+                uiProcess = procs.FirstOrDefault((proc) => proc.MainWindowHandle != IntPtr.Zero);
+            return uiProcess;
+        }
+
+        internal static string DefineBrowserProcessName(InternetBrowser browser)
+        {
+            switch (browser)
+            {
+                case InternetBrowser.GoogleChrome:
+                    return Constants.CHROME_PROCESS_NAME;
+                case InternetBrowser.InternetExplorer:
+                    return Constants.IE_PROCESS_NAME;
+                case InternetBrowser.Opera:
+                    return Constants.OPERA_PROCESS_NAME;
+                case InternetBrowser.Firefox:
+                    return Constants.FIREFOX_PROCESS_NAME;
+                case InternetBrowser.TorBrowser:
+                    return Constants.TOR_PROCESS_NAME;
+                default:
+                    return String.Empty;
+            }
+        }
     }
     #region structs and enums
     [StructLayout(LayoutKind.Sequential)]
@@ -898,6 +938,21 @@ namespace mmswitcherAPI
         WM_POWERBROADCAST = 0x218, // Notifies applications that a power-management event has occurred.
         BROADCAST_QUERY_DENY = 0x424D5144 //
     }
+
+    public enum ShellEvents : int
+    {
+        HSHELL_WINDOWCREATED = 1,
+        HSHELL_WINDOWDESTROYED = 2,
+        HSHELL_ACTIVATESHELLWINDOW = 3,
+        HSHELL_WINDOWACTIVATED = 4,
+        HSHELL_GETMINRECT = 5,
+        HSHELL_REDRAW = 6,
+        HSHELL_TASKMAN = 7,
+        HSHELL_LANGUAGE = 8,
+        HSHELL_ACCESSIBILITYSTATE = 11,
+        HSHELL_APPCOMMAND = 12
+    }
+
     #region WindowsVirtualKey
     public enum WindowsVirtualKey
     {
