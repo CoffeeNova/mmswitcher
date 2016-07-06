@@ -15,6 +15,9 @@ using System.Windows.Shapes;
 using mmswitcherAPI;
 using mmswitcherAPI.winmsg;
 using mmswitcherAPI.AltTabSimulator;
+using System.Windows.Automation;
+//using mmswitcherAPI.Messangers.Web;
+using mmswitcherAPI.Messangers;
 
 namespace test
 {
@@ -27,11 +30,25 @@ namespace test
         private int m = 0;
         WindowMessagesMonitor _wmm;
         ActiveWindowStack aws;
+        AutomationElement ae;
 
 
         public MainWindow()
         {
             InitializeComponent();
+            var focusHandler = new AutomationFocusChangedEventHandler(OnFocusChanged);
+            Automation.AddAutomationFocusChangedEventHandler(focusHandler);
+            var chromeProcess = System.Diagnostics.Process.GetProcessById(260);
+           // WebSkype ws = new WebSkype(chromeProcess);
+
+        }
+
+        private void OnFocusChanged(object src, AutomationFocusChangedEventArgs e)
+        {
+            var focusedElement = src as AutomationElement;
+            Console.WriteLine(focusedElement.Current.Name + "   " + focusedElement.Current.HasKeyboardFocus.ToString() + "  " + e.ObjectId);
+            //e.ChildId;
+            // messengerAE.Current.AutomationId
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -51,14 +68,14 @@ namespace test
             //StringBuilder builder = new StringBuilder(length);
             //Interop.GetWindowText(hWnd, builder, length + 1);
             //Console.WriteLine(builder.ToString() + " " + action.ToString());
-            Console.WriteLine("----------------------------------------------");
-            foreach (IntPtr handle in aws.WindowStack)
-            {
-                int len = WinApi.GetWindowTextLength(handle);
-                StringBuilder buid = new StringBuilder(len);
-                WinApi.GetWindowText(handle, buid, len + 1);
-                Console.WriteLine(buid.ToString());
-            }
+            //Console.WriteLine("----------------------------------------------");
+            //foreach (IntPtr handle in aws.WindowStack)
+            //{
+            //    int len = WinApi.GetWindowTextLength(handle);
+            //    StringBuilder buid = new StringBuilder(len);
+            //    WinApi.GetWindowText(handle, buid, len + 1);
+            //    Console.WriteLine(buid.ToString());
+            //}
         }
 
 

@@ -141,6 +141,8 @@ namespace mmswitcherAPI.Messangers
             }
         }
         #endregion
+
+        
         //!!! NOT TESTED FOR OTHER BROWSERS THEN CHROME
         private int ChooseWinEventHook(InternetBrowser browser, Process process, WinApi.WinEventHookProc wehp)
         {
@@ -183,4 +185,6 @@ namespace mmswitcherAPI.Messangers
         /// </summary>
         private const int WINEVENT_OUTOFCONTEXT = 0;
     }
+
+    
 }

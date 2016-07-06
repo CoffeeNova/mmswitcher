@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Windows.Automation;
 
 namespace mmswitcherAPI
 {
@@ -51,6 +52,162 @@ namespace mmswitcherAPI
                 default:
                     return String.Empty;
             }
+        }
+
+        internal static InternetBrowser DefineBrowserByProcessName(string processName)
+        {
+            switch(processName)
+            {
+                case Constants.CHROME_PROCESS_NAME:
+                    return InternetBrowser.GoogleChrome;
+                case Constants.IE_PROCESS_NAME:
+                    return InternetBrowser.InternetExplorer;
+                case Constants.OPERA_PROCESS_NAME:
+                    return InternetBrowser.Opera;
+                case Constants.FIREFOX_PROCESS_NAME:
+                    return InternetBrowser.Firefox;
+                default:
+                    throw new ArgumentException();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <returns></returns>
+        internal static string GetClassName(IntPtr hWnd)
+        {
+            StringBuilder title = new StringBuilder(Constants.MAXTITLE);
+            int titleLength = WinApi.GetClassName(hWnd, title, title.Capacity + 1);
+            title.Length = titleLength;
+
+            return title.ToString();
+        }
+
+        internal static Process GetProcess(IntPtr hWnd)
+        {
+            uint processId;
+            WinApi.GetWindowThreadProcessId(hWnd, out processId);
+            Process process;
+            try
+            {
+               process = Process.GetProcessById((int)processId);
+            }
+            catch { return null;}
+            return process;
+        }
+
+        /// <summary>
+        /// Возвращает список дескрипторов окон, имя класса которых className
+        /// </summary>
+        /// <param name="processID">id процесса</param>
+        /// <param name="className">имя класса по которому производится выборка</param>
+        /// <returns></returns>
+        internal static List<IntPtr> GetWidgetWindowHandles(int processID, string className)
+        {
+            //get all windows handles
+            List<IntPtr> rootWindows = GetRootWindowsOfProcess(processID);
+            // find the handles witch contains widget window
+            AutomationElement rootWindowAE;
+            List<IntPtr> widgetHandles = new List<IntPtr>();
+            foreach (IntPtr handle in rootWindows)
+            {
+                rootWindowAE = AutomationElement.FromHandle(handle);
+                if (rootWindowAE == null)
+                    continue;
+                if (rootWindowAE.Current.ClassName == className)
+                {
+                    widgetHandles.Add(handle);
+                }
+            }
+            return widgetHandles;
+        }
+
+        internal static List<IntPtr> GetRootWindowsOfProcess(int pid)
+        {
+            List<IntPtr> rootWindows = GetChildWindows(IntPtr.Zero);
+            List<IntPtr> dsProcRootWindows = new List<IntPtr>();
+            foreach (IntPtr hWnd in rootWindows)
+            {
+                uint lpdwProcessId;
+                WinApi.GetWindowThreadProcessId(hWnd, out lpdwProcessId);
+                if (lpdwProcessId == pid)
+                    dsProcRootWindows.Add(hWnd);
+            }
+            return dsProcRootWindows;
+        }
+
+        internal static List<IntPtr> GetChildWindows(IntPtr parent)
+        {
+            List<IntPtr> result = new List<IntPtr>();
+            GCHandle listHandle = GCHandle.Alloc(result);
+            try
+            {
+                WinApi.Win32Callback childProc = new WinApi.Win32Callback(EnumWindow);
+                WinApi.EnumChildWindows(parent, childProc, GCHandle.ToIntPtr(listHandle));
+            }
+            finally
+            {
+                if (listHandle.IsAllocated)
+                    listHandle.Free();
+            }
+            return result;
+        }
+
+        internal static bool EnumWindow(IntPtr handle, IntPtr pointer)
+        {
+            GCHandle gch = GCHandle.FromIntPtr(pointer);
+            List<IntPtr> list = gch.Target as List<IntPtr>;
+            if (list == null)
+            {
+                throw new InvalidCastException("GCHandle Target could not be cast as List<IntPtr>");
+            }
+            list.Add(handle);
+            //  You can modify this to check to see if you want to cancel the operation, then return a null here
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <returns></returns>
+        internal static bool RestoreMinimizedWindow(IntPtr hWnd)
+        {
+
+            var placement = GetPlacement(hWnd);
+            if (placement.showCmd == ShowWindowCommands.Minimized)
+            {
+                WinApi.ShowWindow(hWnd, ShowWindowEnum.Restore);
+                return true;
+            }
+            return false;
+        }
+
+        internal static WINDOWPLACEMENT GetPlacement(IntPtr hwnd)
+        {
+            WINDOWPLACEMENT placement = new WINDOWPLACEMENT();
+            placement.length = Marshal.SizeOf(placement);
+            WinApi.GetWindowPlacement(hwnd, ref placement);
+            return placement;
+        }
+
+        /// <summary>
+        /// Set window to minimize state
+        /// </summary>
+        /// <param name="hWnd">window handle</param>
+        /// /// <param name="allState">False if window is already minimized</param>
+        /// <returns></returns>
+        internal static bool MinimizeWindow(IntPtr hWnd)
+        {
+            var placement = GetPlacement(hWnd);
+            if (placement.showCmd != ShowWindowCommands.Minimized)
+            {
+                WinApi.ShowWindow(hWnd, ShowWindowEnum.Minimize);
+                return true;
+            }
+            return false;
         }
     }
     #region structs and enums

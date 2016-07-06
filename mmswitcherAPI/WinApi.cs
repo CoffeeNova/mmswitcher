@@ -27,8 +27,12 @@ namespace mmswitcherAPI
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr SetWindowsHookEx(int id, LowLevelKeyboardProc callback, IntPtr hMod, uint dwThreadId);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern int SetWinEventHook(int eventMin, int eventMax, IntPtr hmodWinEventProc, WinEventHookProc lpfnWinEventProc, int idProcess, int idThread, int dwflags);
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool UnhookWindowsHookEx(IntPtr hook);
+        [DllImport("user32.dll")]
+        public static extern bool UnhookWinEvent(int hWinEventHook);
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr CallNextHookEx(IntPtr hook, int nCode, IntPtr wp, IntPtr lp);
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -56,8 +60,12 @@ namespace mmswitcherAPI
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, IntPtr ProcessId);
+        
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int ProcessId);
 
         [DllImport("user32.dll")]
         public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);

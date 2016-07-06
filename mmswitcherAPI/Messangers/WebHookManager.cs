@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Diagnostics.Process;
+using System.Diagnostics;
 
 namespace mmswitcherAPI.Messangers
 {
@@ -41,6 +41,5 @@ namespace mmswitcherAPI.Messangers
                 TryUnsubscribeFromLostFocusEvent();
             }
         }
-
     }
 }

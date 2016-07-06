@@ -46,6 +46,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -61,7 +62,17 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="GlobalBindController\WinApi.cs" />
+    <Compile Include="Messangers\Hooks\TabNameHook.Callback.cs" />
+    <Compile Include="Messangers\Hooks\TabNameHook.cs" />
+    <Compile Include="Messangers\Hooks\TabNameHook.Windows.cs" />
     <Compile Include="Messangers\WebHookManager.Designer.cs" />
+    <Compile Include="Messangers\Web\Browsers\IBrowser.cs" />
+    <Compile Include="Messangers\Web\Browsers\Firefox.cs" />
+    <Compile Include="Messangers\Web\Browsers\GoogleChrome.cs" />
+    <Compile Include="Messangers\Web\Browsers\InternetExplorer.cs" />
+    <Compile Include="Messangers\Web\Browsers\Opera.cs" />
+    <Compile Include="Messangers\Web\Skype.cs" />
+    <Compile Include="Messangers\Web\Browsers\TorBrowser.cs" />
     <Compile Include="Messangers\WinApi.cs" />
     <Compile Include="WinApi.cs" />
     <Compile Include="Messangers\WebHookManager.Callbacks.cs" />
@@ -77,7 +88,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Messangers\Desktop\" />
-    <Folder Include="Messangers\Web\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

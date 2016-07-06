@@ -13,11 +13,17 @@ namespace mmswitcherAPI
         internal const int CTRLKEY_REGISTER_ID = 2;
         internal const int ALTKEY_REGISTER_ID = 3;
         internal const int WINKEY_REGISTER_ID = 3;
+        internal const int MAXTITLE = 255;
 
         internal const string CHROME_PROCESS_NAME = "chrome";
         internal const string OPERA_PROCESS_NAME = "opera";
         internal const string FIREFOX_PROCESS_NAME = "firefox";
         internal const string TOR_PROCESS_NAME = "firefox";
         internal const string IE_PROCESS_NAME = "iexplore";
+
+        internal const string CHROME_CLASS_NAME = "Chrome_WidgetWin_1";
+        internal const string FIREFOX_CLASS_NAME = "";
+        internal const string IE_CLASS_NAME = "";
+
     }
 }
