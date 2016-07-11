@@ -12,6 +12,8 @@ using System.Windows.Automation;
 
 namespace mmswitcherAPI
 {
+    public delegate void HookEventHandler(IntPtr sender, EventArgs e);
+
     internal static partial class Tools
     {
         /// <summary>
@@ -305,7 +307,7 @@ namespace mmswitcherAPI
     public enum Messanger
     {
         Skype,
-        WhatsUp,
+        WhatsApp,
         Telegram,
         Viber
     }

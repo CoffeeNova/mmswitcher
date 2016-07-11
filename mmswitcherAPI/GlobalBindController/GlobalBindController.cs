@@ -395,6 +395,11 @@ namespace mmswitcherAPI.Gbc
 
         private bool disposed = false;
 
+        //public void Dispose()
+        //{
+        //    Dispose(true);
+        //    GC.SuppressFinalize(this);
+        //}
 
         protected override void Dispose(bool disposing)
         {
@@ -416,6 +421,8 @@ namespace mmswitcherAPI.Gbc
                 if (winKeyRegistred)
                     WinApi.UnregisterHotKey(this.Handle, Constants.WINKEY_REGISTER_ID);
                 disposed = true;
+
+                base.Dispose();
             }
         }
         ~GlobalBindController() { Dispose(false); }

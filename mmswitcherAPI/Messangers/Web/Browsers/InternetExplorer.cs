@@ -15,9 +15,24 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         {
             return null; //todo
         }
+
+        public AutomationElement BrowserWindowAutomationElement(IntPtr hWnd)
+        {
+            try
+            {
+                // find the automation element
+                return AutomationElement.FromHandle(hWnd);
+            }
+            catch { return null; }
+        }
+
+        public AutomationElement SkypeFocusAutomationElement(IntPtr hWnd)
+        {
+            return null; //todo
+        }
         #endregion
-        #region WhatsUp
-        public AutomationElement WhatsUpTab(IntPtr hWnd)
+        #region WhatsApp
+        public AutomationElement WhatsAppTab(IntPtr hWnd)
         {
             return null; //todo
         }

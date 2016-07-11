@@ -7,10 +7,11 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.ComponentModel;
 using mmswitcherAPI;
+using System.Windows.Automation;
 
-namespace mmswitcherAPI.Messangers.Hooks
+namespace mmswitcherAPI.Messangers.Web.Browsers
 {
-    internal partial class TabNameHookManager
+    internal partial class WebMessengerHookManager
     {
         private int _tabNameChangeHookHandle;
         private WinApi.WinEventHookProc _tabNameChangeDelegate;
@@ -18,8 +19,8 @@ namespace mmswitcherAPI.Messangers.Hooks
         {
             if (hWnd == IntPtr.Zero)
                 return;
-            EventArgs e = new EventArgs();
-            _tabNameChange.Invoke(hWnd, e);
+            var e = new AutomationPropertyChangedEventArgs(AutomationElement.NameProperty, String.Empty, String.Empty);
+            _tabNameChanged.Invoke(hWnd, e);
         }
 
         //protected void
@@ -52,7 +53,7 @@ namespace mmswitcherAPI.Messangers.Hooks
         private void TryUnsubscribeFromTabNameChangeEvent()
         {
             //if no subsribers are registered unsubsribe from hook
-            if (_tabNameChange == null)
+            if (_tabNameChanged == null)
             {
                 ForceUnsunscribeFromTabNameChangeEvent();
             }

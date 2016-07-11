@@ -9,7 +9,9 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
 {
     public interface IBrowser
     {
+        AutomationElement BrowserWindowAutomationElement(IntPtr hWnd);
         AutomationElement SkypeTab(IntPtr hWnd);
-        AutomationElement WhatsUpTab(IntPtr hWnd);
+        AutomationElement WhatsAppTab(IntPtr hWnd);
+        AutomationElement SkypeFocusAutomationElement(IntPtr hWnd);
     }
 }

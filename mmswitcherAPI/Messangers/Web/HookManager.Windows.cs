@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace mmswitcherAPI.Messangers.Hooks
+namespace mmswitcherAPI.Messangers.Web.Browsers
 {
-    internal partial class TabNameHookManager
+    internal partial class WebMessengerHookManager
     {
         #region Windows constants
 

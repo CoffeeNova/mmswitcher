@@ -20,6 +20,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\mmswitcherAPI.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MwLib">
@@ -62,9 +65,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="GlobalBindController\WinApi.cs" />
-    <Compile Include="Messangers\Hooks\TabNameHook.Callback.cs" />
-    <Compile Include="Messangers\Hooks\TabNameHook.cs" />
-    <Compile Include="Messangers\Hooks\TabNameHook.Windows.cs" />
+    <Compile Include="Messangers\Web\HookManager.Callback.cs" />
+    <Compile Include="Messangers\Web\HookManager.cs" />
+    <Compile Include="Messangers\Web\HookManager.Windows.cs" />
     <Compile Include="Messangers\WebHookManager.Designer.cs" />
     <Compile Include="Messangers\Web\Browsers\IBrowser.cs" />
     <Compile Include="Messangers\Web\Browsers\Firefox.cs" />
@@ -73,7 +76,7 @@
     <Compile Include="Messangers\Web\Browsers\Opera.cs" />
     <Compile Include="Messangers\Web\Skype.cs" />
     <Compile Include="Messangers\Web\Browsers\TorBrowser.cs" />
-    <Compile Include="Messangers\WinApi.cs" />
+    <Compile Include="Messangers\Web\WebMessenger.cs" />
     <Compile Include="WinApi.cs" />
     <Compile Include="Messangers\WebHookManager.Callbacks.cs" />
     <Compile Include="Messangers\WebHookManager.cs" />
@@ -88,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Messangers\Desktop\" />
+    <Folder Include="Messangers\Hooks\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

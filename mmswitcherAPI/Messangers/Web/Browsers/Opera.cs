@@ -35,6 +35,17 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             }
             catch { return null; }
         }
+
+        public AutomationElement BrowserWindowAutomationElement(IntPtr hWnd)
+        {
+            try
+            {
+                // find the automation element
+                return AutomationElement.FromHandle(hWnd);
+            }
+            catch { return null; }
+        }
+
         /// <summary>
         /// Manual search Opera tab control element
         /// walking path found using inspect.exe (Windows SDK) for Opera Version 33.0.1990.115 (currently the latest stable)
@@ -81,10 +92,15 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             }
             return null;
         }
+
+        public AutomationElement SkypeFocusAutomationElement(IntPtr hWnd)
+        {
+            return null; //todo
+        }
         #endregion
 
-        #region WhatsUp
-        public AutomationElement WhatsUpTab(IntPtr hWnd)
+        #region WhatsApp
+        public AutomationElement WhatsAppTab(IntPtr hWnd)
         {
             //todo
             return null;

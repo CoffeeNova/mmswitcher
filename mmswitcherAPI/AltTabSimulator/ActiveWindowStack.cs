@@ -24,7 +24,7 @@ namespace mmswitcherAPI.AltTabSimulator
         public delegate void StackActionDelegate(StackAction action, IntPtr hWnd);
 
         /// <summary>
-        /// Вызывается при изменении свойства <paramref name="WindowStack"/>.
+        /// Вызывается при изменении свойства <see cref="ActiveWindowStack"/>.
         /// </summary>
         public event StackActionDelegate onActiveWindowStackChanged;
 
@@ -40,7 +40,7 @@ namespace mmswitcherAPI.AltTabSimulator
         private bool started = false;
         
         /// <summary>
-        /// Возвращает состояние <paramref name="ActiveWindowStack"/> запущен.
+        /// Возвращает состояние <see cref="ActiveWindowStack"/> запущен.
         /// </summary>
         public bool Started
         {
@@ -49,7 +49,7 @@ namespace mmswitcherAPI.AltTabSimulator
 
         private bool suspended = true;
         /// <summary>
-        /// Возвращает состояние <paramref name="ActiveWindowStack"/> приостановлен.
+        /// Возвращает состояние <see cref="ActiveWindowStack"/> приостановлен.
         /// </summary>
         public bool Suspended
         {
@@ -70,9 +70,9 @@ namespace mmswitcherAPI.AltTabSimulator
         }
 
         /// <summary>
-        /// Инициализирует <paramref name="ActiveWindowStack"/> для приложения <paramref name="Windows.Forms"/>.
+        /// Инициализирует <see cref="ActiveWindowStack"/> для приложения <see cref="System.Windows.Forms"/>.
         /// </summary>
-        /// <param name="window">Окно <paramref name="Windows.Forms"/>.</param>
+        /// <param name="window">Окно <see cref="System.Windows.Forms"/>.</param>
         /// <returns>Экземпляр класса.</returns>
         public static ActiveWindowStack Instance(Form window)
         {
@@ -87,9 +87,9 @@ namespace mmswitcherAPI.AltTabSimulator
             return _instance;
         }
         /// <summary>
-        /// Инициализирует <paramref name="ActiveWindowStack"/> для приложения wpf.
+        /// Инициализирует <see cref="ActiveWindowStack"/> для приложения wpf.
         /// </summary>
-        /// <param name="window">Окно <paramref name="System.Windows.Window"/>.</param>
+        /// <param name="window">Окно <see cref="System.Windows.Window"/>.</param>
         /// <returns>Экземпляр класса.</returns>
         public static ActiveWindowStack Instance(Window window)
         {
@@ -105,7 +105,7 @@ namespace mmswitcherAPI.AltTabSimulator
         }
 
         /// <summary>
-        /// Запускает <paramref name="ActiveWindowStack"/>.
+        /// Запускает <see cref="ActiveWindowStack"/>.
         /// </summary>
         public void Start()
         {
@@ -120,7 +120,7 @@ namespace mmswitcherAPI.AltTabSimulator
         }
 
         /// <summary>
-        /// Приостанавливает <paramref name="ActiveWindowStack"/>.
+        /// Приостанавливает <see cref="ActiveWindowStack"/>.
         /// </summary>
         public void Suspend()
         {

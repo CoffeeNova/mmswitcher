@@ -18,6 +18,7 @@ using mmswitcherAPI.AltTabSimulator;
 using System.Windows.Automation;
 //using mmswitcherAPI.Messangers.Web;
 using mmswitcherAPI.Messangers;
+using mmswitcherAPI.Messangers.Web;
 
 namespace test
 {
@@ -36,11 +37,47 @@ namespace test
         public MainWindow()
         {
             InitializeComponent();
-            var focusHandler = new AutomationFocusChangedEventHandler(OnFocusChanged);
-            Automation.AddAutomationFocusChangedEventHandler(focusHandler);
-            var chromeProcess = System.Diagnostics.Process.GetProcessById(260);
-           // WebSkype ws = new WebSkype(chromeProcess);
+            //var focusHandler = new AutomationFocusChangedEventHandler(OnFocusChanged);
+            //Automation.AddAutomationFocusChangedEventHandler(focusHandler);
+            var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
 
+            System.Diagnostics.Process process = null;
+            foreach(var cProcess in chromeProcesses)
+            {
+                if (cProcess.MainWindowHandle != IntPtr.Zero)
+                {
+                    process = cProcess;
+                    break;
+                }
+            }
+
+            if (process == null)
+                return;
+            WebSkype ws = new WebSkype(process);
+            ws.GotFocus += ws_GotFocus;
+            ws.LostFocus += ws_LostFocus;
+            ws.GotNewMessage += ws_GotNewMessage;
+            ws.MessagesGone += ws_MessagesGone;
+        }
+
+        void ws_MessagesGone(IMessenger wss)
+        {
+            Console.WriteLine("Messages read");
+        }
+
+        void ws_GotNewMessage(IMessenger wss)
+        {
+            Console.WriteLine("New Messages");
+        }
+
+        void ws_LostFocus(object sender, EventArgs e)
+        {
+            Console.WriteLine("Lost focus");
+        }
+
+        void ws_GotFocus(object sender, EventArgs e)
+        {
+            Console.WriteLine("Got focus");
         }
 
         private void OnFocusChanged(object src, AutomationFocusChangedEventArgs e)
