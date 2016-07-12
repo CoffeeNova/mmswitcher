@@ -59,21 +59,8 @@ namespace test
             ws.GotNewMessage += ws_GotNewMessage;
             ws.MessagesGone += ws_MessagesGone;
 
-            AutomationElement ae;
-            ae = SkypeFocusAutomationElement(ws.WindowHandle);
 
-            while(true)
-            {
-                try
-                {
-                    Console.WriteLine(ae.Current.AutomationId);
-                    System.Threading.Thread.Sleep(1000);
-                }
-                catch
-                {
-                    Console.WriteLine("nowai");
-                }
-            }
+           
         }
 
         void ws_MessagesGone(IMessenger wss)

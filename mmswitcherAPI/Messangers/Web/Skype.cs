@@ -113,13 +113,6 @@ namespace mmswitcherAPI.Messangers.Web
         //    _hManager.ObjectNameChange += OnMessageProcessing;
         //}
 
-        protected override void OnFocusChangedSubscribe()
-        {
-            //InitHookManager(base._process);
-            //_hManager.FocusChange += _hManager_FocusChange;
-
-        }
-
         void _hManager_FocusChange(object sender, AutomationFocusChangedEventArgs e)
         {
             var element = sender as AutomationElement;
