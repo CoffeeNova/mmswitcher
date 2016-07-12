@@ -13,9 +13,6 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         public GoogleChromeSet(Messenger messenger) : base(messenger){}
 
         #region Skype
-        //private int _focusHookEventConstant = EventConstants.EVENT_OBJECT_FOCUS;
-        //public int FocusHookEventConstant { get { return _focusHookEventConstant; } }
-
         protected override AutomationElement SkypeTab(IntPtr hWnd)
         {
             try

@@ -120,6 +120,8 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
 
         public abstract AutomationElement BrowserWindowAutomationElement(IntPtr hWnd);
 
+        private int _tabSelectedHookEventConstant = EventConstants.EVENT_OBJECT_SELECTION;
+        public virtual int TabSelectedHookEventConstant { get { return _tabSelectedHookEventConstant; } }
     }
 
 

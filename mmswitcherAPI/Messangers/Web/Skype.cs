@@ -17,7 +17,7 @@ namespace mmswitcherAPI.Messangers.Web
         }
 
         WebMessengerHookManager _hManager;
-        private IBrowserSet _browserSet;
+        private BrowserSet _browserSet;
         private AutomationElement _browserWindow;
 
         public WebSkype(Process browserProcess)
@@ -90,7 +90,7 @@ namespace mmswitcherAPI.Messangers.Web
         {
             if (_browserSet == null)
                 InitBrowserSet(base._process);
-            return _browserSet.SkypeTab(widgetHandle);
+            return _browserSet.MessengerTab(widgetHandle);
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace mmswitcherAPI.Messangers.Web
             if (_browserSet == null)
                 InitBrowserSet(base._process);
 
-            return _browserSet.SkypeFocusAutomationElement(hWnd);
+            return _browserSet.MessengerFocusAutomationElement(hWnd);
         }
 
         //подпишемся на событие отслеживающее изменение названия вкладки

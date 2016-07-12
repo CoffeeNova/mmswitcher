@@ -77,10 +77,10 @@ namespace mmswitcherAPI.Messangers.Web
             }
         }
 
-        private int _focusHookHandle;
-        private WinApi.WinEventHookProc _focusDelegate;
+        private int _selectedHookHandle;
+        private WinApi.WinEventHookProc _selectedDelegate;
 
-        private void FocusHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
+        private void SelectedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
             if (hWnd == IntPtr.Zero)
                 return;
@@ -92,52 +92,52 @@ namespace mmswitcherAPI.Messangers.Web
             catch { return; }
             AutomationFocusChangedEventArgs e = new AutomationFocusChangedEventArgs(idObject, idChild);
 
-            _focusChanged.Invoke(aElement, e);
+            _selected.Invoke(aElement, e);
         }
 
-        private void EnsureSubscribedToFocusEvent()
+        private void EnsureSubscribedToTabSelectedEvent()
         {
             // install Focus hook only if it is not installed and must be installed
-            if (_focusHookHandle == 0)
+            if (_selectedHookHandle == 0)
             {
                 //See comment of this field. To avoid GC to clean it up.
-                _focusDelegate = FocusHookProc;
+                _selectedDelegate = SelectedHookProc;
                 int processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
                 //install hook
-                _focusHookHandle = SetWinEventHook(_browserSet.FocusHookEventConstant, _browserSet.FocusHookEventConstant, IntPtr.Zero, _focusDelegate, 0, 0, WINEVENT_OUTOFCONTEXT);
+                _selectedHookHandle = SetWinEventHook(_browserSet.TabSelectedHookEventConstant, _browserSet.TabSelectedHookEventConstant, IntPtr.Zero, _selectedDelegate, 0, 0, WINEVENT_OUTOFCONTEXT);
                 //If SetWinEventHook fails.
-                if (_focusHookHandle == 0)
+                if (_selectedHookHandle == 0)
                 {
                     //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
                     //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
-                if (_focusHookHandle == -1)
-                    _focusHookHandle = 0;
+                if (_selectedHookHandle == -1)
+                    _selectedHookHandle = 0;
             }
 
         }
-        private void TryUnsubscribeFromFocusEvent()
+        private void TryUnsubscribeFromTabSelectedEvent()
         {
             //if no subsribers are registered unsubsribe from hook
-            if (_focusChanged == null)
+            if (_selected == null)
             {
-                ForceUnsunscribeFromFocusEvent();
+                ForceUnsunscribeFromTabSelectedEvent();
             }
         }
 
-        private void ForceUnsunscribeFromFocusEvent()
+        private void ForceUnsunscribeFromTabSelectedEvent()
         {
-            if (_focusHookHandle != 0)
+            if (_selectedHookHandle != 0)
             {
                 //uninstall hook
-                bool result = WinApi.UnhookWinEvent(_focusHookHandle);
+                bool result = WinApi.UnhookWinEvent(_selectedHookHandle);
                 //reset invalid handle
-                _focusHookHandle = 0;
+                _selectedHookHandle = 0;
                 //Free up for GC
-                _focusDelegate = null;
+                _selectedDelegate = null;
                 //if failed and exception must be thrown
                 if (result == false)
                 {

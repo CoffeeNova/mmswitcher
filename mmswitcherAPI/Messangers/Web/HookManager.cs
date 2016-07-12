@@ -18,11 +18,11 @@ namespace mmswitcherAPI.Messangers.Web
         
         //private event EventHandler _messangerTabFocusChanged;
         public IntPtr HWnd { get { return _hWnd; } }
-        public IBrowserSet _browserSet;
+        public BrowserSet _browserSet;
 
         private IntPtr _hWnd;
 
-        public WebMessengerHookManager(IntPtr hWnd, IBrowserSet browserSet)
+        public WebMessengerHookManager(IntPtr hWnd, BrowserSet browserSet)
         {
             _hWnd = hWnd;
             _browserSet = browserSet;
@@ -47,19 +47,19 @@ namespace mmswitcherAPI.Messangers.Web
             }
         }
 
-        private event AutomationFocusChangedEventHandler _focusChanged;
+        private event AutomationFocusChangedEventHandler _selected;
 
-        public event AutomationFocusChangedEventHandler FocusChange
+        public event AutomationFocusChangedEventHandler TabSelected
         {
             add
             {
-                EnsureSubscribedToFocusEvent();
-                _focusChanged += value;
+                EnsureSubscribedToTabSelectedEvent();
+                _selected += value;
             }
             remove
             {
-                _focusChanged -= value;
-                TryUnsubscribeFromFocusEvent();
+                _selected -= value;
+                TryUnsubscribeFromTabSelectedEvent();
             }
         }
 
@@ -79,7 +79,7 @@ namespace mmswitcherAPI.Messangers.Web
                 _hWnd = IntPtr.Zero;
             }
             TryUnsubscribeFromTabNameChangeEvent();
-            TryUnsubscribeFromFocusEvent();
+            TryUnsubscribeFromTabSelectedEvent();
             _disposed = true;
         }
 
