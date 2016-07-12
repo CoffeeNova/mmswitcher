@@ -8,15 +8,20 @@ using System.Diagnostics;
 
 namespace mmswitcherAPI.Messangers.Web.Browsers
 {
-    public class OperaSet : IBrowser
+    internal sealed class OperaSet : BrowserSet
     {
+        public OperaSet(Messenger messenger) : base(messenger){}
         #region Skype
+
+        //private const int _focusHookEventConstant = EventConstants.EVENT_OBJECT_SHOW;
+        //public int FocusHookEventConstant { get { return _focusHookEventConstant; } }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="handle"></param>
         /// <returns></returns>
-        public AutomationElement SkypeTab(IntPtr handle)
+        protected override AutomationElement SkypeTab(IntPtr handle)
         {
             string windowName = "";
 
@@ -36,7 +41,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             catch { return null; }
         }
 
-        public AutomationElement BrowserWindowAutomationElement(IntPtr hWnd)
+        public override AutomationElement BrowserWindowAutomationElement(IntPtr hWnd)
         {
             try
             {
@@ -93,14 +98,14 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             return null;
         }
 
-        public AutomationElement SkypeFocusAutomationElement(IntPtr hWnd)
+        private AutomationElement SkypeFocusAutomationElement(IntPtr hWnd)
         {
             return null; //todo
         }
         #endregion
 
         #region WhatsApp
-        public AutomationElement WhatsAppTab(IntPtr hWnd)
+        protected override AutomationElement WhatsAppTab(IntPtr hWnd)
         {
             //todo
             return null;

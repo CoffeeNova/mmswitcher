@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Windows.Automation;
+using System.Drawing;
 
 namespace mmswitcherAPI
 {
@@ -211,6 +212,76 @@ namespace mmswitcherAPI
             }
             return false;
         }
+
+        /// <summary>
+        /// Defines if process is a fullscreen
+        /// </summary>
+        /// <param name="handle">Window handle</param>
+        /// <returns>True if process is a fullscreen</returns>
+        internal static bool FullscreenProcess(IntPtr handle)
+        {
+            // get the placement
+            WINDOWPLACEMENT forePlacement = new WINDOWPLACEMENT();
+            forePlacement.length = Marshal.SizeOf(forePlacement);
+            WinApi.GetWindowPlacement(handle, ref forePlacement);
+            RECT rect;
+            var success = WinApi.GetWindowRect(handle, out rect);
+            Rectangle screenBounds = Screen.GetBounds(new Point(rect.Left, rect.Top));
+            if (success && Math.Abs(rect.Left + rect.Width) >= screenBounds.Width)
+                return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Simulate a click //- //- //- //
+        /// </summary>
+        /// <param name="child"></param>
+        /// <param name="parent"></param>
+        /// <param name="handle"></param>
+        internal static void SimulateClickUIAutomation(AutomationElement child, AutomationElement parent, IntPtr handle)
+        {
+            //get new rectangle relatively parent window
+            System.Windows.Rect clickZone = BoundingRectangleUIElement(child, parent);
+
+            Point clickPoint = CountRectangleCenter(clickZone);
+            //System.Windows.Point webSkypeTabClickPoint = child.GetClickablePoint();
+            int xPointTabitem = clickPoint.X;
+            int yPointTabitem = clickPoint.Y;
+
+            //create lParam
+            int point = (int)clickPoint.Y << 16 | (int)clickPoint.X;
+            //point = 10 << 16 | 110;
+
+            WinApi.PostMessage(handle, Constants.WM_LBUTTONDOWN, (IntPtr)Constants.MK_LBUTTON, (IntPtr)point);
+            WinApi.PostMessage(handle, Constants.WM_LBUTTONUP, IntPtr.Zero, (IntPtr)point);
+        }
+
+        /// <summary>
+        ///  Возвращает координаты прямоугольника, который полностью охватывает элемент, относительно главного окна
+        /// </summary>
+        /// <param name="child"></param>
+        /// <param name="parent"></param>
+        /// <returns></returns>
+        internal static System.Windows.Rect BoundingRectangleUIElement(AutomationElement child, AutomationElement parent)
+        {
+            if (child == null || parent == null)
+                return new System.Windows.Rect();
+            System.Windows.Rect parentRect = parent.Current.BoundingRectangle;
+            System.Windows.Rect childRect = child.Current.BoundingRectangle;
+            System.Windows.Point relativePoint = new System.Windows.Point(childRect.X - parentRect.X, childRect.Y - parentRect.Y);
+            return new System.Windows.Rect(relativePoint, childRect.Size);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        internal static Point CountRectangleCenter(System.Windows.Rect rect)
+        {
+            return new Point((int)(rect.X + rect.Width / 2), (int)(rect.Y + rect.Height / 2));
+        }
+
     }
     #region structs and enums
     [StructLayout(LayoutKind.Sequential)]
@@ -304,7 +375,7 @@ namespace mmswitcherAPI
         InternetExplorer
     }
 
-    public enum Messanger
+    public enum Messenger
     {
         Skype,
         WhatsApp,

@@ -32,7 +32,7 @@ namespace test
         WindowMessagesMonitor _wmm;
         ActiveWindowStack aws;
         AutomationElement ae;
-
+        WebSkype ws;
 
         public MainWindow()
         {
@@ -42,7 +42,7 @@ namespace test
             var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
 
             System.Diagnostics.Process process = null;
-            foreach(var cProcess in chromeProcesses)
+            foreach (var cProcess in chromeProcesses)
             {
                 if (cProcess.MainWindowHandle != IntPtr.Zero)
                 {
@@ -53,11 +53,27 @@ namespace test
 
             if (process == null)
                 return;
-            WebSkype ws = new WebSkype(process);
+            ws = new WebSkype(process);
             ws.GotFocus += ws_GotFocus;
             ws.LostFocus += ws_LostFocus;
             ws.GotNewMessage += ws_GotNewMessage;
             ws.MessagesGone += ws_MessagesGone;
+
+            AutomationElement ae;
+            ae = SkypeFocusAutomationElement(ws.WindowHandle);
+
+            while(true)
+            {
+                try
+                {
+                    Console.WriteLine(ae.Current.AutomationId);
+                    System.Threading.Thread.Sleep(1000);
+                }
+                catch
+                {
+                    Console.WriteLine("nowai");
+                }
+            }
         }
 
         void ws_MessagesGone(IMessenger wss)
@@ -121,5 +137,23 @@ namespace test
             //Console.WriteLine(m = m + 1);
         }
 
+        public static AutomationElement SkypeFocusAutomationElement(IntPtr hWnd)
+        {
+            //try
+            //{
+            //    // find the automation element
+            //    return BrowserWindowAutomationElement(hWnd);
+            //}
+
+            try
+            {
+                //при переключении вкладок хрома, или операции SetForegroundWindow окна хрома фокус получает контрол "document", его имя класса "Chrome_RenderWidgetHostHWND"
+                //при переключении вкладок этот контрол перерисовывается, поэтому чтобы получить нужный, нам необходимо задать фокус на наш мессенджер
+                // find the automation element
+                var windowAE = AutomationElement.FromHandle(hWnd);
+                return windowAE.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ClassNameProperty, "Chrome_RenderWidgetHostHWND"));
+            }
+            catch { return null; }
+        }
     }
 }

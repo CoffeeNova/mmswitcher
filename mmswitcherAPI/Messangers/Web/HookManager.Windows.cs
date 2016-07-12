@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace mmswitcherAPI.Messangers.Web.Browsers
+namespace mmswitcherAPI.Messangers.Web
 {
     internal partial class WebMessengerHookManager
     {
