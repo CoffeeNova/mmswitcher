@@ -12,15 +12,20 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         AutomationElement BrowserWindowAutomationElement(IntPtr hWnd);
         AutomationElement MessengerTab(IntPtr hWnd);
         AutomationElement MessengerFocusAutomationElement(IntPtr hWnd);
+        AutomationElement MessengerIncomeMessageAutomationElement(IntPtr hWnd);
     }
 
     internal abstract class BrowserSet : IBrowserSet
     {
         private delegate AutomationElement MessangerTabDelegate(IntPtr hWnd);
-        private static object locker = new object();
+        protected static object locker = new object();
 
         public Messenger MessengerType { get; private set; }
 
+        /// <summary>
+        /// Инициализирует новый экземпляр класса <see cref="BrowserSet"/>.
+        /// </summary>
+        /// <param name="messenger">Тип мессенджера.</param>
         public BrowserSet(Messenger messenger)
         {
             MessengerType = messenger;
@@ -44,11 +49,20 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             }
             return mtd;
         }
-
+        /// <summary>
+        /// Возвращает <see cref="AutomationElement"/> вкладки браузера, в которой открыт мессенджер.
+        /// </summary>
+        /// <param name="hWnd">Хэндл окна.</param>
+        /// <exception cref="ArgumentNullException">Значение параметра <paramref name="hWnd"/> равно <see langword="null"/>.</exception>
+        /// <exception cref= "ArgumentException">Значение параметра <paramref name="hWnd"/> равно <see langword="IntPtr.Zero"/>.</exception>
+        /// <returns></returns>
         public AutomationElement MessengerTab(IntPtr hWnd)
         {
+            if (hWnd == null)
+                throw new ArgumentNullException("hWnd");
             if (hWnd == IntPtr.Zero)
-                return null;
+                throw new ArgumentException("Window handle should not be IntPtr.Zero");
+
             MessangerTabDelegate mtd = DefineTab(MessengerType);
             if (mtd == null)
                 return null;
@@ -72,7 +86,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// <param name="hWnd">Хэндл окна браузера.</param>
         /// <param name="initialForeWindow">Хэндл окна, которое на переднем плане перед выполнением метода.</param>
         /// <param name="isBrowserWindowWasMinimized">Указывает было ли окно браузера свернутым.</param>
-        /// <returns><see cref="true"/>, если операция завершилась успешно. <see cref="false"/>, если операция завершилась неуспешно, или окно браузера уже на переднем плане.</returns>
+        /// <returns><see langword="true"/>, если операция завершилась успешно. <see langword="true"/>, если операция завершилась неуспешно, или окно браузера уже на переднем плане.</returns>
         private bool SetForegroundBrowserWindow(IntPtr hWnd, out IntPtr initialForeWindow, out bool isBrowserWindowWasMinimized)
         {
             isBrowserWindowWasMinimized = false;
@@ -113,23 +127,44 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             if (hWnd != initHwnd)
                 WinApi.SetForegroundWindow(initHwnd);
         }
+
+        /// <summary>
+        /// Получает <see cref="AutomationElement"/> окна браузера.
+        /// </summary>
+        /// <param name="hWnd">Хэндл окна.</param>
+        /// <exception cref="ArgumentNullException">Значение параметра <paramref name="hWnd"/> равно <see langword="null"/>.</exception>
+        /// <exception cref= "ArgumentException">Значение параметра <paramref name="hWnd"/> равно <see langword="IntPtr.Zero"/>.</exception>
+        /// <returns></returns>
+        public virtual AutomationElement BrowserWindowAutomationElement(IntPtr hWnd)
+        {
+            if (hWnd == null)
+                throw new ArgumentNullException("hWnd");
+            if (hWnd == IntPtr.Zero)
+                throw new ArgumentException("Window handle should not be IntPtr.Zero");
+            return AutomationElement.FromHandle(hWnd);
+        }
+
         /// <summary>
         /// Получает <see cref="AutomationElement"/>, которые будет получать фокус при переключении на мессенджер.
         /// </summary>
         /// <param name="hWnd">Хэндл окна браузера.</param>
         /// <returns></returns>
-        public AutomationElement MessengerFocusAutomationElement(IntPtr hWnd)
+        /// <exception cref="ArgumentNullException">Значение параметра <paramref name="hWnd"/> равно <see langword="null"/>.</exception>
+        /// <exception cref= "ArgumentException">Значение параметра <paramref name="hWnd"/> равно <see langword="IntPtr.Zero"/>.</exception>
+        /// <remarks></remarks>
+        public virtual AutomationElement MessengerFocusAutomationElement(IntPtr hWnd)
         {
+            if (hWnd == null)
+                throw new ArgumentNullException("hWnd");
             if (hWnd == IntPtr.Zero)
-                return null;
+                throw new ArgumentException("Window handle should not be IntPtr.Zero");
             lock (locker)
             {
                 try
                 {
-                    //при переключении вкладок хрома, или операции SetForegroundWindow окна хрома фокус получает контрол "document", его имя класса "Chrome_RenderWidgetHostHWND"
                     //при переключении вкладок этот контрол перерисовывается, поэтому чтобы получить нужный, нам необходимо задать фокус на наш мессенджер
                     // find the automation element
-                    var windowAE = AutomationElement.FromHandle(hWnd);
+                    var windowAE = BrowserWindowAutomationElement(hWnd);
                     if (windowAE == null)
                         return null;
                     IntPtr initForeHwnd;
@@ -137,8 +172,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                     bool setFore = SetForegroundBrowserWindow(hWnd, out initForeHwnd, out minimWind);
                     EscMaximizedBrowserWindow(hWnd);
                     FocusMessenger(hWnd, windowAE);
-                    var focusAE =  windowAE.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ClassNameProperty, "Chrome_RenderWidgetHostHWND"));
-                    
+                    var focusAE = DefineFocusHandlerChildren(windowAE);
                     if (setFore)
                         ReturnPreviusWindowPositions(hWnd, initForeHwnd, minimWind);
                     return focusAE;
@@ -147,11 +181,33 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             }
         }
 
+        /// <summary>
+        /// Возвращает <see cref="AutomationElement"/> который изменяет свойство <see cref="AutomationElement.PropertyName"/> при получении сообщения.
+        /// </summary>
+        /// <param name="hWnd">Хэндл окна браузера.</param>
+         /// <exception cref="ArgumentNullException">Значение параметра <paramref name="hWnd"/> равно <see langword="null"/>.</exception>
+        /// <exception cref= "ArgumentException">Значение параметра <paramref name="hWnd"/> равно <see langword="IntPtr.Zero"/>.</exception>
+        /// <returns></returns>
+        public virtual AutomationElement MessengerIncomeMessageAutomationElement(IntPtr hWnd)
+        {
+            if (hWnd == null)
+                throw new ArgumentNullException("hWnd");
+            if (hWnd == IntPtr.Zero)
+                throw new ArgumentException("Window handle should not be IntPtr.Zero");
+            return BrowserWindowAutomationElement(hWnd);
+        }
+
         protected abstract AutomationElement SkypeTab(IntPtr hWnd);
 
         protected abstract AutomationElement WhatsAppTab(IntPtr hWnd);
 
-        public abstract AutomationElement BrowserWindowAutomationElement(IntPtr hWnd);
+        /// <summary>
+        /// Определяет дочерний элемент, который будет получать фокус при переключении на мессенджер.
+        /// </summary>
+        /// <param name="parent">Родительский <see cref="AutomationElement"/>.</param>
+        /// <returns></returns>
+        protected abstract AutomationElement DefineFocusHandlerChildren(AutomationElement parent);
+
 
         private int _tabSelectedHookEventConstant = EventConstants.EVENT_OBJECT_SELECTION;
         public virtual int TabSelectedHookEventConstant { get { return _tabSelectedHookEventConstant; } }

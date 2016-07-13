@@ -1,0 +1,8 @@
+NotAvaliableException
+
+создать свойства вместо полей 
+ protected AutomationElement _messengerAE;
+        protected AutomationElement _focusableAE;
+        protected AutomationElement _incomeMessageAE;
+
+ для каждого get запроса свойств делать проверку на доступность.

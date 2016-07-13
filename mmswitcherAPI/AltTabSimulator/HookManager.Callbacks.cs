@@ -16,7 +16,7 @@ namespace mmswitcherAPI.AltTabSimulator
         private void ForegroundChangedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
 #if DEBUG
-            Console.WriteLine(string.Format("hWinEventHook: {0}, iEvent: {1}, hWnd: {2},  idObject: {3}, idChild: {4}, dwEventThread: {5}, dwmsEventTime:{6}", hWinEventHook, iEvent, hWnd, idObject, idChild, dwEventThread, dwmsEventTime));
+            //Console.WriteLine(string.Format("hWinEventHook: {0}, iEvent: {1}, hWnd: {2},  idObject: {3}, idChild: {4}, dwEventThread: {5}, dwmsEventTime:{6}", hWinEventHook, iEvent, hWnd, idObject, idChild, dwEventThread, dwmsEventTime));
 #endif
             try
             {

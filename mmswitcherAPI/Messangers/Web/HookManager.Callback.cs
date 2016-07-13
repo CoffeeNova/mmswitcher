@@ -20,7 +20,12 @@ namespace mmswitcherAPI.Messangers.Web
             if (hWnd == IntPtr.Zero)
                 return;
             var e = new AutomationPropertyChangedEventArgs(AutomationElement.NameProperty, String.Empty, String.Empty);
-            _tabNameChanged.Invoke(hWnd, e);
+            var aElement = AutomationElement.FromHandle(hWnd);
+            if (aElement != null)
+            {
+                Console.WriteLine(aElement.Current.ClassName);
+                _tabNameChanged.Invoke(hWnd, e);
+            }
         }
 
         //protected void

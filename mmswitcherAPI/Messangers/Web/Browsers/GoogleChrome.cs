@@ -12,6 +12,13 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
     {
         public GoogleChromeSet(Messenger messenger) : base(messenger){}
 
+        protected override AutomationElement DefineFocusHandlerChildren(AutomationElement parent)
+        {
+            if (parent == null)
+                return null;
+            return parent.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ClassNameProperty, "Chrome_RenderWidgetHostHWND"));
+        }
+
         #region Skype
         protected override AutomationElement SkypeTab(IntPtr hWnd)
         {
@@ -30,15 +37,6 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             catch { return null; }
         }
 
-        public override AutomationElement BrowserWindowAutomationElement(IntPtr hWnd)
-        {
-            try
-            {
-                // find the automation element
-                return AutomationElement.FromHandle(hWnd);
-            }
-            catch { return null; }
-        }
         /// <summary>
         /// Manual search google chrome tab control element
         /// walking path found using inspect.exe (Windows SDK) for Chrome Version 43.0.2357.65 m (currently the latest stable)

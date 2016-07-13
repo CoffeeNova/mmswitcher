@@ -11,6 +11,13 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
     internal sealed class TorBrowserSet : BrowserSet
     {
         public TorBrowserSet(Messenger messenger) : base(messenger){}
+
+        protected override AutomationElement DefineFocusHandlerChildren(AutomationElement parent)
+        {
+            if (parent == null)
+                return null;
+            return null; //todo
+        }
         #region Skype
 
         //private const int _focusHookEventConstant = EventConstants.EVENT_OBJECT_SELECTIONREMOVE; //not tested

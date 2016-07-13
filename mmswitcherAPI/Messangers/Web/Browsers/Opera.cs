@@ -11,6 +11,13 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
     internal sealed class OperaSet : BrowserSet
     {
         public OperaSet(Messenger messenger) : base(messenger){}
+
+        protected override AutomationElement DefineFocusHandlerChildren(AutomationElement parent)
+        {
+            if (parent == null)
+                return null;
+            return parent.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ClassNameProperty, "Chrome_RenderWidgetHostHWND"));
+        }
         #region Skype
 
         //private const int _focusHookEventConstant = EventConstants.EVENT_OBJECT_SHOW;

@@ -88,8 +88,7 @@ namespace mmswitcherAPI.Messangers.Web
 
         protected override AutomationElement DefineTabAutomationAelement(IntPtr widgetHandle)
         {
-            if (_browserSet == null)
-                InitBrowserSet(base._process);
+            InitBrowserSet(base._process);
             return _browserSet.MessengerTab(widgetHandle);
         }
 
@@ -109,22 +108,14 @@ namespace mmswitcherAPI.Messangers.Web
         //подпишемся на событие отслеживающее изменение названия вкладки
         //protected override void OnMessageProcessingSubscribe()
         //{
-        //    _hManager = new WebMessengerHookManager(base._windowHandle);
+        //    InitBrowserSet(base._process);
+        //    _hManager = new WebMessengerHookManager(base._windowHandle, _browserSet);
         //    _hManager.ObjectNameChange += OnMessageProcessing;
         //}
 
-        void _hManager_FocusChange(object sender, AutomationFocusChangedEventArgs e)
+        protected override AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
         {
-            var element = sender as AutomationElement;
-            if (element == _focusableAE)
-            {
-                if (_browserWindow.Current.Name.Contains("Skype - "))
-                    base.OnFocusChanged(sender, e);
-                else
-                    base.OnFocusChanged(null, null);
-            }
-            else
-                base.OnFocusChanged(null, null);
+            return _browserSet.MessengerIncomeMessageAutomationElement(hWnd);
         }
 
         public void Dispose()

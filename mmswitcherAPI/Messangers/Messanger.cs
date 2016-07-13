@@ -127,15 +127,31 @@ namespace mmswitcherAPI.Messangers
                 throw new ArgumentException();
             _process = msgProcess;
             IntPtr hWnd;
-            _messengerAE = GetAutomationElement(msgProcess, out hWnd);
-            _focusableAE = GetFocusHandlerAutomationElement(hWnd);
-            _incomeMessageAE = GetIncomeMessageAutomationElement(hWnd);
+            try
+            {
+                _messengerAE = GetAutomationElement(msgProcess, out hWnd);
+                _focusableAE = GetFocusHandlerAutomationElement(hWnd);
+                _incomeMessageAE = GetIncomeMessageAutomationElement(hWnd);
+            }
+            catch
+            {
+                throw new Exception(String.Format("Can't find a messenger for this process {0}", msgProcess.ProcessName));
+            }
             _windowHandle = hWnd;
             //AddAutomationKeyboardFocusChangedEventHandler(_focusableAE);
             OnFocusChangedSubscribe();
             OnMessageProcessingSubscribe();
             GotNewMessage += MessengerBase_GotNewMessage;
             IncomeMessages = IncomeMessagesDetect(_incomeMessageAE) ? true : false;
+            sdt = new System.Threading.Timer(Callback, null, 0, 3000);
+        }
+
+        System.Threading.Timer sdt;
+        void Callback(object state)
+        {
+            var name = AutomationElement.NameProperty;
+            var n = _incomeMessageAE.GetCurrentPropertyValue(name) as string;
+            Console.WriteLine(_incomeMessageAE.Current.Name + "   |   " + n);
         }
 
         /// <summary>
