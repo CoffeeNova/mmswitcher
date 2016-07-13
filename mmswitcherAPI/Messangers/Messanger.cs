@@ -104,6 +104,48 @@ namespace mmswitcherAPI.Messangers
             }
         }
 
+        private AutomationElement _messengerAE;
+
+        protected AutomationElement MessengerAE
+        {
+            get
+            {
+                try
+                {
+                    return _messengerAE;
+                }
+                catch (ElementNotAvailableException) { Dispose(true); return null; }
+            }
+        }
+
+        private AutomationElement _focusableAE;
+
+        protected AutomationElement FocusableAE
+        {
+            get
+            {
+                try
+                {
+                    return _focusableAE;
+                }
+                catch (ElementNotAvailableException) { Dispose(true); return null; }
+            }
+        }
+
+        private AutomationElement _incomeMessageAE;
+
+        protected AutomationElement IncomeMessageAE
+        {
+            get
+            {
+                try
+                {
+                    return _incomeMessageAE;
+                }
+                catch (ElementNotAvailableException) { Dispose(true); return null; }
+            }
+        }
+
         public event EventHandler GotFocus;
         public event EventHandler LostFocus;
         public event newMessageDelegate GotNewMessage;
@@ -111,9 +153,6 @@ namespace mmswitcherAPI.Messangers
 
         #region protected fields
         protected Process _process;
-        protected AutomationElement _messengerAE;
-        protected AutomationElement _focusableAE;
-        protected AutomationElement _incomeMessageAE;
         protected IntPtr _windowHandle;
         #endregion
 
@@ -142,7 +181,7 @@ namespace mmswitcherAPI.Messangers
             OnFocusChangedSubscribe();
             OnMessageProcessingSubscribe();
             GotNewMessage += MessengerBase_GotNewMessage;
-            IncomeMessages = IncomeMessagesDetect(_incomeMessageAE) ? true : false;
+            IncomeMessages = IncomeMessagesDetect(IncomeMessageAE) ? true : false;
             sdt = new System.Threading.Timer(Callback, null, 0, 3000);
         }
 
@@ -150,8 +189,8 @@ namespace mmswitcherAPI.Messangers
         void Callback(object state)
         {
             var name = AutomationElement.NameProperty;
-            var n = _incomeMessageAE.GetCurrentPropertyValue(name) as string;
-            Console.WriteLine(_incomeMessageAE.Current.Name + "   |   " + n);
+            var n = IncomeMessageAE.GetCurrentPropertyValue(name) as string;
+            Console.WriteLine(IncomeMessageAE.Current.Name + "   |   " + n);
         }
 
         /// <summary>
@@ -166,7 +205,7 @@ namespace mmswitcherAPI.Messangers
         protected void OnFocusChanged(object sender, AutomationFocusChangedEventArgs e)
         {
             var element = sender as AutomationElement;
-            if (element == _focusableAE)
+            if (element == FocusableAE)
                 Focused = true;
             else
                 Focused = false;
@@ -175,7 +214,7 @@ namespace mmswitcherAPI.Messangers
         protected void OnMessageProcessing(object sender, AutomationPropertyChangedEventArgs e)
         {
             var element = sender as AutomationElement;
-            if (element == _incomeMessageAE)
+            if (element == IncomeMessageAE)
                 IncomeMessages = IncomeMessagesDetect(element) ? true : false;
         }
 
@@ -200,24 +239,24 @@ namespace mmswitcherAPI.Messangers
         protected abstract bool IncomeMessagesDetect(AutomationElement element);
 
         /// <summary>
-        /// Определяет <see cref="AutomationElement"/> для <see cref="MessengerBase._focusableAE"/>, который получает фокус при переключении на окно мессенджера.
+        /// Определяет <see cref="AutomationElement"/> для <see cref="MessengerBase.FocusableAE"/>, который получает фокус при переключении на окно мессенджера.
         /// </summary>
         /// <param name="hWnd">Хэндл окна мессенджера.</param>
         /// <returns></returns>
         /// <remarks>По-умолчанию <see cref="AutomationElement"/> главного окна мессенджера служит получателем фокуса при переключении на него. </remarks>
         protected virtual AutomationElement GetFocusHandlerAutomationElement(IntPtr hWnd)
         {
-            return _messengerAE;
+            return MessengerAE;
         }
 
         /// <summary>
-        /// Определяет <see cref="AutomationElement"/> для <see cref="MessengerBase._incomeMessageAE"/>, который получает извещение о новом сообщении путем изменения свойства.
+        /// Определяет <see cref="AutomationElement"/> для <see cref="MessengerBase.IncomeMessageAE"/>, который получает извещение о новом сообщении путем изменения свойства.
         /// </summary>
         /// <param name="hWnd"></param>
         /// <remarks>По-умолчанию <see cref="AutomationElement"/> главного окна мессенджера служит индикатором получения нового сообщения. </remarks>
         protected virtual AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
         {
-            return _messengerAE;
+            return MessengerAE;
         }
 
         /// <summary>
@@ -237,7 +276,33 @@ namespace mmswitcherAPI.Messangers
         protected virtual void OnMessageProcessingSubscribe()
         {
             var propertyHandler = new AutomationPropertyChangedEventHandler(OnMessageProcessing);
-            Automation.AddAutomationPropertyChangedEventHandler(_incomeMessageAE, TreeScope.Element, propertyHandler, AutomationElement.NameProperty);
+            Automation.AddAutomationPropertyChangedEventHandler(IncomeMessageAE, TreeScope.Element, propertyHandler, AutomationElement.NameProperty);
+        }
+
+        private bool disposed = false;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+            if (disposing)
+            {
+                GotNewMessage -= MessengerBase_GotNewMessage;
+                _process = null;
+                _messengerAE = null;
+                _focusableAE = null;
+                _incomeMessageAE = null;
+            }
+            disposed = true;
+        }
+        ~MessengerBase()
+        {
+            Dispose(false);
         }
     }
 }

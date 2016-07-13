@@ -7,7 +7,7 @@ using System.Windows.Automation;
 
 namespace mmswitcherAPI.Messangers.Web.Browsers
 {
-    internal interface IBrowserSet
+    public interface IBrowserSet
     {
         AutomationElement BrowserWindowAutomationElement(IntPtr hWnd);
         AutomationElement MessengerTab(IntPtr hWnd);
@@ -15,7 +15,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         AutomationElement MessengerIncomeMessageAutomationElement(IntPtr hWnd);
     }
 
-    internal abstract class BrowserSet : IBrowserSet
+    public abstract class BrowserSet : IBrowserSet
     {
         private delegate AutomationElement MessangerTabDelegate(IntPtr hWnd);
         protected static object locker = new object();

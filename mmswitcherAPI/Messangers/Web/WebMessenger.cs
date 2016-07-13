@@ -12,7 +12,7 @@ namespace mmswitcherAPI.Messangers.Web
     public abstract class WebMessenger : MessengerBase
     {
         #region private fields
-        //private WebHookManager hManager;
+        protected BrowserSet _browserSet;
         #endregion
 
         public WebMessenger(Process browserProcess)
@@ -20,6 +20,8 @@ namespace mmswitcherAPI.Messangers.Web
         {
             if (browserProcess == null)
                 throw new ArgumentException();
+            if (_browserSet == null)
+                InitBrowserSet(browserProcess);
         }
 
         private List<IntPtr> GetWidgetHandles(int processId, string className)
@@ -27,6 +29,27 @@ namespace mmswitcherAPI.Messangers.Web
             return Tools.GetWidgetWindowHandles(processId, className);
         }
 
+        private void InitBrowserSet(Process browserProcess)
+        {
+            if (_browserSet != null) return;
+
+            var browser = Tools.DefineBrowserByProcessName(browserProcess.ProcessName);
+            switch (browser)
+            {
+                case InternetBrowser.GoogleChrome:
+                    _browserSet = new GoogleChromeSet(Messenger);
+                    break;
+                case InternetBrowser.Opera:
+                    _browserSet = new OperaSet(Messenger);
+                    break;
+                case InternetBrowser.Firefox:
+                    _browserSet = new FirefoxSet(Messenger);
+                    break;
+                case InternetBrowser.TorBrowser:
+                    _browserSet = new TorBrowserSet(Messenger);
+                    break;
+            }
+        }
         /// <summary>
         /// Производит поиск вкладки веб мессенджера в процессе <paramref name="process"/>, так же возвращает дескриптор окна, в котором открыта вкладка веб мессенджера.
         /// </summary>
@@ -59,40 +82,36 @@ namespace mmswitcherAPI.Messangers.Web
             return messengerElement;
         }
 
+        protected virtual AutomationElement DefineTabAutomationAelement(IntPtr widgetHandle)
+        {
+            InitBrowserSet(base._process);
+            return _browserSet.MessengerTab(widgetHandle);
+        }
 
-        //protected override AutomationElement GetFocusHandlerAutomationElement(IntPtr hWnd)
-        //{
-        //    return DefineFocusHandlerAutomationElement(hWnd);
-        //}
+        /// <summary>
+        /// Получает модель автоматизации пользовательского интерфейса, которая служит индикатором получения фокуса при переключении на вкладку мессенджера в браузере.
+        /// </summary>
+        /// <param name="hWnd">Хэндл окна браузера.</param>
+        /// <returns></returns>
+        protected override AutomationElement GetFocusHandlerAutomationElement(IntPtr hWnd)
+        {
+            if (_browserSet == null)
+                InitBrowserSet(base._process);
 
-        protected abstract AutomationElement DefineTabAutomationAelement(IntPtr widgetHandle);
+            return _browserSet.MessengerFocusAutomationElement(hWnd);
+        }
 
-        //protected abstract AutomationElement DefineFocusHandlerAutomationElement(IntPtr widgetHandle);
-
-        //private void WebMessanger_GotFocus(Object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        var tabElement = AutomationElement.FromHandle((IntPtr)sender);
-        //        if (BrowserData.Process == null)
-        //            return;
-        //        if (tabElement.Current.ProcessId == BrowserData.Process.Id)
-        //            Focused = true;
-        //    }
-        //    catch { }
-        //}
-
-        //private void WebMessanger_LostFocus(object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        var tabElement = AutomationElement.FromHandle((IntPtr)sender);
-        //        if (BrowserData.Process == null)
-        //            return;
-        //        if (tabElement.Current.ProcessId == BrowserData.Process.Id)
-        //            Focused = false;
-        //    }
-        //    catch { }
-        //}
+        private bool disposed = false;
+        protected override void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+            if (disposing)
+            {
+                _browserSet = null;
+            }
+            disposed = true;
+            base.Dispose(disposing);
+        }
     }
 }
