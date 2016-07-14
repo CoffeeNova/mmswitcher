@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Diagnostics;
 using mmswitcherAPI.Messangers.Web.Browsers;
+using mmswitcherAPI.winmsg;
 
 namespace mmswitcherAPI.Messangers.Web
 {
@@ -15,8 +16,7 @@ namespace mmswitcherAPI.Messangers.Web
         protected BrowserSet _browserSet;
         protected WebMessengerHookManager _hManager;
         #endregion
-        private AutomationElement _tabcontrol;
-
+        private WindowLifeCycle _wmmon;
         public WebMessenger(Process browserProcess)
             : base(browserProcess)
         {
@@ -26,20 +26,17 @@ namespace mmswitcherAPI.Messangers.Web
                 InitBrowserSet(browserProcess);
             if (_hManager == null)
                 InitHookManager(browserProcess);
-           // _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
-           // _hManager.TabClosed += _hManager_TabClosed;
-            _tabcontrol = TreeWalker.ControlViewWalker.GetParent(base.MessengerAE);
-            //var tt = _tabcontrol.GetSupportedPatterns();
-            //var sp = (SelectionPattern)_tabcontrol.GetCurrentPattern(SelectionPattern.Pattern);
-            //var selection = sp.Current.GetSelection();
-            ControlType asd = ControlType.Tab;
-            asd.
-            var aaa = _tabcontrol.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab));
-            var handler = new StructureChangedEventHandler(OnTabControlStructureChanged);
-            Automation.AddStructureChangedEventHandler(_tabcontrol, TreeScope.Children, handler);
+            // _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
+            // _hManager.TabClosed += _hManager_TabClosed;
+            _wmmon = new WindowLifeCycle();
+            _wmmon.onMessageTraced += _wmmon_onMessageTraced;
         }
-        private void OnTabControlStructureChanged(object sender, StructureChangedEventArgs e)
+
+        void _wmmon_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
         {
+            if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
+                return;
+            var aElement = AutomationElement.FromHandle(hWnd);
 
         }
 

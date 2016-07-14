@@ -14,17 +14,17 @@ namespace mmswitcherAPI.winmsg
     /// </summary>
     public abstract class MsgMonitor
     {
-        private object _window;
+        private object _control;
         private readonly int _msgNotify;
         private bool _disposed = false;
         private HwndSource _hwndWindow;
         private MControl _msgReceiver;
         private bool _isWpfSpecial = false;
 
-        public delegate void EventHandler(object sender, IntPtr hWnd, ShellEvents shell);
+        public delegate void MsgEventHandler(object sender, IntPtr hWnd, ShellEvents shell);
 
         //Происходит при обнаружении нужного сообщения
-        public event EventHandler onMessageTraced;
+        public event MsgEventHandler onMessageTraced;
 
         /// <summary>
         /// Конструктор для общих сообщений.
@@ -34,9 +34,9 @@ namespace mmswitcherAPI.winmsg
         public MsgMonitor(Window window, int msgNotify)
         {
             _isWpfSpecial = true;
-            _window = window;
+            _control = window;
             _msgNotify = msgNotify;
-            _hwndWindow = PresentationSource.FromVisual(_window as Window) as HwndSource;
+            _hwndWindow = PresentationSource.FromVisual(_control as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
         }
 
@@ -48,10 +48,10 @@ namespace mmswitcherAPI.winmsg
         public MsgMonitor(Window window)
         {
             _isWpfSpecial = true;
-            _window = window;
+            _control = window;
             _msgNotify = WinApi.RegisterWindowMessage("SHELLHOOK");
             WinApi.RegisterShellHookWindow(new WindowInteropHelper(window).Handle);
-            _hwndWindow = PresentationSource.FromVisual(_window as Window) as HwndSource;
+            _hwndWindow = PresentationSource.FromVisual(_control as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
         }
 
@@ -62,6 +62,7 @@ namespace mmswitcherAPI.winmsg
         public MsgMonitor(int msgNotify)
         {
             _msgReceiver = new MControl();
+            _control = _msgReceiver;
             _msgNotify = msgNotify;
             _msgReceiver.onWndProc += MessageTrace;
         }
@@ -72,6 +73,7 @@ namespace mmswitcherAPI.winmsg
         public MsgMonitor()
         {
             _msgReceiver = new MControl();
+            _control = _msgReceiver;
             _msgNotify = WinApi.RegisterWindowMessage("SHELLHOOK");
             WinApi.RegisterShellHookWindow(_msgReceiver.Handle);
             _msgReceiver.onWndProc += MessageTrace;
@@ -85,7 +87,7 @@ namespace mmswitcherAPI.winmsg
                 {
                     var handler = onMessageTraced;
                     if (handler != null)
-                        handler(_window, lParam, (ShellEvents)wParam.ToInt32());
+                        handler(_control, lParam, (ShellEvents)wParam.ToInt32());
                 }
             return IntPtr.Zero;
         }
@@ -107,14 +109,17 @@ namespace mmswitcherAPI.winmsg
             {
                 if (disposing)
                 {
-
+                    _control = null;
+                    if (_isWpfSpecial)
+                        _hwndWindow.RemoveHook(new HwndSourceHook(MessageTrace));
+                    _hwndWindow.Dispose();
+                    _msgReceiver.Dispose();
+                    onMessageTraced = null;
                 }
 
                 try
                 {
-                    if (_isWpfSpecial)
-                        _hwndWindow.RemoveHook(new HwndSourceHook(MessageTrace));
-                    else
+                    if (!_isWpfSpecial)
                         WinApi.DeregisterShellHookWindow(_msgReceiver.Handle);
                 }
                 catch { }
@@ -134,7 +139,7 @@ namespace mmswitcherAPI.winmsg
         }
     }
 
-    internal class MControl : Control
+    internal class MControl : Control, IDisposable
     {
         public delegate IntPtr WndProcDelegate(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled);
         public event WndProcDelegate onWndProc;
@@ -146,6 +151,11 @@ namespace mmswitcherAPI.winmsg
             if (handler != null)
                 handler(m.HWnd, m.Msg, m.WParam, m.LParam, ref handled);
             base.WndProc(ref m);
+        }
+        protected override void Dispose(bool disposing)
+        {
+            onWndProc = null;
+            base.Dispose(disposing);
         }
     }
 }

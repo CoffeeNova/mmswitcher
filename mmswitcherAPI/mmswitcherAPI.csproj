@@ -65,19 +65,19 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="GlobalBindController\WinApi.cs" />
-    <Compile Include="Messangers\Web\HookManager.Callback.cs" />
-    <Compile Include="Messangers\Web\HookManager.cs" />
-    <Compile Include="Messangers\Web\HookManager.Windows.cs" />
-    <Compile Include="Messangers\Web\Browsers\IBrowser.cs" />
-    <Compile Include="Messangers\Web\Browsers\Firefox.cs" />
-    <Compile Include="Messangers\Web\Browsers\GoogleChrome.cs" />
-    <Compile Include="Messangers\Web\Browsers\InternetExplorer.cs" />
-    <Compile Include="Messangers\Web\Browsers\Opera.cs" />
-    <Compile Include="Messangers\Web\Skype.cs" />
-    <Compile Include="Messangers\Web\Browsers\TorBrowser.cs" />
-    <Compile Include="Messangers\Web\WebMessenger.cs" />
+    <Compile Include="Messengers\Web\HookManager.Callback.cs" />
+    <Compile Include="Messengers\Web\HookManager.cs" />
+    <Compile Include="Messengers\Web\HookManager.Windows.cs" />
+    <Compile Include="Messengers\Web\Browsers\IBrowser.cs" />
+    <Compile Include="Messengers\Web\Browsers\Firefox.cs" />
+    <Compile Include="Messengers\Web\Browsers\GoogleChrome.cs" />
+    <Compile Include="Messengers\Web\Browsers\InternetExplorer.cs" />
+    <Compile Include="Messengers\Web\Browsers\Opera.cs" />
+    <Compile Include="Messengers\Web\Skype.cs" />
+    <Compile Include="Messengers\Web\Browsers\TorBrowser.cs" />
+    <Compile Include="Messengers\Web\WebMessenger.cs" />
     <Compile Include="WinApi.cs" />
-    <Compile Include="Messangers\Messanger.cs" />
+    <Compile Include="Messengers\Messenger.cs" />
     <Compile Include="Window Messages\MessageMonitors.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools.cs" />
@@ -87,8 +87,8 @@
     <Compile Include="Window Messages\Window messages.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Messangers\Desktop\" />
-    <Folder Include="Messangers\Hooks\" />
+    <Folder Include="Messengers\Desktop\" />
+    <Folder Include="Messengers\Hooks\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

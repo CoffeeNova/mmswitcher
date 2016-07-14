@@ -12,13 +12,13 @@ namespace mmswitcherAPI.winmsg
     /// <summary>
     /// Обнаруживает Windows сообщения создания/уничтожения и изменении активации окон
     /// </summary>
-    public class WindowMessagesMonitor : MsgMonitor
+    public class WindowLifeCycle : MsgMonitor
     {
         //конструктор для wpf приложения
-        public WindowMessagesMonitor(Window window)
+        public WindowLifeCycle(Window window)
             : base(window) { }
         //общий конструктор
-        public WindowMessagesMonitor()
+        public WindowLifeCycle()
             : base() { }
 
         protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -35,6 +35,7 @@ namespace mmswitcherAPI.winmsg
         }
     }
 
+    //todo
     public class SetTextMessageMonitor : MsgMonitor
     {
         //конструктор для wpf приложения
@@ -58,5 +59,6 @@ namespace mmswitcherAPI.winmsg
             return false;
         }
     }
+
 }
 

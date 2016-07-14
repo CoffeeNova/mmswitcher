@@ -17,7 +17,7 @@ namespace mmswitcherAPI.AltTabSimulator
     /// </summary>
     public sealed class ActiveWindowStack
     {
-        private WindowMessagesMonitor _winMesMon;
+        private WindowLifeCycle _winMesMon;
         private static ActiveWindowStack _instance;
         private static readonly object _locker = new object();
         private HookManager _hManager;
@@ -59,7 +59,7 @@ namespace mmswitcherAPI.AltTabSimulator
         //конструктор для wpf приложения
         private ActiveWindowStack(Window window)
         {
-            _winMesMon = new WindowMessagesMonitor(window);
+            _winMesMon = new WindowLifeCycle(window);
             _hManager = new HookManager();
         }
 
