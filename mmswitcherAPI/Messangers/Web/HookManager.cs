@@ -13,7 +13,7 @@ namespace mmswitcherAPI.Messangers.Web
     /// <summary>
     /// Класс отслеживает глобальную активность веб мессенджеров
     /// </summary>
-    internal partial class WebMessengerHookManager : IDisposable
+    public partial class WebMessengerHookManager : IDisposable
     {
         
         //private event EventHandler _messangerTabFocusChanged;
@@ -60,6 +60,22 @@ namespace mmswitcherAPI.Messangers.Web
             {
                 _selected -= value;
                 TryUnsubscribeFromTabSelectedEvent();
+            }
+        }
+
+        private event AutomationFocusChangedEventHandler _tabClosed;
+
+        public event AutomationFocusChangedEventHandler TabClosed
+        {
+            add
+            {
+                EnsureSubscribedToTabClosedEvent();
+                _tabClosed += value;
+            }
+            remove
+            {
+                _tabClosed -= value;
+                TryUnsubscribeFromTabClosedEvent();
             }
         }
 

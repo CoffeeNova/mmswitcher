@@ -9,11 +9,13 @@ using mmswitcherAPI.Messangers.Web.Browsers;
 
 namespace mmswitcherAPI.Messangers.Web
 {
-    public abstract class WebMessenger : MessengerBase
+    public abstract class WebMessenger : MessengerBase, IDisposable
     {
         #region private fields
         protected BrowserSet _browserSet;
+        protected WebMessengerHookManager _hManager;
         #endregion
+        private AutomationElement _tabcontrol;
 
         public WebMessenger(Process browserProcess)
             : base(browserProcess)
@@ -22,6 +24,28 @@ namespace mmswitcherAPI.Messangers.Web
                 throw new ArgumentException();
             if (_browserSet == null)
                 InitBrowserSet(browserProcess);
+            if (_hManager == null)
+                InitHookManager(browserProcess);
+           // _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
+           // _hManager.TabClosed += _hManager_TabClosed;
+            _tabcontrol = TreeWalker.ControlViewWalker.GetParent(base.MessengerAE);
+            //var tt = _tabcontrol.GetSupportedPatterns();
+            //var sp = (SelectionPattern)_tabcontrol.GetCurrentPattern(SelectionPattern.Pattern);
+            //var selection = sp.Current.GetSelection();
+            ControlType asd = ControlType.Tab;
+            asd.
+            var aaa = _tabcontrol.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab));
+            var handler = new StructureChangedEventHandler(OnTabControlStructureChanged);
+            Automation.AddStructureChangedEventHandler(_tabcontrol, TreeScope.Children, handler);
+        }
+        private void OnTabControlStructureChanged(object sender, StructureChangedEventArgs e)
+        {
+
+        }
+
+        void _hManager_TabClosed(object sender, AutomationFocusChangedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private List<IntPtr> GetWidgetHandles(int processId, string className)
@@ -50,6 +74,13 @@ namespace mmswitcherAPI.Messangers.Web
                     break;
             }
         }
+
+        private void InitHookManager(Process browserProcess)
+        {
+            if (_hManager != null) return;
+            _hManager = new WebMessengerHookManager(base._windowHandle, _browserSet);
+        }
+
         /// <summary>
         /// Производит поиск вкладки веб мессенджера в процессе <paramref name="process"/>, так же возвращает дескриптор окна, в котором открыта вкладка веб мессенджера.
         /// </summary>

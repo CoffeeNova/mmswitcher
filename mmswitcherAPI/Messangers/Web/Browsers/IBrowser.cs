@@ -172,6 +172,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                     bool setFore = SetForegroundBrowserWindow(hWnd, out initForeHwnd, out minimWind);
                     EscMaximizedBrowserWindow(hWnd);
                     FocusMessenger(hWnd, windowAE);
+                    System.Threading.Thread.Sleep(50);
                     var focusAE = DefineFocusHandlerChildren(windowAE);
                     if (setFore)
                         ReturnPreviusWindowPositions(hWnd, initForeHwnd, minimWind);
@@ -211,6 +212,9 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
 
         private int _tabSelectedHookEventConstant = EventConstants.EVENT_OBJECT_SELECTION;
         public virtual int TabSelectedHookEventConstant { get { return _tabSelectedHookEventConstant; } }
+
+        private int _tabClosedHookEventConstant = 0x8001;
+        public virtual int TabClosedHookEventConstant { get { return _tabClosedHookEventConstant; } }
     }
 
 

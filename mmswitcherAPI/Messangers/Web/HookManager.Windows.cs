@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace mmswitcherAPI.Messangers.Web
 {
-    internal partial class WebMessengerHookManager
+    public partial class WebMessengerHookManager
     {
         #region Windows constants
 

@@ -58,9 +58,8 @@ namespace test
             ws.LostFocus += ws_LostFocus;
             ws.GotNewMessage += ws_GotNewMessage;
             ws.MessagesGone += ws_MessagesGone;
+            //ws = null;
 
-
-           
         }
 
         void ws_MessagesGone(IMessenger wss)

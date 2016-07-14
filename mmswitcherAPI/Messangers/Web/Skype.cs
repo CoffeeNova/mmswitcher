@@ -16,7 +16,6 @@ namespace mmswitcherAPI.Messangers.Web
             get { return Messenger.Skype; }
         }
 
-        WebMessengerHookManager _hManager;
         
         public WebSkype(Process browserProcess)
             : base(browserProcess)
@@ -24,16 +23,10 @@ namespace mmswitcherAPI.Messangers.Web
             if (browserProcess == null)
                 throw new ArgumentException();
             
-            if (_hManager == null)
-                InitHookManager(browserProcess);
-            _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
+            
         }
 
-        private void InitHookManager(Process browserProcess)
-        {
-            if (_hManager != null) return;
-            _hManager = new WebMessengerHookManager(base._windowHandle, _browserSet);
-        }
+        
 
         protected override bool IncomeMessagesDetect(AutomationElement tab)
         {

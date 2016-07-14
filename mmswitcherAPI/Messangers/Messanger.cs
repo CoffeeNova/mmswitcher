@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Windows.Automation;
 using mmswitcherAPI;
 using System.ComponentModel;
+using System.Reflection;
 
 namespace mmswitcherAPI.Messangers
 {
@@ -60,7 +61,7 @@ namespace mmswitcherAPI.Messangers
     /// <summary>
     /// 
     /// </summary>
-    public abstract class MessengerBase : IMessenger
+    public abstract class MessengerBase : IMessenger, IDisposable
     {
         public string Caption { get; set; }
         public IntPtr WindowHandle { get { return _windowHandle; } }
@@ -112,9 +113,10 @@ namespace mmswitcherAPI.Messangers
             {
                 try
                 {
+                    var t = _incomeMessageAE.Current.Name;
                     return _messengerAE;
                 }
-                catch (ElementNotAvailableException) { Dispose(true); return null; }
+                catch { Dispose(true); return null; }
             }
         }
 
@@ -126,9 +128,10 @@ namespace mmswitcherAPI.Messangers
             {
                 try
                 {
+                    var t = _incomeMessageAE.Current.Name;
                     return _focusableAE;
                 }
-                catch (ElementNotAvailableException) { Dispose(true); return null; }
+                catch { Dispose(true); return null; }
             }
         }
 
@@ -140,9 +143,10 @@ namespace mmswitcherAPI.Messangers
             {
                 try
                 {
+                    var t = _incomeMessageAE.Current.Name;
                     return _incomeMessageAE;
                 }
-                catch (ElementNotAvailableException) { Dispose(true); return null; }
+                catch { Dispose(true); return null; }
             }
         }
 
@@ -156,9 +160,11 @@ namespace mmswitcherAPI.Messangers
         protected IntPtr _windowHandle;
         #endregion
 
+        #region private fields
         private bool _focused = false;
         private bool _incomeMessages = false;
         private static IMessenger _lastMessageRecieved = null;
+        #endregion
 
         public MessengerBase(Process msgProcess)
         {
@@ -171,26 +177,24 @@ namespace mmswitcherAPI.Messangers
                 _messengerAE = GetAutomationElement(msgProcess, out hWnd);
                 _focusableAE = GetFocusHandlerAutomationElement(hWnd);
                 _incomeMessageAE = GetIncomeMessageAutomationElement(hWnd);
+                //запомним значения _id, чтобы быть уверенным, что ссылки указывают все еще на нужные элементы
+                //_messengerAE.Current
             }
             catch
             {
                 throw new Exception(String.Format("Can't find a messenger for this process {0}", msgProcess.ProcessName));
             }
+
+            //var handler = new AutomationPropertyChangedEventHandler(OnBoundingRectangleChanged);
+            //Automation.AddAutomationPropertyChangedEventHandler(_messengerAE, TreeScope.Element, handler, AutomationElement.BoundingRectangleProperty);
             _windowHandle = hWnd;
             //AddAutomationKeyboardFocusChangedEventHandler(_focusableAE);
             OnFocusChangedSubscribe();
             OnMessageProcessingSubscribe();
             GotNewMessage += MessengerBase_GotNewMessage;
             IncomeMessages = IncomeMessagesDetect(IncomeMessageAE) ? true : false;
-            sdt = new System.Threading.Timer(Callback, null, 0, 3000);
-        }
-
-        System.Threading.Timer sdt;
-        void Callback(object state)
-        {
-            var name = AutomationElement.NameProperty;
-            var n = IncomeMessageAE.GetCurrentPropertyValue(name) as string;
-            Console.WriteLine(IncomeMessageAE.Current.Name + "   |   " + n);
+            if (FocusableAE.Current.HasKeyboardFocus)
+                _focused = true;
         }
 
         /// <summary>
@@ -223,6 +227,11 @@ namespace mmswitcherAPI.Messangers
             _lastMessageRecieved = wss;
         }
 
+        private void OnBoundingRectangleChanged(object sender, AutomationPropertyChangedEventArgs e)
+        {
+            //if(e.Property)
+            Dispose(true);
+        }
         /// <summary>
         /// Должен получать <see cref="AutomationElement"/> главного (или нет) окна процесса <paramref name="process"/> и его дескриптор.
         /// </summary>
@@ -292,6 +301,7 @@ namespace mmswitcherAPI.Messangers
                 return;
             if (disposing)
             {
+                Automation.RemoveAllEventHandlers();
                 GotNewMessage -= MessengerBase_GotNewMessage;
                 _process = null;
                 _messengerAE = null;
