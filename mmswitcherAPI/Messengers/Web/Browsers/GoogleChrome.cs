@@ -10,31 +10,22 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
 {
     internal sealed class GoogleChromeSet : BrowserSet
     {
-        public GoogleChromeSet(Messenger messenger) : base(messenger){}
+        public override string MessengerCaption { get { return Tools.DefineWebMessengerBrowserWindowCaption(MessengerType) + Constants.CHROME_BROWSER_CAPTION; } }
 
-        protected override AutomationElement DefineFocusHandlerChildren(AutomationElement parent)
+
+        public GoogleChromeSet(Messenger messenger) : base(messenger) { }
+
+
+        /// <summary>
+        /// Определяет дочерний элемент, который будет получать фокус при переключении на мессенджер.
+        /// </summary>
+        /// <param name="parent">Родительский <see cref="AutomationElement"/>.</param>
+        /// <returns></returns>
+        private AutomationElement DefineFocusHandlerChildren(AutomationElement parent)
         {
             if (parent == null)
                 return null;
             return parent.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ClassNameProperty, "Chrome_RenderWidgetHostHWND"));
-        }
-
-        #region Skype
-        protected override AutomationElement SkypeTab(IntPtr hWnd)
-        {
-            try
-            {
-                // find the automation element
-                AutomationElement windowAE = BrowserWindowAutomationElement(hWnd);
-                if (windowAE == null)
-                    return null;
-                //situation if process is not foreground, and/or skype tab is not active
-                AutomationElement tabControl = SkypeTabControl(windowAE);
-                AutomationElementCollection tabItems = SkypeTabItems(tabControl);
-                AutomationElement skype = SkypeTabItem(tabItems);
-                return skype;
-            }
-            catch { return null; }
         }
 
         /// <summary>
@@ -43,7 +34,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// </summary>
         /// <param name="chrome"></param>
         /// <returns></returns>
-        private AutomationElement SkypeTabControl(AutomationElement chrome)
+        private AutomationElement TabControl(AutomationElement chrome)
         {
             if (chrome == null)
                 return null;
@@ -63,9 +54,69 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// </summary>
         /// <param name="tab"></param>
         /// <returns></returns>
-        private AutomationElementCollection SkypeTabItems(AutomationElement tab)
+        private AutomationElementCollection TabItems(AutomationElement tab)
         {
             return tab.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem));
+        }
+
+        /// <summary>
+        /// Получает <see cref="AutomationElement"/>, которые будет получать фокус при переключении на мессенджер.
+        /// </summary>
+        /// <param name="hWnd">Хэндл окна браузера.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Значение параметра <paramref name="hWnd"/> равно <see langword="null"/>.</exception>
+        /// <exception cref= "ArgumentException">Значение параметра <paramref name="hWnd"/> равно <see langword="IntPtr.Zero"/>.</exception>
+        /// <remarks></remarks>
+        public override AutomationElement MessengerFocusAutomationElement(IntPtr hWnd)
+        {
+            if (hWnd == null)
+                throw new ArgumentNullException("hWnd");
+            if (hWnd == IntPtr.Zero)
+                throw new ArgumentException("Window handle should not be IntPtr.Zero");
+            lock (locker)
+            {
+                try
+                {
+                    //при переключении вкладок этот контрол перерисовывается, поэтому чтобы получить нужный, нам необходимо задать фокус на наш мессенджер
+                    // find the automation element
+                    var windowAE = BrowserMainWindowAutomationElement(hWnd);
+                    if (windowAE == null)
+                        return null;
+                    IntPtr initForeHwnd;
+                    bool minimWind;
+                    bool setFore = SetForegroundBrowserWindow(hWnd, out initForeHwnd, out minimWind);
+                    EscMaximizedBrowserWindow(hWnd);
+                    FocusMessenger(hWnd, windowAE);
+                    System.Threading.Thread.Sleep(50);
+                    var focusAE = DefineFocusHandlerChildren(windowAE);
+                    if (setFore)
+                        ReturnPreviusWindowPositions(hWnd, initForeHwnd, minimWind);
+                    return focusAE;
+                }
+                catch { return null; }
+            }
+        }
+
+        public override AutomationElement BrowserTabControlWindowAutomationElement(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
+        }
+        #region Skype
+        protected override AutomationElement SkypeTab(IntPtr hWnd)
+        {
+            try
+            {
+                // find the automation element
+                AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
+                if (windowAE == null)
+                    return null;
+                //situation if process is not foreground, and/or skype tab is not active
+                AutomationElement tabControl = TabControl(windowAE);
+                AutomationElementCollection tabItems = TabItems(tabControl);
+                AutomationElement skype = SkypeTabItem(tabItems);
+                return skype;
+            }
+            catch { return null; }
         }
 
         /// <summary>
@@ -77,19 +128,44 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         {
             foreach (AutomationElement tab in tabItems)
             {
-                if (tab.Current.Name.Contains("Skype"))
+                if (tab.Current.Name.Contains(Constants.SKYPE_BROWSER_TAB_CAPTION))
                     return tab;
             }
             return null;
         }
-
 
         #endregion
 
         #region WhatsApp
         protected override AutomationElement WhatsAppTab(IntPtr hWnd)
         {
-            //todo
+            try
+            {
+                // find the automation element
+                AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
+                if (windowAE == null)
+                    return null;
+                //situation if process is not foreground, and/or skype tab is not active
+                AutomationElement tabControl = TabControl(windowAE);
+                AutomationElementCollection tabItems = TabItems(tabControl);
+                AutomationElement skype = WhatsAppTabItem(tabItems);
+                return skype;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// Retrieve web skype tab from google chrome tab collecion
+        /// </summary>
+        /// <param name="tabItems"></param>
+        /// <returns></returns>
+        private AutomationElement WhatsAppTabItem(AutomationElementCollection tabItems)
+        {
+            foreach (AutomationElement tab in tabItems)
+            {
+                if (tab.Current.Name.Contains(Constants.WHATSAPP_BROWSER_TAB_CAPTION))
+                    return tab;
+            }
             return null;
         }
         #endregion

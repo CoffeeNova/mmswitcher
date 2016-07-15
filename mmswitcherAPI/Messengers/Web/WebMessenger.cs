@@ -10,13 +10,26 @@ using mmswitcherAPI.winmsg;
 
 namespace mmswitcherAPI.Messangers.Web
 {
+    /// <summary>
+    /// Представляет функционал для отслеживания состояния и управления веб версии популярных мессенджеров.
+    /// </summary>
     public abstract class WebMessenger : MessengerBase, IDisposable
     {
-        #region private fields
+        #region protected fields
+
         protected BrowserSet _browserSet;
         protected WebMessengerHookManager _hManager;
+
         #endregion
+
+        private IntPtr _renderWidgetHandle;
+        /// <summary>
+        /// Хэндл окна, которое является дочерним главному окну визуализации процесса. Непосредственно отображает рабочие элементы веб мессенджера и создается/уничтожается при создании/закрытии вкладки.
+        /// </summary>
+        protected IntPtr RenderWidgetHandle { get { return _renderWidgetHandle; } } 
+        
         private WindowLifeCycle _wmmon;
+
         public WebMessenger(Process browserProcess)
             : base(browserProcess)
         {
@@ -28,16 +41,35 @@ namespace mmswitcherAPI.Messangers.Web
                 InitHookManager(browserProcess);
             // _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
             // _hManager.TabClosed += _hManager_TabClosed;
+            //_renderWidgetHandle = _browserSet.
             _wmmon = new WindowLifeCycle();
             _wmmon.onMessageTraced += _wmmon_onMessageTraced;
         }
 
         void _wmmon_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
         {
-            if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
+            if (hWnd != RenderWidgetHandle || shell != ShellEvents.HSHELL_WINDOWDESTROYED)
                 return;
-            var aElement = AutomationElement.FromHandle(hWnd);
+            Console.WriteLine(hWnd.ToString("X"));
+            return;
+            try
+            {
+                var aElement = AutomationElement.FromHandle(hWnd);
+                var aElementName = aElement.Current.Name; 
+                InitBrowserSet(base._process);
+                if (aElementName.Contains(_browserSet.MessengerCaption))
+                    Dispose(true);
+            }
+                //окно успело задестроится и не доступно, чтобы убедится, что это нужная 
+            catch
+            {
 
+            }
+            
+            //var browserWindowHwnd =_browserSet.BrowserWindowAutomationElement(WindowHandle);
+            //if(browserWindowHwnd == null)
+            //    return;
+                
         }
 
         void _hManager_TabClosed(object sender, AutomationFocusChangedEventArgs e)
@@ -84,6 +116,7 @@ namespace mmswitcherAPI.Messangers.Web
         /// <param name="process">Процесс браузера.</param>
         /// <param name="hWnd">Дескриптор окна, в котором открыта вкладка.</param>
         /// <returns>Вкладку веб мессенджера в виде <see cref="AutomationElement"/> и дескриптор окна, в котором открыта эта вкладка.</returns>
+        /// В роли <see cref="AutomationElement"/> для веб версии мессенджеров является контрол вкладки браузера, это позволит управлять переключением. 
         protected override AutomationElement GetAutomationElement(Process process, out IntPtr hWnd)
         {
             AutomationElement messengerElement = null;
@@ -129,6 +162,16 @@ namespace mmswitcherAPI.Messangers.Web
             return _browserSet.MessengerFocusAutomationElement(hWnd);
         }
 
+        /// <summary>
+        /// Получает модель автоматизации пользовательского интерфейса, которая служит индикатором получения нового сообщения мессенджером.
+        /// </summary>
+        /// <param name="hWnd">Хэндл окна браузера.</param>
+        /// <returns></returns>
+        protected override AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
+        {
+            return _browserSet.MessengerIncomeMessageAutomationElement(hWnd);
+        }
+
         private bool disposed = false;
         protected override void Dispose(bool disposing)
         {
@@ -136,6 +179,7 @@ namespace mmswitcherAPI.Messangers.Web
                 return;
             if (disposing)
             {
+                _hManager.Dispose();
                 _browserSet = null;
             }
             disposed = true;

@@ -26,16 +26,9 @@ namespace mmswitcherAPI.Messangers.Web
             
         }
 
-        
-
         protected override bool IncomeMessagesDetect(AutomationElement tab)
         {
             return tab.Current.Name.StartsWith("(") ? true : false;
-        }
-
-        protected override AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
-        {
-            return _browserSet.MessengerIncomeMessageAutomationElement(hWnd);
         }
 
         private bool disposed = false;
@@ -45,7 +38,6 @@ namespace mmswitcherAPI.Messangers.Web
                 return;
             if (disposing)
             {
-                _hManager.Dispose();
             }
             disposed = true;
             base.Dispose(disposing);

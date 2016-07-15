@@ -10,13 +10,20 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
 {
     internal sealed class FirefoxSet : BrowserSet
     {
+        public override string MessengerCaption { get { return Tools.DefineWebMessengerBrowserWindowCaption(MessengerType) + Constants.FIREFOX_BROWSER_CAPTION; } }
+        
         public FirefoxSet(Messenger messenger) : base(messenger){}
 
-        protected override AutomationElement DefineFocusHandlerChildren(AutomationElement parent)
+        private AutomationElement DefineFocusHandlerChildren(AutomationElement parent)
         {
             if (parent == null)
                 return null;
             return null; //todo
+        }
+
+        public override AutomationElement BrowserTabControlWindowAutomationElement(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
         }
         #region Skype
 
@@ -28,7 +35,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             return null; //todo
         }
 
-        public override AutomationElement BrowserWindowAutomationElement(IntPtr hWnd)
+        public override AutomationElement BrowserMainWindowAutomationElement(IntPtr hWnd)
         {
             try
             {

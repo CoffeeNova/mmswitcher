@@ -30,7 +30,7 @@ namespace mmswitcherAPI.Messangers
         /// <summary>
         /// 
         /// </summary>
-        IntPtr WindowHandle { get; }
+        IntPtr MainWindowHandle { get; }
 
         /// <summary>
         /// 
@@ -64,7 +64,10 @@ namespace mmswitcherAPI.Messangers
     public abstract class MessengerBase : IMessenger, IDisposable
     {
         public string Caption { get; set; }
-        public IntPtr WindowHandle { get { return _windowHandle; } }
+        /// <summary>
+        /// Хэндл главного окна, в котором представлена визуализация браузера, которое в данный момент содержит вкладку с веб мессенджером. 
+        /// </summary>
+        public IntPtr MainWindowHandle { get { return _windowHandle; } } //main window of messenger
         public static IMessenger LastMessageRecieved
         {
             get
@@ -314,5 +317,6 @@ namespace mmswitcherAPI.Messangers
         {
             Dispose(false);
         }
+
     }
 }

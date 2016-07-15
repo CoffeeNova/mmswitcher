@@ -54,5 +54,14 @@ namespace mmswitcherAPI
         internal const string FIREFOX_CLASS_NAME = "";
         internal const string IE_CLASS_NAME = "";
 
+        internal const string SKYPE_BROWSER_WINDOW_CAPTION = "Skype - ";
+        internal const string WHATSAPP_BROWSER_WINDOW_CAPTION = "WhatsApp - ";
+        internal const string CHROME_BROWSER_CAPTION = "Google Chrome";
+        internal const string OPERA_BROWSER_CAPTION = "Opera";
+        internal const string FIREFOX_BROWSER_CAPTION = "";//todo
+        internal const string IEXPLORER_BROWSER_CAPTION = "";//todo
+        internal const string TOR_BROWSER_CAPTION = "";//todo
+        internal const string SKYPE_BROWSER_TAB_CAPTION = "Skype";
+        internal const string WHATSAPP_BROWSER_TAB_CAPTION = "WhatsApp";
     }
 }

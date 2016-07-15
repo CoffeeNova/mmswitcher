@@ -74,6 +74,18 @@ namespace mmswitcherAPI
             }
         }
 
+        internal static string DefineWebMessengerBrowserWindowCaption(Messenger msg)
+        {
+            switch(msg)
+            {
+                case Messenger.Skype:
+                    return Constants.SKYPE_BROWSER_WINDOW_CAPTION;
+                case Messenger.WhatsApp:
+                    return Constants.WHATSAPP_BROWSER_WINDOW_CAPTION;
+                default:
+                    return string.Empty;
+            }
+        }
         /// <summary>
         /// 
         /// </summary>
