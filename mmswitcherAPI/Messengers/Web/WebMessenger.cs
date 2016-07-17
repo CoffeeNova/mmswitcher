@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Diagnostics;
 using mmswitcherAPI.Messangers.Web.Browsers;
-using mmswitcherAPI.winmsg;
+
 
 namespace mmswitcherAPI.Messangers.Web
 {
@@ -15,6 +15,23 @@ namespace mmswitcherAPI.Messangers.Web
     /// </summary>
     public abstract class WebMessenger : MessengerBase, IDisposable
     {
+        private AutomationElement _renderTabWidgetAE;
+        /// <summary>
+        /// <see cref="AutomationElement"/> окна, которое непосредственно отображает рабочие элементы веб мессенджера и создается/уничтожается при создании/закрытии вкладки.
+        /// </summary>
+        protected AutomationElement RenderTabWidgetAE
+        {
+            get
+            {
+                try
+                {
+                    var t = _renderTabWidgetAE.Current.Name;
+                    return _renderTabWidgetAE;
+                }
+                catch { Dispose(true); return null; }
+            }
+        }
+
         #region protected fields
 
         protected BrowserSet _browserSet;
@@ -22,15 +39,10 @@ namespace mmswitcherAPI.Messangers.Web
 
         #endregion
 
-        private IntPtr _renderWidgetHandle;
-        /// <summary>
-        /// Хэндл окна, которое является дочерним главному окну визуализации процесса. Непосредственно отображает рабочие элементы веб мессенджера и создается/уничтожается при создании/закрытии вкладки.
-        /// </summary>
-        protected IntPtr RenderWidgetHandle { get { return _renderWidgetHandle; } } 
         
-        private WindowLifeCycle _wmmon;
+        private IntPtr _renderTabWidgetHandle;
 
-        public WebMessenger(Process browserProcess)
+        protected WebMessenger(Process browserProcess)
             : base(browserProcess)
         {
             if (browserProcess == null)
@@ -41,35 +53,24 @@ namespace mmswitcherAPI.Messangers.Web
                 InitHookManager(browserProcess);
             // _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
             // _hManager.TabClosed += _hManager_TabClosed;
-            //_renderWidgetHandle = _browserSet.
-            _wmmon = new WindowLifeCycle();
-            _wmmon.onMessageTraced += _wmmon_onMessageTraced;
+            _renderTabWidgetAE = _browserSet.BrowserTabControlWindowAutomationElement(base._windowHandle);
+            _renderTabWidgetHandle = (IntPtr)_renderTabWidgetAE.Current.NativeWindowHandle;
+            
         }
 
-        void _wmmon_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
+        /// <summary>
+        /// Добавляет к методу <see cref="BaseMessenger.OnMessageTraced"/> отслеживаение закрытия вкладки браузера и перенос вкладки в новое окно. Вызывает деструктор.
+        /// </summary>
+        /// <param name="sender">Объект, вызвавший событие.</param>
+        /// <param name="hWnd">Дескриптор элемента.</param>
+        /// <param name="shell">Перечисление shell событий.</param>
+        protected override void OnMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
         {
-            if (hWnd != RenderWidgetHandle || shell != ShellEvents.HSHELL_WINDOWDESTROYED)
+            if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
                 return;
-            Console.WriteLine(hWnd.ToString("X"));
-            return;
-            try
-            {
-                var aElement = AutomationElement.FromHandle(hWnd);
-                var aElementName = aElement.Current.Name; 
-                InitBrowserSet(base._process);
-                if (aElementName.Contains(_browserSet.MessengerCaption))
-                    Dispose(true);
-            }
-                //окно успело задестроится и не доступно, чтобы убедится, что это нужная 
-            catch
-            {
-
-            }
-            
-            //var browserWindowHwnd =_browserSet.BrowserWindowAutomationElement(WindowHandle);
-            //if(browserWindowHwnd == null)
-            //    return;
-                
+            if (hWnd == _renderTabWidgetHandle)
+                Dispose(true);
+            base.OnMessageTraced(sender, hWnd, shell);
         }
 
         void _hManager_TabClosed(object sender, AutomationFocusChangedEventArgs e)
@@ -179,8 +180,10 @@ namespace mmswitcherAPI.Messangers.Web
                 return;
             if (disposing)
             {
-                _hManager.Dispose();
+                if (_hManager != null)
+                    _hManager.Dispose();
                 _browserSet = null;
+                
             }
             disposed = true;
             base.Dispose(disposing);

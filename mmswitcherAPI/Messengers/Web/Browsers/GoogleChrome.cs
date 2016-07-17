@@ -38,6 +38,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         {
             if (chrome == null)
                 return null;
+            var asdasd = TreeWalker.RawViewWalker.GetFirstChild(chrome);
             // manually walk through the tree, searching using TreeScope.Descendants is too slow (even if it's more reliable)
             var chromeDaughter = chrome.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.NameProperty, "Google Chrome"));
 
@@ -73,7 +74,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 throw new ArgumentNullException("hWnd");
             if (hWnd == IntPtr.Zero)
                 throw new ArgumentException("Window handle should not be IntPtr.Zero");
-            lock (locker)
+            lock (_locker)
             {
                 try
                 {
@@ -89,8 +90,8 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                     FocusMessenger(hWnd, windowAE);
                     System.Threading.Thread.Sleep(50);
                     var focusAE = DefineFocusHandlerChildren(windowAE);
-                    if (setFore)
-                        ReturnPreviusWindowPositions(hWnd, initForeHwnd, minimWind);
+                    //if (setFore)
+                    //    ReturnPreviusWindowPositions(hWnd, initForeHwnd, minimWind);
                     return focusAE;
                 }
                 catch { return null; }
@@ -99,7 +100,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
 
         public override AutomationElement BrowserTabControlWindowAutomationElement(IntPtr hWnd)
         {
-            throw new NotImplementedException();
+            return MessengerFocusAutomationElement(hWnd); //the same AE as for focus for chrome
         }
         #region Skype
         protected override AutomationElement SkypeTab(IntPtr hWnd)
@@ -108,6 +109,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             {
                 // find the automation element
                 AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
+                
                 if (windowAE == null)
                     return null;
                 //situation if process is not foreground, and/or skype tab is not active

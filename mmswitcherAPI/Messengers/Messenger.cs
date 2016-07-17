@@ -8,6 +8,8 @@ using System.Windows.Automation;
 using mmswitcherAPI;
 using System.ComponentModel;
 using System.Reflection;
+using mmswitcherAPI.winmsg;
+using System.Collections.ObjectModel;
 
 namespace mmswitcherAPI.Messangers
 {
@@ -30,7 +32,7 @@ namespace mmswitcherAPI.Messangers
         /// <summary>
         /// 
         /// </summary>
-        IntPtr MainWindowHandle { get; }
+        IntPtr WindowHandle { get; }
 
         /// <summary>
         /// 
@@ -46,6 +48,8 @@ namespace mmswitcherAPI.Messangers
         /// 
         /// </summary>
         event newMessageDelegate GotNewMessage;
+
+        event newMessageDelegate MessagesGone;
 
         /// <summary>
         /// 
@@ -67,14 +71,18 @@ namespace mmswitcherAPI.Messangers
         /// <summary>
         /// Хэндл главного окна, в котором представлена визуализация браузера, которое в данный момент содержит вкладку с веб мессенджером. 
         /// </summary>
-        public IntPtr MainWindowHandle { get { return _windowHandle; } } //main window of messenger
-        public static IMessenger LastMessageRecieved
-        {
-            get
-            {
-                return _lastMessageRecieved;
-            }
-        }
+        public IntPtr WindowHandle { get { return _windowHandle; } } //window of messenger
+
+        /// <summary>
+        /// Отображает последний получивший сообщение мессенджер.
+        /// </summary>
+        public static IMessenger LastMessageRecieved { get { return _lastMessageRecieved; } }
+
+        /// <summary>
+        /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/>.
+        /// <remarks>Стоит добавлять в коллекцию экземпляр sealed класса (последнего наследника) из конструктора и удалять из коллекции из деструктора.</remarks>
+        /// </summary>
+        public static Collection<MessengerBase> MessengersCollection { get { return _messengersCollection; } }
 
         protected bool IncomeMessages
         {
@@ -100,6 +108,7 @@ namespace mmswitcherAPI.Messangers
             get { return _focused; }
             private set
             {
+                object t = this;
                 if (value != _focused && value)
                     GotFocus(this, new EventArgs());
                 if (value != _focused && !value)
@@ -167,9 +176,14 @@ namespace mmswitcherAPI.Messangers
         private bool _focused = false;
         private bool _incomeMessages = false;
         private static IMessenger _lastMessageRecieved = null;
+        private WindowLifeCycle _wmmon;
+        private IntPtr _messengerHandle;
+        private IntPtr _focusableHandle;
+        private IntPtr _incomeMessagehandle;
+        private static Collection<MessengerBase> _messengersCollection = new Collection<MessengerBase>();
         #endregion
 
-        public MessengerBase(Process msgProcess)
+        protected MessengerBase(Process msgProcess)
         {
             if (msgProcess == null)
                 throw new ArgumentException();
@@ -180,8 +194,9 @@ namespace mmswitcherAPI.Messangers
                 _messengerAE = GetAutomationElement(msgProcess, out hWnd);
                 _focusableAE = GetFocusHandlerAutomationElement(hWnd);
                 _incomeMessageAE = GetIncomeMessageAutomationElement(hWnd);
-                //запомним значения _id, чтобы быть уверенным, что ссылки указывают все еще на нужные элементы
-                //_messengerAE.Current
+                _messengerHandle = (IntPtr)_messengerAE.Current.NativeWindowHandle;
+                _focusableHandle = (IntPtr)_focusableAE.Current.NativeWindowHandle;
+                _incomeMessagehandle = (IntPtr)_incomeMessageAE.Current.NativeWindowHandle;
             }
             catch
             {
@@ -192,12 +207,26 @@ namespace mmswitcherAPI.Messangers
             //Automation.AddAutomationPropertyChangedEventHandler(_messengerAE, TreeScope.Element, handler, AutomationElement.BoundingRectangleProperty);
             _windowHandle = hWnd;
             //AddAutomationKeyboardFocusChangedEventHandler(_focusableAE);
-            OnFocusChangedSubscribe();
-            OnMessageProcessingSubscribe();
             GotNewMessage += MessengerBase_GotNewMessage;
             IncomeMessages = IncomeMessagesDetect(IncomeMessageAE) ? true : false;
             if (FocusableAE.Current.HasKeyboardFocus)
                 _focused = true;
+            _wmmon = new WindowLifeCycle();
+            _wmmon.onMessageTraced += OnMessageTraced;
+        }
+
+        /// <summary>
+        /// Создает новый экземпляр класса типа <paramref name="derivedType"/>.
+        /// </summary>
+        /// <param name="derivedType">Тип класса.</param>
+        /// <param name="process">Процесс программы мессенджера.</param>
+        /// <returns></returns>
+        /// <remarks>Пример создания экземпляра класса: DerivedClass derivedClass = (DerivedClass)BaseClass.Create(typeof(DerivedClass));</remarks>
+        public static MessengerBase Create(Type derivedType, Process process)
+        {
+            var newMessenger = (MessengerBase)Activator.CreateInstance(derivedType, process);
+            _messengersCollection.Add(newMessenger);
+            return newMessenger;
         }
 
         /// <summary>
@@ -207,6 +236,20 @@ namespace mmswitcherAPI.Messangers
         private void AddAutomationKeyboardFocusChangedEventHandler(AutomationElement aElement)
         {
 
+        }
+
+        /// <summary>
+        /// Callback метод события <see cref="WindowLifeCycle.onMessageTraced"/>, который вызывает освобождение ресурсов при перехвате сообщения windows о закрытии окна мессенджера или других элементов, помогающих в отслеживании состояния или управления мессенджеромю.
+        /// </summary>
+        /// <param name="sender">Объект, вызвавший событие.</param>
+        /// <param name="hWnd">Дескриптор элемента.</param>
+        /// <param name="shell">Перечисление shell событий.</param>
+        protected virtual void OnMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
+        {
+            if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
+                return;
+            if (hWnd == _windowHandle || hWnd == _messengerHandle || hWnd == _focusableHandle || hWnd == _incomeMessagehandle)
+                Dispose(true);
         }
 
         protected void OnFocusChanged(object sender, AutomationFocusChangedEventArgs e)
@@ -310,7 +353,10 @@ namespace mmswitcherAPI.Messangers
                 _messengerAE = null;
                 _focusableAE = null;
                 _incomeMessageAE = null;
+                _wmmon.onMessageTraced -= OnMessageTraced;
+                _wmmon = null;
             }
+            _messengersCollection.Remove(this);
             disposed = true;
         }
         ~MessengerBase()

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Windows.Automation;
 using mmswitcherAPI.Messangers.Web.Browsers;
+using System.Collections.ObjectModel;
 
 namespace mmswitcherAPI.Messangers.Web
 {
@@ -16,14 +17,14 @@ namespace mmswitcherAPI.Messangers.Web
             get { return Messenger.Skype; }
         }
 
-        
-        public WebSkype(Process browserProcess)
+        public  WebSkype(Process browserProcess)
             : base(browserProcess)
         {
             if (browserProcess == null)
                 throw new ArgumentException();
-            
-            
+
+            OnFocusChangedSubscribe();
+            OnMessageProcessingSubscribe();
         }
 
         protected override bool IncomeMessagesDetect(AutomationElement tab)

@@ -25,6 +25,19 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Получает <see cref="AutomationElement"/>, которые будет получать фокус при переключении на мессенджер.
+        /// </summary>
+        /// <param name="hWnd">Хэндл окна браузера.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Значение параметра <paramref name="hWnd"/> равно <see langword="null"/>.</exception>
+        /// <exception cref= "ArgumentException">Значение параметра <paramref name="hWnd"/> равно <see langword="IntPtr.Zero"/>.</exception>
+        /// <remarks></remarks>
+        public override AutomationElement MessengerFocusAutomationElement(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
+        }
         #region Skype
 
         //private const int _focusHookEventConstant = EventConstants.EVENT_OBJECT_SELECTIONREMOVE; //not tested

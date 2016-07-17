@@ -19,7 +19,11 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
     public abstract class BrowserSet : IBrowserSet
     {
         private delegate AutomationElement MessangerTabDelegate(IntPtr hWnd);
-        protected object locker = new object();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected static object _locker = new object();
 
         public Messenger MessengerType { get; private set; }
 
@@ -144,9 +148,8 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             AutomationElement mainWindowAe = null;
             try
             {
-                var ae = AutomationElement.FromHandle(hWnd);
-                mainWindowAe = TreeWalker.RawViewWalker.GetParent(ae);
-                if (!TreeWalker.RawViewWalker.GetParent(mainWindowAe).Current.Name.Equals("Desktop"))
+                mainWindowAe = AutomationElement.FromHandle(hWnd);
+                if (!TreeWalker.RawViewWalker.GetParent(mainWindowAe).Current.ClassName.Equals("#32769"))
                     throw new ArgumentException("hWnd is not main window handle");
             }
             catch (ArgumentException ex)
