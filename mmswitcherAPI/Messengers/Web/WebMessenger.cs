@@ -39,7 +39,7 @@ namespace mmswitcherAPI.Messangers.Web
 
         #endregion
 
-        
+
         private IntPtr _renderTabWidgetHandle;
 
         protected WebMessenger(Process browserProcess)
@@ -55,7 +55,7 @@ namespace mmswitcherAPI.Messangers.Web
             // _hManager.TabClosed += _hManager_TabClosed;
             _renderTabWidgetAE = _browserSet.BrowserTabControlWindowAutomationElement(base._windowHandle);
             _renderTabWidgetHandle = (IntPtr)_renderTabWidgetAE.Current.NativeWindowHandle;
-            
+
         }
 
         /// <summary>
@@ -147,7 +147,16 @@ namespace mmswitcherAPI.Messangers.Web
         protected virtual AutomationElement DefineTabAutomationAelement(IntPtr widgetHandle)
         {
             InitBrowserSet(base._process);
-            return _browserSet.MessengerTab(widgetHandle);
+            AutomationElement mesTab;
+            try
+            {
+                mesTab = _browserSet.MessengerTab(widgetHandle);
+            }
+            catch (ElementNotAvailableException ex)
+            {
+                return null;
+            }
+            return mesTab;
         }
 
         /// <summary>
@@ -183,7 +192,7 @@ namespace mmswitcherAPI.Messangers.Web
                 if (_hManager != null)
                     _hManager.Dispose();
                 _browserSet = null;
-                
+
             }
             disposed = true;
             base.Dispose(disposing);

@@ -132,6 +132,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 {
                     var pattern = ((LegacyIAccessiblePattern)tab.GetCurrentPattern(LegacyIAccessiblePattern.Pattern));
                     var state = pattern.GetIAccessible().accState;
+                    var r = state;
                 }
 
             }

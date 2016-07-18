@@ -38,6 +38,11 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         {
             throw new NotImplementedException();
         }
+
+        protected override AutomationElement ActiveTab(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
+        }
         #region Skype
 
         //private const int _focusHookEventConstant = EventConstants.EVENT_OBJECT_SELECTIONREMOVE; //not tested

@@ -71,7 +71,8 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             MessangerTabDelegate mtd = DefineTab(MessengerType);
             if (mtd == null)
                 return null;
-            return mtd.Invoke(hWnd);
+            var mesTab = mtd.Invoke(hWnd);
+            return mesTab;
         }
 
         /// <summary>
