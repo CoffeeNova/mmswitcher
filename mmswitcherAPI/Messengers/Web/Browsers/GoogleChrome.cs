@@ -79,16 +79,14 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 try
                 {
                     //при переключении вкладок этот контрол перерисовывается, поэтому чтобы получить нужный, нам необходимо задать фокус на наш мессенджер
-                    // find the automation element
-                    var windowAE = BrowserMainWindowAutomationElement(hWnd);
-                    if (windowAE == null)
-                        return null;
                     IntPtr initForeHwnd;
+                    AutomationElement init;
                     bool minimWind;
-                    bool setFore = SetForegroundBrowserWindow(hWnd, out initForeHwnd, out minimWind);
-                    EscMaximizedBrowserWindow(hWnd);
-                    FocusMessenger(hWnd, windowAE);
+                    bool setForeTab = SetForegroundMessengerTab(hWnd, out initForeHwnd, out init, out minimWind);
+                    if (!setForeTab)
+                        return null;
                     System.Threading.Thread.Sleep(50);
+                    var windowAE = BrowserMainWindowAutomationElement(hWnd);
                     var focusAE = DefineFocusHandlerChildren(windowAE);
                     //if (setFore)
                     //    ReturnPreviusWindowPositions(hWnd, initForeHwnd, minimWind);
@@ -102,6 +100,44 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         {
             return MessengerFocusAutomationElement(hWnd); //the same AE as for focus for chrome
         }
+
+        protected override AutomationElement ActiveTab(IntPtr hWnd)
+        {
+            try
+            {
+                // find the automation element
+                AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
+
+                if (windowAE == null)
+                    return null;
+                //situation if process is not foreground, and/or skype tab is not active
+                AutomationElement tabControl = TabControl(windowAE);
+                AutomationElementCollection tabItems = TabItems(tabControl);
+                AutomationElement currentTab = ActiveTabItem(tabItems);
+                return currentTab;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// Retrieve active tab from google chrome tab collecion
+        /// </summary>
+        /// <param name="tabItems"></param>
+        /// <returns></returns>
+        private AutomationElement ActiveTabItem(AutomationElementCollection tabItems)
+        {
+            foreach (AutomationElement tab in tabItems)
+            {
+                if ((bool)tab.GetCurrentPropertyValue(AutomationElementIdentifiers.IsLegacyIAccessiblePatternAvailableProperty))
+                {
+                    var pattern = ((LegacyIAccessiblePattern)tab.GetCurrentPattern(LegacyIAccessiblePattern.Pattern));
+                    var state = pattern.GetIAccessible().accState;
+                }
+
+            }
+            return null;
+        }
+
         #region Skype
         protected override AutomationElement SkypeTab(IntPtr hWnd)
         {
@@ -109,7 +145,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             {
                 // find the automation element
                 AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
-                
+
                 if (windowAE == null)
                     return null;
                 //situation if process is not foreground, and/or skype tab is not active
@@ -118,7 +154,10 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 AutomationElement skype = SkypeTabItem(tabItems);
                 return skype;
             }
-            catch { return null; }
+            catch 
+            {
+                throw new ElementNotAvailableException("Skype tab is not available in a Google Chrome.");
+            }
         }
 
         /// <summary>
@@ -135,7 +174,6 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             }
             return null;
         }
-
         #endregion
 
         #region WhatsApp

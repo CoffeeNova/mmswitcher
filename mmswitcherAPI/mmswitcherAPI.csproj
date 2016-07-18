@@ -33,6 +33,11 @@
     <DocumentationFile>bin\Release\mmswitcherAPI.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Interop.UIAutomationClient, Version=12.0.21005.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\UIAComWrapper\Interop.UIAutomationClient.dll</HintPath>
+    </Reference>
     <Reference Include="MwLib">
       <HintPath>..\packages\MwLib.dll</HintPath>
     </Reference>

@@ -53,7 +53,7 @@ namespace test
 
             if (process == null)
                 return;
-            ws = (WebSkype)WebSkype.Create(typeof(WebSkype), process);
+            ws = (WebSkype)MessengerBase.Create(typeof(WebSkype), process);
             ws.GotFocus += ws_GotFocus;
             ws.LostFocus += ws_LostFocus;
             ws.GotNewMessage += ws_GotNewMessage;

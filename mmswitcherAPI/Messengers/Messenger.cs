@@ -17,7 +17,7 @@ namespace mmswitcherAPI.Messangers
     /// 
     /// </summary>
     /// <param name="wss"></param>
-    public delegate void newMessageDelegate(IMessenger wss);
+    public delegate void newMessageDelegate(MessengerBase wss);
 
     /// <summary>
     /// 
@@ -76,7 +76,7 @@ namespace mmswitcherAPI.Messangers
         /// <summary>
         /// Отображает последний получивший сообщение мессенджер.
         /// </summary>
-        public static IMessenger LastMessageRecieved { get { return _lastMessageRecieved; } }
+        public static MessengerBase LastAlerted { get { return _lastAlerted; } }
 
         /// <summary>
         /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/>.
@@ -175,7 +175,7 @@ namespace mmswitcherAPI.Messangers
         #region private fields
         private bool _focused = false;
         private bool _incomeMessages = false;
-        private static IMessenger _lastMessageRecieved = null;
+        private static MessengerBase _lastAlerted = null;
         private WindowLifeCycle _wmmon;
         private IntPtr _messengerHandle;
         private IntPtr _focusableHandle;
@@ -229,6 +229,15 @@ namespace mmswitcherAPI.Messangers
             return newMessenger;
         }
 
+        public static void SetToForeground(MessengerBase messenger)
+        {
+
+        }
+
+        public static void SelLastAlertedToForeground()
+        {
+            SetToForeground(LastAlerted);
+        }
         /// <summary>
         /// Регистрирует метод <see cref="OnPropertyChanged"/>, который будет обрабатывать события изменения свойства.<see cref="AutomationElement.HasKeyboardFocusProperty"/>
         /// </summary>
@@ -268,9 +277,9 @@ namespace mmswitcherAPI.Messangers
                 IncomeMessages = IncomeMessagesDetect(element) ? true : false;
         }
 
-        void MessengerBase_GotNewMessage(IMessenger wss)
+        void MessengerBase_GotNewMessage(MessengerBase wss)
         {
-            _lastMessageRecieved = wss;
+            _lastAlerted = wss;
         }
 
         private void OnBoundingRectangleChanged(object sender, AutomationPropertyChangedEventArgs e)
