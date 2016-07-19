@@ -49,6 +49,9 @@ namespace mmswitcherAPI.Messangers
         /// </summary>
         event newMessageDelegate GotNewMessage;
 
+        /// <summary>
+        /// 
+        /// </summary>
         event newMessageDelegate MessagesGone;
 
         /// <summary>
@@ -183,7 +186,7 @@ namespace mmswitcherAPI.Messangers
         private static Collection<MessengerBase> _messengersCollection = new Collection<MessengerBase>();
         #endregion
 
-        protected MessengerBase(Process msgProcess)
+        internal protected MessengerBase(Process msgProcess)
         {
             if (msgProcess == null)
                 throw new ArgumentException();
@@ -213,6 +216,7 @@ namespace mmswitcherAPI.Messangers
                 _focused = true;
             _wmmon = new WindowLifeCycle();
             _wmmon.onMessageTraced += OnMessageTraced;
+            _messengersCollection.Add(this);
         }
 
         /// <summary>
@@ -225,7 +229,6 @@ namespace mmswitcherAPI.Messangers
         public static MessengerBase Create(Type derivedType, Process process)
         {
             var newMessenger = (MessengerBase)Activator.CreateInstance(derivedType, process);
-            _messengersCollection.Add(newMessenger);
             return newMessenger;
         }
 

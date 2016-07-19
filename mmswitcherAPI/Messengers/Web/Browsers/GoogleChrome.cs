@@ -80,9 +80,9 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 {
                     //при переключении вкладок этот контрол перерисовывается, поэтому чтобы получить нужный, нам необходимо задать фокус на наш мессенджер
                     IntPtr initForeHwnd;
-                    AutomationElement init;
+                    AutomationElement initControl;
                     bool minimWind;
-                    bool setForeTab = SetForegroundMessengerTab(hWnd, out initForeHwnd, out init, out minimWind);
+                    bool setForeTab = SetForegroundMessengerTab(hWnd, out initForeHwnd, out initControl, out minimWind);
                     if (!setForeTab)
                         return null;
                     System.Threading.Thread.Sleep(50);
@@ -113,28 +113,25 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 //situation if process is not foreground, and/or skype tab is not active
                 AutomationElement tabControl = TabControl(windowAE);
                 AutomationElementCollection tabItems = TabItems(tabControl);
-                AutomationElement currentTab = ActiveTabItem(tabItems);
+                AutomationElement currentTab = ActiveTabItem(tabItems, windowAE);
                 return currentTab;
             }
             catch { return null; }
         }
 
         /// <summary>
-        /// Retrieve active tab from google chrome tab collecion
+        /// Retrieve active tab from google chrome tab collecion.
         /// </summary>
         /// <param name="tabItems"></param>
+        /// <param name="windowAE">Окно браузера.</param>
         /// <returns></returns>
-        private AutomationElement ActiveTabItem(AutomationElementCollection tabItems)
+        /// <remarks>this method is pretty shitty cos idk why the hell AutomationElement.GetSupportedPatterns doesn't returns any paterns. Using inspect.exe we can find that tabitem has IsSelectionItemPatternAvailable. </remarks>
+        private AutomationElement ActiveTabItem(AutomationElementCollection tabItems, AutomationElement windowAE)
         {
             foreach (AutomationElement tab in tabItems)
             {
-                if ((bool)tab.GetCurrentPropertyValue(AutomationElementIdentifiers.IsLegacyIAccessiblePatternAvailableProperty))
-                {
-                    var pattern = ((LegacyIAccessiblePattern)tab.GetCurrentPattern(LegacyIAccessiblePattern.Pattern));
-                    var state = pattern.GetIAccessible().accState;
-                    var r = state;
-                }
-
+                if (windowAE.Current.Name.StartsWith(tab.Current.Name))
+                    return tab;
             }
             return null;
         }
