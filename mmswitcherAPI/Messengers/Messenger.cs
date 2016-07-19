@@ -83,9 +83,13 @@ namespace mmswitcherAPI.Messangers
 
         /// <summary>
         /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/>.
-        /// <remarks>Стоит добавлять в коллекцию экземпляр sealed класса (последнего наследника) из конструктора и удалять из коллекции из деструктора.</remarks>
         /// </summary>
         public static Collection<MessengerBase> MessengersCollection { get { return _messengersCollection; } }
+
+        /// <summary>
+        /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/> (те, которые имеют непрочитанные сообщения), отсортированных по колличеству полученных сообщений.
+        /// </summary>
+        public static Collection<MessengerBase> Activity { get { return _activity; } }
 
         protected bool IncomeMessages
         {
@@ -96,16 +100,26 @@ namespace mmswitcherAPI.Messangers
                 {
                     _incomeMessages = value;
                     GotNewMessage(this);
+                    NewMessagesCount++;
+                    PushToActivity(this, NewMessagesCount);
                 }
                 if (!value && !value.Equals(_incomeMessages))
                 {
                     _incomeMessages = value;
                     MessagesGone(this);
+                    NewMessagesCount = 0;
+                    PullFromActivity(this, NewMessagesCount);
                 }
             }
         }
 
+        public int NewMessagesCount { get; private set; }
+
+
+
         public abstract Messenger Messenger { get; }
+
+
         public bool Focused
         {
             get { return _focused; }
@@ -184,6 +198,7 @@ namespace mmswitcherAPI.Messangers
         private IntPtr _focusableHandle;
         private IntPtr _incomeMessagehandle;
         private static Collection<MessengerBase> _messengersCollection = new Collection<MessengerBase>();
+        private static Collection<MessengerBase> _activity = new Collection<MessengerBase>();
         #endregion
 
         internal protected MessengerBase(Process msgProcess)
@@ -289,6 +304,16 @@ namespace mmswitcherAPI.Messangers
         {
             //if(e.Property)
             Dispose(true);
+        }
+
+        private void PullFromActivity(MessengerBase messengerBase, int NewMessagesCount)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void PushToActivity(MessengerBase messengerBase, int NewMessagesCount)
+        {
+            throw new NotImplementedException();
         }
         /// <summary>
         /// Должен получать <see cref="AutomationElement"/> главного (или нет) окна процесса <paramref name="process"/> и его дескриптор.
