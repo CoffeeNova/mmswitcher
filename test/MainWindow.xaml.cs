@@ -59,7 +59,7 @@ namespace test
             ws.GotNewMessage += ws_GotNewMessage;
             ws.MessagesGone += ws_MessagesGone;
 
-
+            MessengerBase.SwitchToLastAlerted;
         }
 
         void ws_MessagesGone(IMessenger wss)

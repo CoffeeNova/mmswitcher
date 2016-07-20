@@ -33,14 +33,15 @@ namespace mmswitcherAPI.Messangers.Web
         }
 
         #region protected fields
-
         protected BrowserSet _browserSet;
         protected WebMessengerHookManager _hManager;
-
         #endregion
 
-
+        #region private fields
         private IntPtr _renderTabWidgetHandle;
+        private IntPtr _previousForegroundWindow = IntPtr.Zero;
+        private AutomationElement _previousTab;
+        #endregion
 
         protected WebMessenger(Process browserProcess)
             : base(browserProcess)
@@ -180,6 +181,36 @@ namespace mmswitcherAPI.Messangers.Web
         protected override AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
         {
             return _browserSet.MessengerIncomeMessageAutomationElement(hWnd);
+        }
+
+        protected override void SetForeground()
+        {
+            IntPtr initFore;
+            AutomationElement initTab;
+            bool isMinim;
+            try
+            {
+                _browserSet.SetForegroundMessengerTab(base.WindowHandle, out initFore, out initTab, out isMinim);
+                _previousForegroundWindow = initFore;
+                _previousTab = initTab;
+            }
+            catch { Dispose(true); }
+        }
+
+        protected override void ReturnForeground()
+        {
+            if (_previousForegroundWindow == IntPtr.Zero || _previousTab == null)
+                return;
+            try
+            {
+                if (_previousForegroundWindow != base.WindowHandle)
+                    WinApi.SetForegroundWindow(_previousForegroundWindow);
+                else
+                    _browserSet.FocusBrowserTab(base.WindowHandle, _previousTab);
+                _previousForegroundWindow = IntPtr.Zero;
+                _previousTab = null;
+            }
+            catch { Dispose(true); }
         }
 
         private bool disposed = false;

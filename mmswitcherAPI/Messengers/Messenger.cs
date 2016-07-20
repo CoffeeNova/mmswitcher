@@ -63,6 +63,7 @@ namespace mmswitcherAPI.Messangers
         /// 
         /// </summary>
         event EventHandler LostFocus;
+
     }
 
     /// <summary>
@@ -80,6 +81,11 @@ namespace mmswitcherAPI.Messangers
         /// Отображает последний получивший сообщение мессенджер.
         /// </summary>
         public static MessengerBase LastAlerted { get { return _lastAlerted; } }
+
+        /// <summary>
+        /// Последний активный мессенджер.
+        /// </summary>
+        public static MessengerBase LastActive { get { return _lastActive; } }
 
         /// <summary>
         /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/>.
@@ -101,14 +107,14 @@ namespace mmswitcherAPI.Messangers
                     _incomeMessages = value;
                     GotNewMessage(this);
                     NewMessagesCount++;
-                    PushToActivity(this, NewMessagesCount);
+                    PushToActivity(this);
                 }
                 if (!value && !value.Equals(_incomeMessages))
                 {
                     _incomeMessages = value;
                     MessagesGone(this);
                     NewMessagesCount = 0;
-                    PullFromActivity(this, NewMessagesCount);
+                    PullFromActivity(this);
                 }
             }
         }
@@ -127,7 +133,10 @@ namespace mmswitcherAPI.Messangers
             {
                 object t = this;
                 if (value != _focused && value)
+                { 
                     GotFocus(this, new EventArgs());
+                    _lastActive = this;
+                }
                 if (value != _focused && !value)
                     LostFocus(this, new EventArgs());
                 _focused = value;
@@ -193,6 +202,7 @@ namespace mmswitcherAPI.Messangers
         private bool _focused = false;
         private bool _incomeMessages = false;
         private static MessengerBase _lastAlerted = null;
+        private static MessengerBase _lastActive = null;
         private WindowLifeCycle _wmmon;
         private IntPtr _messengerHandle;
         private IntPtr _focusableHandle;
@@ -232,6 +242,7 @@ namespace mmswitcherAPI.Messangers
             _wmmon = new WindowLifeCycle();
             _wmmon.onMessageTraced += OnMessageTraced;
             _messengersCollection.Add(this);
+            _activity.Add(this);
         }
 
         /// <summary>
@@ -306,15 +317,57 @@ namespace mmswitcherAPI.Messangers
             Dispose(true);
         }
 
-        private void PullFromActivity(MessengerBase messengerBase, int NewMessagesCount)
+        private static void PullFromActivity(MessengerBase messengerBase)
         {
-            throw new NotImplementedException();
+            if (_activity.Count > 0)
+                _activity.OrderByDescending((messenger) => { return messenger.NewMessagesCount; });
         }
 
-        private void PushToActivity(MessengerBase messengerBase, int NewMessagesCount)
+        private static void PushToActivity(MessengerBase messengerBase)
         {
-            throw new NotImplementedException();
+            //_activity.Add(messengerBase);
+            if (_activity.Count > 0)
+                _activity.OrderByDescending((messenger) => { return messenger.NewMessagesCount; });
         }
+
+        public static void SwitchToMostActive()
+        {
+            if (_activity.Count > 0)
+            {
+                var messenger = _activity.First((m) => { return m.NewMessagesCount > 0; }); //
+                if (messenger != null)
+                    messenger.SetForeground();
+                //else
+                //    LastAlerted.ReturnForeground();
+            }
+        }
+
+        /// <summary>
+        /// Выводит на передний план
+        /// </summary>
+        public static void SwitchToLastAlerted()
+        {
+            if (LastAlerted == null)
+                return;
+            if (!LastAlerted.Focused)
+                LastAlerted.SetForeground();
+            else
+                LastAlerted.ReturnForeground();
+            
+        }
+
+        public static void SwitchToLastActive()
+        {
+            if (!LastAlerted.Focused)
+            LastActive.SetForeground();
+            else
+                LastActive.ReturnForeground();
+        }
+
+        public abstract void SetForeground();
+
+        public abstract void ReturnForeground();
+
         /// <summary>
         /// Должен получать <see cref="AutomationElement"/> главного (или нет) окна процесса <paramref name="process"/> и его дескриптор.
         /// </summary>
@@ -394,6 +447,7 @@ namespace mmswitcherAPI.Messangers
                 _wmmon = null;
             }
             _messengersCollection.Remove(this);
+            _activity.Remove(this);
             disposed = true;
         }
         ~MessengerBase()

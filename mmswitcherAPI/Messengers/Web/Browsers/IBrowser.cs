@@ -82,27 +82,27 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// <param name="initialFore">Хэндл окна, которое на переднем плане перед выполнением метода.</param>
         /// <param name="initialTab"><see cref="AutomationElement"/> вкладки, которая была активна перед выполнением миетода.</param>
         /// <param name="isBrowserWindowWasMinimized">Возвращает <see langword="true"/>, если окно браузера было свернуто.</param>
+        /// <param name="onlyTab">Возвращает <see langword="true"/>, если окно браузера переместилось на передний план.</param>
         /// <returns></returns>
         public virtual bool SetForegroundMessengerTab(IntPtr hWnd, out IntPtr initialFore, out AutomationElement initialTab, out bool isBrowserWindowWasMinimized)
         {
             initialFore = IntPtr.Zero;
             initialTab = null;
             isBrowserWindowWasMinimized = false;
-
             var windowAE = BrowserMainWindowAutomationElement(hWnd);
             if (windowAE == null)
                 return false;
-            bool setFore = SetForegroundBrowserWindow(hWnd, out initialFore, out isBrowserWindowWasMinimized);
+            SetForegroundBrowserWindow(hWnd, out initialFore, out isBrowserWindowWasMinimized);
             EscMaximizedBrowserWindow(hWnd);
             return FocusMessenger(hWnd, windowAE, out initialTab);
         }
 
         //пока что кривая реализация через костыль (разворачиваем окно хрома, определяем положение границы вкладки мессенджера и нажимаем на нее мышкой
-        protected virtual bool FocusMessenger(IntPtr hWnd, AutomationElement winadowAE, out AutomationElement initialTab)
+        protected virtual bool FocusMessenger(IntPtr hWnd, AutomationElement windowAE, out AutomationElement initialTab)
         {
             initialTab = null;
             AutomationElement messengerTab = null;
-            if (hWnd == IntPtr.Zero || winadowAE == null)
+            if (hWnd == IntPtr.Zero || windowAE == null)
                 return false;
             try
             {
@@ -122,7 +122,22 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 throw new ElementNotAvailableException("Messenger tab is not available in a browser.", ex);
             }
             //simulate mouse click
-            Tools.SimulateClickUIAutomation(messengerTab, winadowAE, hWnd);
+            Tools.SimulateClickUIAutomation(messengerTab, windowAE, hWnd);
+            return true;
+        }
+
+        /// <summary>
+        /// Переключает указанную вкладку <paramref name="tab"/> в окне браузера с дескриптором <paramref name="hWnd"/>.
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="tab"></param>
+        /// <returns></returns>
+        public virtual bool FocusBrowserTab(IntPtr hWnd, AutomationElement tab)
+        {
+            var windowAE = BrowserMainWindowAutomationElement(hWnd);
+            if (windowAE == null)
+                return false;
+            Tools.SimulateClickUIAutomation(tab, windowAE, hWnd);
             return true;
         }
 
