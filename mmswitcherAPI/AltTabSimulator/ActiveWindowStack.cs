@@ -28,7 +28,7 @@ namespace mmswitcherAPI.AltTabSimulator
         /// </summary>
         public event StackActionDelegate onActiveWindowStackChanged;
 
-        private List<IntPtr> _windowStack;
+        private static List<IntPtr> _windowStack;
         /// <summary>
         /// Возвращает стэк активных окон.
         /// </summary>

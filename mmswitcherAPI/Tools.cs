@@ -344,14 +344,7 @@ namespace mmswitcherAPI
         GW_CHILD = 5,
         GW_ENABLEDPOPUP = 6
     }
-    public enum KeyModifier
-    {
-        None = 0,
-        Alt = 1,
-        Control = 2,
-        Shift = 4,
-        WinKey = 8
-    }
+
     public enum ShowWindowEnum
     {
         Hide = 0,
@@ -366,18 +359,6 @@ namespace mmswitcherAPI
         Window = 1
     }
 
-    public enum GBC_KeyModifier
-    {
-        None,
-        Shift,
-        Control,
-        Alt,
-        WinKey,
-        ShiftControl,
-        ShiftAlt,
-        ControlAlt,
-        ShiftControlAlt
-    }
     public enum InternetBrowser
     {
         GoogleChrome,

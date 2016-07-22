@@ -183,7 +183,7 @@ namespace mmswitcherAPI.Messangers.Web
             return _browserSet.MessengerIncomeMessageAutomationElement(hWnd);
         }
 
-        protected override void SetForeground()
+        public override void SetForeground()
         {
             IntPtr initFore;
             AutomationElement initTab;
@@ -191,27 +191,27 @@ namespace mmswitcherAPI.Messangers.Web
             try
             {
                 _browserSet.SetForegroundMessengerTab(base.WindowHandle, out initFore, out initTab, out isMinim);
-                _previousForegroundWindow = initFore;
-                _previousTab = initTab;
+                //_previousForegroundWindow = initFore;
+                //_previousTab = initTab;
             }
             catch { Dispose(true); }
         }
 
-        protected override void ReturnForeground()
-        {
-            if (_previousForegroundWindow == IntPtr.Zero || _previousTab == null)
-                return;
-            try
-            {
-                if (_previousForegroundWindow != base.WindowHandle)
-                    WinApi.SetForegroundWindow(_previousForegroundWindow);
-                else
-                    _browserSet.FocusBrowserTab(base.WindowHandle, _previousTab);
-                _previousForegroundWindow = IntPtr.Zero;
-                _previousTab = null;
-            }
-            catch { Dispose(true); }
-        }
+        //public override void ReturnForeground()
+        //{
+        //    if (_previousForegroundWindow == IntPtr.Zero || _previousTab == null)
+        //        return;
+        //    try
+        //    {
+        //        if (_previousForegroundWindow != base.WindowHandle)
+        //            WinApi.SetForegroundWindow(_previousForegroundWindow);
+        //        else
+        //            _browserSet.FocusBrowserTab(base.WindowHandle, _previousTab);
+        //        _previousForegroundWindow = IntPtr.Zero;
+        //        _previousTab = null;
+        //    }
+        //    catch { Dispose(true); }
+        //}
 
         private bool disposed = false;
         protected override void Dispose(bool disposing)

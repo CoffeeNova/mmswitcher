@@ -62,10 +62,10 @@
     <Compile Include="AltTabSimulator\WinApi.cs" />
     <Compile Include="AltTabSimulator\WindowContainer.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="GlobalBindController\GlobalBindController.cs">
+    <Compile Include="GlobalBindController.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="GlobalBindController\WinApi.cs" />
+    <Compile Include="Messengers\MessengerController.cs" />
     <Compile Include="Messengers\Web\HookManager.Callback.cs" />
     <Compile Include="Messengers\Web\HookManager.cs" />
     <Compile Include="Messengers\Web\HookManager.Windows.cs" />

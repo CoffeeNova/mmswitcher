@@ -97,6 +97,20 @@ namespace mmswitcherAPI.Messangers
         /// </summary>
         public static Collection<MessengerBase> Activity { get { return _activity; } }
 
+        private static AutomationElement _previousNonMessenger;
+        /// <summary>
+        /// Элемент модели автоматизации, которая служит индикатором получения фокуса для предыдущего активного окна, не являющимся мессенджером.
+        /// </summary>
+        protected static AutomationElement PreviousNonMessenger
+        {
+            get { return _previousNonMessenger; }
+            private set
+            {
+                if (MessengerBase.MessengersCollection.SingleOrDefault((m) => m._focusableAE == value) == null)
+                    _previousNonMessenger = value;
+            }
+        }
+
         protected bool IncomeMessages
         {
             get { return _incomeMessages; }
@@ -237,12 +251,15 @@ namespace mmswitcherAPI.Messangers
             //AddAutomationKeyboardFocusChangedEventHandler(_focusableAE);
             GotNewMessage += MessengerBase_GotNewMessage;
             IncomeMessages = IncomeMessagesDetect(IncomeMessageAE) ? true : false;
-            if (FocusableAE.Current.HasKeyboardFocus)
-                _focused = true;
+            //if (FocusableAE.Current.HasKeyboardFocus)
+            //    _focused = true;
             _wmmon = new WindowLifeCycle();
             _wmmon.onMessageTraced += OnMessageTraced;
             _messengersCollection.Add(this);
             _activity.Add(this);
+
+            SetForeground();
+            _focused = true;
         }
 
         /// <summary>
@@ -290,9 +307,14 @@ namespace mmswitcherAPI.Messangers
                 Dispose(true);
         }
 
+
         protected void OnFocusChanged(object sender, AutomationFocusChangedEventArgs e)
         {
+            //System.Threading.Thread.Sleep(50);
             var element = sender as AutomationElement;
+            try { var name = element.Current.Name; }
+            catch { return; }
+
             if (element == FocusableAE)
                 Focused = true;
             else
@@ -330,43 +352,43 @@ namespace mmswitcherAPI.Messangers
                 _activity.OrderByDescending((messenger) => { return messenger.NewMessagesCount; });
         }
 
-        public static void SwitchToMostActive()
-        {
-            if (_activity.Count > 0)
-            {
-                var messenger = _activity.First((m) => { return m.NewMessagesCount > 0; }); //
-                if (messenger != null)
-                    messenger.SetForeground();
-                //else
-                //    LastAlerted.ReturnForeground();
-            }
-        }
+        //public static void SwitchToMostActive()
+        //{
+        //    if (_activity.Count > 0)
+        //    {
+        //        var messenger = _activity.First((m) => { return m.NewMessagesCount > 0; }); //
+        //        if (messenger != null)
+        //            messenger.SetForeground();
+        //        //else
+        //        //    LastAlerted.ReturnForeground();
+        //    }
+        //}
 
-        /// <summary>
-        /// Выводит на передний план
-        /// </summary>
-        public static void SwitchToLastAlerted()
-        {
-            if (LastAlerted == null)
-                return;
-            if (!LastAlerted.Focused)
-                LastAlerted.SetForeground();
-            else
-                LastAlerted.ReturnForeground();
+        ///// <summary>
+        ///// Выводит на передний план
+        ///// </summary>
+        //public static void SwitchToLastAlerted()
+        //{
+        //    if (LastAlerted == null)
+        //        return;
+        //    if (!LastAlerted.Focused)
+        //        LastAlerted.SetForeground();
+        //    else
+        //        LastAlerted.ReturnForeground();
             
-        }
+        //}
 
-        public static void SwitchToLastActive()
-        {
-            if (!LastAlerted.Focused)
-            LastActive.SetForeground();
-            else
-                LastActive.ReturnForeground();
-        }
+        //public static void SwitchToLastActive()
+        //{
+        //    if (!LastAlerted.Focused)
+        //    LastActive.SetForeground();
+        //    else
+        //        LastActive.ReturnForeground();
+        //}
 
         public abstract void SetForeground();
 
-        public abstract void ReturnForeground();
+        //public abstract void ReturnForeground();
 
         /// <summary>
         /// Должен получать <see cref="AutomationElement"/> главного (или нет) окна процесса <paramref name="process"/> и его дескриптор.
