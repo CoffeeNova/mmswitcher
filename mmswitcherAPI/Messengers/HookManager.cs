@@ -8,74 +8,39 @@ using System.Diagnostics;
 using System.Windows.Automation;
 using mmswitcherAPI.Messangers.Web.Browsers;
 
-namespace mmswitcherAPI.Messangers.Web
+namespace mmswitcherAPI.Messangers
 {
     /// <summary>
-    /// Класс отслеживает глобальную активность веб мессенджеров
+    /// Класс отслеживает глобальную активность мессенджеров
     /// </summary>
-    internal partial class WebMessengerHookManager : IDisposable
+    internal partial class MessengerHookManager : IDisposable
     {
         
         //private event EventHandler _messangerTabFocusChanged;
         public IntPtr HWnd { get { return _hWnd; } }
-        public BrowserSet _browserSet;
-
         private IntPtr _hWnd;
 
-        public WebMessengerHookManager(IntPtr hWnd, BrowserSet browserSet)
+        public MessengerHookManager(IntPtr hWnd)
         {
             _hWnd = hWnd;
-            _browserSet = browserSet;
         }
 
-        private event AutomationPropertyChangedEventHandler _tabNameChanged;
+        private event EventHandler _focusChanged;
 
         /// <summary>
         /// Происходит при изменении названия любого обекта в процессе веб мессенджера
         /// </summary>
-        public event AutomationPropertyChangedEventHandler ObjectNameChange
+        public event EventHandler FocusChanged
         {
             add
             {
-                EnsureSubscribedToTabNameChangeEvent();
-                _tabNameChanged += value;
+                EnsureSubscribedToFocusChangedEvent();
+                _focusChanged += value;
             }
             remove
             {
-                _tabNameChanged -= value;
-                TryUnsubscribeFromTabNameChangeEvent();
-            }
-        }
-
-        private event EventHandler _selection;
-
-        public event EventHandler TabSelection
-        {
-            add
-            {
-                EnsureSubscribedToTabSelectionEvent();
-                _selection += value;
-            }
-            remove
-            {
-                _selection -= value;
-                TryUnsubscribeFromTabSelectionEvent();
-            }
-        }
-
-        private event AutomationFocusChangedEventHandler _tabClosed;
-
-        public event AutomationFocusChangedEventHandler TabClosed
-        {
-            add
-            {
-                EnsureSubscribedToTabClosedEvent();
-                _tabClosed += value;
-            }
-            remove
-            {
-                _tabClosed -= value;
-                TryUnsubscribeFromTabClosedEvent();
+                _focusChanged -= value;
+                TryUnsubscribeFromFocusChangedEvent();
             }
         }
 
@@ -91,11 +56,9 @@ namespace mmswitcherAPI.Messangers.Web
 
             if(disposing)
             {
-                _browserSet = null;
                 _hWnd = IntPtr.Zero;
             }
-            TryUnsubscribeFromTabNameChangeEvent();
-            TryUnsubscribeFromTabSelectionEvent();
+            TryUnsubscribeFromFocusChangedEvent();
             _disposed = true;
         }
 
@@ -105,7 +68,7 @@ namespace mmswitcherAPI.Messangers.Web
             GC.SuppressFinalize(this);
         }
 
-        ~WebMessengerHookManager()
+        ~MessengerHookManager()
         {
             Dispose(false);
         }

@@ -54,6 +54,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             }
             return mtd;
         }
+
         /// <summary>
         /// Возвращает <see cref="AutomationElement"/> вкладки браузера, в которой открыт мессенджер.
         /// </summary>
@@ -74,6 +75,27 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             var mesTab = mtd.Invoke(hWnd);
             return mesTab;
         }
+
+        /// <summary>
+        /// Возвращает <see cref="AutomationElement"/> контрола вкладок окна браузера с дескриптором <paramref name="hWnd"/>
+        /// </summary>
+        /// <param name="hWnd">Хэндл окна.</param>
+        /// <exception cref="ArgumentNullException">Значение параметра <paramref name="hWnd"/> равно <see langword="null"/>.</exception>
+        /// <exception cref= "ArgumentException">Значение параметра <paramref name="hWnd"/> равно <see langword="IntPtr.Zero"/>.</exception>
+        /// <returns></returns>
+        //public AutomationElement BrowserTabControl(IntPtr hWnd)
+        //{
+        //    if (hWnd == null)
+        //        throw new ArgumentNullException("hWnd");
+        //    if (hWnd == IntPtr.Zero)
+        //        throw new ArgumentException("Window handle should not be IntPtr.Zero");
+
+        //    MessangerTabDelegate mtd = DefineTab(MessengerType);
+        //    if (mtd == null)
+        //        return null;
+        //    var mesTab = mtd.Invoke(hWnd);
+        //    return mesTab;
+        //}
 
         /// <summary>
         /// Выводит на передний план окно браузера и переключает на вкладку с веб мессенджером.
@@ -106,7 +128,8 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 return false;
             try
             {
-                initialTab = ActiveTab(hWnd);
+                AutomationElementCollection items;
+                initialTab = ActiveTab(hWnd, out items);
             }
             catch (Exception ex)
             {
@@ -236,9 +259,21 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             return BrowserMainWindowAutomationElement(hWnd);
         }
 
+        /// <summary>
+        /// Collection of browser tab items
+        /// </summary>
+        /// <param name="tab"></param>
+        /// <returns></returns>
+        protected virtual AutomationElementCollection TabItems(AutomationElement tab)
+        {
+            return tab.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem));
+        }
+
         public abstract AutomationElement MessengerFocusAutomationElement(IntPtr hWnd);
 
         public abstract AutomationElement BrowserTabControlWindowAutomationElement(IntPtr hWnd);
+
+        //public abstract AutomationElement TabControl(IntPtr hWnd);
 
         /// <summary>
         /// Messenger caption in browser/
@@ -247,11 +282,18 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         public abstract string MessengerCaption { get; }
 
         /// <summary>
+        /// Проверяет, что <paramref name="hWnd"/> является хэндлом элемента, который действительно сигнализирует о потери фокуса веб мессенджером.
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <returns></returns>
+        /// <remarks>Бывает так, что после получения фокуса элементом, который служит индикатором получения фокуса веб мессенджера, он передает фокус другому элементу, который является общим для других функций браузера. Этот метод призван выявлять такие элементы и возвращать <see langword="false"/>, если <paramref name="hWnd"/> является хэндлом такого элемента.</remarks>
+        public abstract bool OnFocusLostPermission(IntPtr hWnd);
+        /// <summary>
         /// Возвращает текущую активную вкладку (TabControl.Item), как <see cref="AutomationElement"/>.
         /// </summary>
         /// <param name="hWnd">Дескриптор окна браузера.</param>
         /// <returns></returns>
-        protected abstract AutomationElement ActiveTab(IntPtr hWnd);
+        public abstract AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems);
 
         protected abstract AutomationElement SkypeTab(IntPtr hWnd);
 
@@ -265,11 +307,11 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         //protected abstract AutomationElement DefineFocusHandlerChildren(AutomationElement parent);
 
 
-        private int _tabSelectedHookEventConstant = EventConstants.EVENT_OBJECT_SELECTION;
-        public virtual int TabSelectedHookEventConstant { get { return _tabSelectedHookEventConstant; } }
+        //private int _tabSelectedHookEventConstant = EventConstants.EVENT_OBJECT_SELECTION;
+        //public virtual int TabSelectedHookEventConstant { get { return _tabSelectedHookEventConstant; } }
 
-        private int _tabClosedHookEventConstant = 0x8001;
-        public virtual int TabClosedHookEventConstant { get { return _tabClosedHookEventConstant; } }
+        //private int _tabClosedHookEventConstant = 0x8001;
+        //public virtual int TabClosedHookEventConstant { get { return _tabClosedHookEventConstant; } }
     }
 
 

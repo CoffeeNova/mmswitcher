@@ -51,16 +51,6 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         }
 
         /// <summary>
-        /// Collection of google chrome tab items
-        /// </summary>
-        /// <param name="tab"></param>
-        /// <returns></returns>
-        private AutomationElementCollection TabItems(AutomationElement tab)
-        {
-            return tab.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem));
-        }
-
-        /// <summary>
         /// Получает <see cref="AutomationElement"/>, которые будет получать фокус при переключении на мессенджер.
         /// </summary>
         /// <param name="hWnd">Хэндл окна браузера.</param>
@@ -101,18 +91,28 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             return MessengerFocusAutomationElement(hWnd); //the same AE as for focus for chrome
         }
 
-        protected override AutomationElement ActiveTab(IntPtr hWnd)
+        public override bool OnFocusLostPermission(IntPtr hWnd)
         {
+            var element = AutomationElement.FromHandle(hWnd);
             try
             {
-                // find the automation element
-                AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
+                if (element.Current.ClassName == Constants.CHROME_CLASS_NAME)
+                    return false;
+                return true;
+            }
+            catch { return true; }
+        }
 
+        public override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
+        {
+            tabItems = null;
+            try
+            {
+                AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
                 if (windowAE == null)
                     return null;
-                //situation if process is not foreground, and/or skype tab is not active
                 AutomationElement tabControl = TabControl(windowAE);
-                AutomationElementCollection tabItems = TabItems(tabControl);
+                tabItems = TabItems(tabControl);
                 AutomationElement currentTab = ActiveTabItem(tabItems, windowAE);
                 return currentTab;
             }

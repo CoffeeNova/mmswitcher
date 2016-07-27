@@ -25,7 +25,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         {
             throw new NotImplementedException();
         }
-
+     
         /// <summary>
         /// Получает <see cref="AutomationElement"/>, которые будет получать фокус при переключении на мессенджер.
         /// </summary>
@@ -39,10 +39,16 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             throw new NotImplementedException();
         }
 
-        protected override AutomationElement ActiveTab(IntPtr hWnd)
+        public override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
         {
             throw new NotImplementedException();
         }
+
+        public override bool OnFocusLostPermission(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
+        }
+
         #region Skype
 
         //private const int _focusHookEventConstant = EventConstants.EVENT_OBJECT_SELECTIONREMOVE; //not tested

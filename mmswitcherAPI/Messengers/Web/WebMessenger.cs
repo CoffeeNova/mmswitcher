@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Diagnostics;
 using mmswitcherAPI.Messangers.Web.Browsers;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 
 namespace mmswitcherAPI.Messangers.Web
@@ -15,7 +18,6 @@ namespace mmswitcherAPI.Messangers.Web
     /// </summary>
     public abstract class WebMessenger : MessengerBase, IDisposable
     {
-        private AutomationElement _renderTabWidgetAE;
         /// <summary>
         /// <see cref="AutomationElement"/> окна, которое непосредственно отображает рабочие элементы веб мессенджера и создается/уничтожается при создании/закрытии вкладки.
         /// </summary>
@@ -32,15 +34,53 @@ namespace mmswitcherAPI.Messangers.Web
             }
         }
 
+        //protected AutomationElement PreviousTab
+        //{
+        //    get
+        //    {
+        //        try
+        //        {
+        //            var t = _previousTab.Current.Name;
+        //            return _previousTab;
+        //        }
+        //        catch { return null; }
+        //    }
+        //}
+
+        //protected AutomationElement CurrentTab
+        //{
+        //    get
+        //    {
+        //        try
+        //        {
+        //            var t = _currentTab.Current.Name;
+        //            return _currentTab;
+        //        }
+        //        catch { return null; }
+        //    }
+        //}
+
+        protected AutomationElementCollection TabContainer
+        {
+            get
+            {
+                return _tabContainer;
+            }
+        }
         #region protected fields
         protected BrowserSet _browserSet;
-        protected WebMessengerHookManager _hManager;
         #endregion
 
         #region private fields
+        private WebMessengerHookManager _hManager;
+        private AutomationElement _renderTabWidgetAE;
         private IntPtr _renderTabWidgetHandle;
         private IntPtr _previousForegroundWindow = IntPtr.Zero;
-        private AutomationElement _previousTab;
+        //private AutomationElement _previousTab;
+        //private AutomationElement _currentTab;
+        private AutomationElementCollection _tabContainer;
+        private int _currentTabNumber = 0;
+        private int _previousTabNumber = 0;
         #endregion
 
         protected WebMessenger(Process browserProcess)
@@ -57,7 +97,9 @@ namespace mmswitcherAPI.Messangers.Web
             _renderTabWidgetAE = _browserSet.BrowserTabControlWindowAutomationElement(base._windowHandle);
             _renderTabWidgetHandle = (IntPtr)_renderTabWidgetAE.Current.NativeWindowHandle;
 
+            _hManager.TabSelection += _hManager_TabSelected;
         }
+
 
         /// <summary>
         /// Добавляет к методу <see cref="BaseMessenger.OnMessageTraced"/> отслеживаение закрытия вкладки браузера и перенос вкладки в новое окно. Вызывает деструктор.
@@ -119,7 +161,7 @@ namespace mmswitcherAPI.Messangers.Web
         /// <param name="hWnd">Дескриптор окна, в котором открыта вкладка.</param>
         /// <returns>Вкладку веб мессенджера в виде <see cref="AutomationElement"/> и дескриптор окна, в котором открыта эта вкладка.</returns>
         /// В роли <see cref="AutomationElement"/> для веб версии мессенджеров является контрол вкладки браузера, это позволит управлять переключением. 
-        protected override AutomationElement GetAutomationElement(Process process, out IntPtr hWnd)
+        protected override AutomationElement GetMainAutomationElement(Process process, out IntPtr hWnd)
         {
             AutomationElement messengerElement = null;
             hWnd = IntPtr.Zero;
@@ -196,7 +238,19 @@ namespace mmswitcherAPI.Messangers.Web
             }
             catch { Dispose(true); }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <remarks>Cчитаю что, для обычного мессенджера достаточно было бы проверить один единственный элемент (контрол или окно в целом) в окне на получение фокуса для того чтобы удостовериться, что фокус получен нашим месседжером. В браузере же происходит следущее: необходимый нам элемент (окно, контрол) получает фокус, но затем его передает на общее окно браузера, или же другая ситуация, которая приводит к зажиганию лишний раз метода OnFocusChanged. Необходимо отфильтровать "ложные срабатывания", для каждого из браузеров исключения будут свои. Передадим хэндл и убедимся, что он не является хэндлом элемента, который получает "паразитный" фокус.</remarks>
+        protected override void OnFocusChanged(object sender, EventArgs e)
+        {
 
+            if (!_browserSet.OnFocusLostPermission((IntPtr)sender))
+                return;
+            base.OnFocusChanged(sender, e);
+        }
         //public override void ReturnForeground()
         //{
         //    if (_previousForegroundWindow == IntPtr.Zero || _previousTab == null)
@@ -213,6 +267,24 @@ namespace mmswitcherAPI.Messangers.Web
         //    catch { Dispose(true); }
         //}
 
+        private void _hManager_TabSelected(object sender, EventArgs e)
+        {
+            //try
+            //{
+            //    _previousTabNumber = _currentTabNumber;
+            //    //var element = sender as AutomationElement;
+            //    //try { var name = element.Current.Name; }
+            //    //catch { return; }
+            //    var hWnd = (IntPtr)sender;
+            //    AutomationElementCollection tabItems;
+            //    var activeTab = _browserSet.ActiveTab(hWnd, out tabItems);
+            //    _tabContainer = tabItems;
+            //    _currentTabNumber = (_tabContainer as IEnumerable<AutomationElement>).TakeWhile(x => x.Equals(activeTab)).Count();
+            //}
+            //catch { Dispose(true); }
+        }
+
+
         private bool disposed = false;
         protected override void Dispose(bool disposing)
         {
@@ -221,12 +293,18 @@ namespace mmswitcherAPI.Messangers.Web
             if (disposing)
             {
                 if (_hManager != null)
+                {
+                    _hManager.TabSelection -= _hManager_TabSelected;
                     _hManager.Dispose();
+                }
                 _browserSet = null;
 
             }
             disposed = true;
             base.Dispose(disposing);
         }
+
     }
+
+
 }

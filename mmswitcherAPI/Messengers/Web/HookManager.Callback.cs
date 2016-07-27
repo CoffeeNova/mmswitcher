@@ -11,7 +11,7 @@ using System.Windows.Automation;
 
 namespace mmswitcherAPI.Messangers.Web
 {
-    public partial class WebMessengerHookManager
+    internal partial class WebMessengerHookManager
     {
         private int _tabNameChangeHookHandle;
         private WinApi.WinEventHookProc _tabNameChangeDelegate;
@@ -82,67 +82,68 @@ namespace mmswitcherAPI.Messangers.Web
             }
         }
 
-        private int _selectedHookHandle;
-        private WinApi.WinEventHookProc _selectedDelegate;
+        private int _selectionHookHandle;
+        private WinApi.WinEventHookProc _selectionDelegate;
 
-        private void SelectedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
+        private void SelectionHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
             if (hWnd == IntPtr.Zero)
                 return;
-            AutomationElement aElement;
-            try
-            {
-                aElement = AutomationElement.FromHandle(hWnd);
-            }
-            catch { return; }
-            AutomationFocusChangedEventArgs e = new AutomationFocusChangedEventArgs(idObject, idChild);
+            //AutomationElement aElement;
+            //try
+            //{
+            //    aElement = AutomationElement.FromHandle(hWnd);
+            //}
+            //catch { return; }
+            //AutomationFocusChangedEventArgs e = new AutomationFocusChangedEventArgs(idObject, idChild);
 
-            _selected.Invoke(aElement, e);
+            var e = new EventArgs();
+            _selection.Invoke(hWnd, e);
         }
 
-        private void EnsureSubscribedToTabSelectedEvent()
+        private void EnsureSubscribedToTabSelectionEvent()
         {
             // install Focus hook only if it is not installed and must be installed
-            if (_selectedHookHandle == 0)
+            if (_selectionHookHandle == 0)
             {
                 //See comment of this field. To avoid GC to clean it up.
-                _selectedDelegate = SelectedHookProc;
+                _selectionDelegate = SelectionHookProc;
                 int processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
                 //install hook
-                _selectedHookHandle = SetWinEventHook(_browserSet.TabSelectedHookEventConstant, _browserSet.TabSelectedHookEventConstant, IntPtr.Zero, _selectedDelegate, 0, 0, WINEVENT_OUTOFCONTEXT);
+                _selectionHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTION, EventConstants.EVENT_OBJECT_SELECTIONWITHIN, IntPtr.Zero, _selectionDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
                 //If SetWinEventHook fails.
-                if (_selectedHookHandle == 0)
+                if (_selectionHookHandle == 0)
                 {
                     //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
                     //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
-                if (_selectedHookHandle == -1)
-                    _selectedHookHandle = 0;
+                if (_selectionHookHandle == -1)
+                    _selectionHookHandle = 0;
             }
 
         }
-        private void TryUnsubscribeFromTabSelectedEvent()
+        private void TryUnsubscribeFromTabSelectionEvent()
         {
             //if no subsribers are registered unsubsribe from hook
-            if (_selected == null)
+            if (_selection == null)
             {
-                ForceUnsunscribeFromTabSelectedEvent();
+                ForceUnsunscribeFromTabSelectionEvent();
             }
         }
 
-        private void ForceUnsunscribeFromTabSelectedEvent()
+        private void ForceUnsunscribeFromTabSelectionEvent()
         {
-            if (_selectedHookHandle != 0)
+            if (_selectionHookHandle != 0)
             {
                 //uninstall hook
-                bool result = WinApi.UnhookWinEvent(_selectedHookHandle);
+                bool result = WinApi.UnhookWinEvent(_selectionHookHandle);
                 //reset invalid handle
-                _selectedHookHandle = 0;
+                _selectionHookHandle = 0;
                 //Free up for GC
-                _selectedDelegate = null;
+                _selectionDelegate = null;
                 //if failed and exception must be thrown
                 if (result == false)
                 {
@@ -177,14 +178,14 @@ namespace mmswitcherAPI.Messangers.Web
         private void EnsureSubscribedToTabClosedEvent()
         {
             // install Focus hook only if it is not installed and must be installed
-            if (_selectedHookHandle == 0)
+            if (_selectionHookHandle == 0)
             {
                 //See comment of this field. To avoid GC to clean it up.
                 _closedDelegate = ClosedHookProc;
                 int processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
                 //install hook
-                _closedHookHandle = SetWinEventHook(_browserSet.TabClosedHookEventConstant,_browserSet.TabSelectedHookEventConstant, IntPtr.Zero, _closedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
+                _closedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_DESTROY, EventConstants.EVENT_OBJECT_DESTROY, IntPtr.Zero, _closedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
                 //If SetWinEventHook fails.
                 if (_closedHookHandle == 0)
                 {
@@ -201,7 +202,7 @@ namespace mmswitcherAPI.Messangers.Web
         private void TryUnsubscribeFromTabClosedEvent()
         {
             //if no subsribers are registered unsubsribe from hook
-            if (_selected == null)
+            if (_selection == null)
             {
                 ForceUnsunscribeFromTabCLosedEvent();
             }

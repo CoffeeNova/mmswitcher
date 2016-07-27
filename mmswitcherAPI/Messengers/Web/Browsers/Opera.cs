@@ -39,7 +39,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             throw new NotImplementedException();
         }
 
-        protected override AutomationElement ActiveTab(IntPtr hWnd)
+        public override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
         {
             throw new NotImplementedException();
         }
@@ -81,6 +81,11 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 return AutomationElement.FromHandle(hWnd);
             }
             catch { return null; }
+        }
+
+        public override bool OnFocusLostPermission(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

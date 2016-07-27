@@ -147,7 +147,7 @@ namespace mmswitcherAPI.Messangers
             {
                 object t = this;
                 if (value != _focused && value)
-                { 
+                {
                     GotFocus(this, new EventArgs());
                     _lastActive = this;
                 }
@@ -218,11 +218,9 @@ namespace mmswitcherAPI.Messangers
         private static MessengerBase _lastAlerted = null;
         private static MessengerBase _lastActive = null;
         private WindowLifeCycle _wmmon;
-        private IntPtr _messengerHandle;
-        private IntPtr _focusableHandle;
-        private IntPtr _incomeMessagehandle;
         private static Collection<MessengerBase> _messengersCollection = new Collection<MessengerBase>();
         private static Collection<MessengerBase> _activity = new Collection<MessengerBase>();
+        private MessengerHookManager _hManager;
         #endregion
 
         internal protected MessengerBase(Process msgProcess)
@@ -233,22 +231,18 @@ namespace mmswitcherAPI.Messangers
             IntPtr hWnd;
             try
             {
-                _messengerAE = GetAutomationElement(msgProcess, out hWnd);
-                _focusableAE = GetFocusHandlerAutomationElement(hWnd);
-                _incomeMessageAE = GetIncomeMessageAutomationElement(hWnd);
-                _messengerHandle = (IntPtr)_messengerAE.Current.NativeWindowHandle;
-                _focusableHandle = (IntPtr)_focusableAE.Current.NativeWindowHandle;
-                _incomeMessagehandle = (IntPtr)_incomeMessageAE.Current.NativeWindowHandle;
+                var aEdel = new GetMessengerAEDel(GetMainAutomationElement);
+                CacheAutomationElementProperties(msgProcess, out hWnd, ref _messengerAE, aEdel, AutomationElement.NativeWindowHandleProperty);
+                CacheAutomationElementProperties(hWnd, ref _focusableAE, (s) => GetFocusHandlerAutomationElement(s), AutomationElement.ClassNameProperty, AutomationElement.NativeWindowHandleProperty);
+                CacheAutomationElementProperties(hWnd, ref _incomeMessageAE, (s) => GetIncomeMessageAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
             }
             catch
             {
                 throw new Exception(String.Format("Can't find a messenger for this process {0}", msgProcess.ProcessName));
             }
 
-            //var handler = new AutomationPropertyChangedEventHandler(OnBoundingRectangleChanged);
-            //Automation.AddAutomationPropertyChangedEventHandler(_messengerAE, TreeScope.Element, handler, AutomationElement.BoundingRectangleProperty);
             _windowHandle = hWnd;
-            //AddAutomationKeyboardFocusChangedEventHandler(_focusableAE);
+            _hManager = new MessengerHookManager(_windowHandle);
             GotNewMessage += MessengerBase_GotNewMessage;
             IncomeMessages = IncomeMessagesDetect(IncomeMessageAE) ? true : false;
             //if (FocusableAE.Current.HasKeyboardFocus)
@@ -303,19 +297,14 @@ namespace mmswitcherAPI.Messangers
         {
             if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
                 return;
-            if (hWnd == _windowHandle || hWnd == _messengerHandle || hWnd == _focusableHandle || hWnd == _incomeMessagehandle)
+            if (hWnd == _windowHandle || hWnd == (IntPtr)_messengerAE.Cached.NativeWindowHandle || hWnd == (IntPtr)_focusableAE.Cached.NativeWindowHandle || hWnd == (IntPtr)_incomeMessageAE.Cached.NativeWindowHandle)
                 Dispose(true);
         }
 
 
-        protected void OnFocusChanged(object sender, AutomationFocusChangedEventArgs e)
+        protected virtual void OnFocusChanged(object sender, EventArgs e)
         {
-            //System.Threading.Thread.Sleep(50);
-            var element = sender as AutomationElement;
-            try { var name = element.Current.Name; }
-            catch { return; }
-
-            if (element == FocusableAE)
+            if ((IntPtr)sender == (IntPtr)FocusableAE.Cached.NativeWindowHandle)
                 Focused = true;
             else
                 Focused = false;
@@ -352,6 +341,52 @@ namespace mmswitcherAPI.Messangers
                 _activity.OrderByDescending((messenger) => { return messenger.NewMessagesCount; });
         }
 
+        private delegate AutomationElement GetAutomationDel(IntPtr hWnd);
+
+        /// <summary>
+        /// Кэширует заданные свойства <paramref name="properties"/> при поиске <see cref="AutomationElement"/> методом, представленным делегатом <paramref name="getAutomationDel"/> по дескриптору окна <paramref name="hWnd"/>.
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="element"></param>
+        /// <param name="getAutomationDel"></param>
+        /// <param name="properties"></param>
+        private void CacheAutomationElementProperties(IntPtr hWnd, ref AutomationElement element, GetAutomationDel getAutomationDel, params AutomationProperty[] properties)
+        {
+            var cacheRequest = new CacheRequest();
+            foreach (var property in properties)
+            {
+                cacheRequest.Add(property);
+            }
+
+            using (cacheRequest.Activate())
+            {
+                element = getAutomationDel.Invoke(hWnd);
+            }
+        }
+
+        private delegate AutomationElement GetMessengerAEDel(Process process, out IntPtr hWnd);
+
+        /// <summary>
+        /// Кэширует заданные свойства <paramref name="properties"/> при поиске <see cref="AutomationElement"/> методом, представленным делегатом <paramref name="getAutomationDel"/> по процессу окна <paramref name="process"/>.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="element"></param>
+        /// <param name="getAutomationDel"></param>
+        /// <param name="properties"></param>
+        private void CacheAutomationElementProperties(Process process, out IntPtr hWnd, ref AutomationElement element, GetMessengerAEDel getAutomationDel, params AutomationProperty[] properties)
+        {
+            var cacheRequest = new CacheRequest();
+            foreach (var property in properties)
+            {
+                cacheRequest.Add(property);
+            }
+
+            using (cacheRequest.Activate())
+            {
+                element = getAutomationDel.Invoke(process, out hWnd);
+            }
+        }
+
         //public static void SwitchToMostActive()
         //{
         //    if (_activity.Count > 0)
@@ -375,7 +410,7 @@ namespace mmswitcherAPI.Messangers
         //        LastAlerted.SetForeground();
         //    else
         //        LastAlerted.ReturnForeground();
-            
+
         //}
 
         //public static void SwitchToLastActive()
@@ -396,7 +431,7 @@ namespace mmswitcherAPI.Messangers
         /// <param name="process"></param>
         /// <param name="hWnd"></param>
         /// <returns></returns>
-        protected abstract AutomationElement GetAutomationElement(Process process, out IntPtr hWnd);
+        protected abstract AutomationElement GetMainAutomationElement(Process process, out IntPtr hWnd);
         /// <summary>
         /// Должен проверять любое изменение в объекте <paramref name="element"/>, подтверждающее или опровергающее сигнализацию о новом сообщении.
         /// </summary>
@@ -430,10 +465,9 @@ namespace mmswitcherAPI.Messangers
         /// Регистрирует метод <see cref="MessengerBase.OnFocusChanged"/>, который будет обрабатывать события изменения фокуса.
         /// </summary>
         /// <remarks>Можно реализовать вручную, например через winapi SetWinEventHook.</remarks>
-        protected virtual void OnFocusChangedSubscribe()
+        protected void OnFocusChangedSubscribe()
         {
-            var focusHandler = new AutomationFocusChangedEventHandler(OnFocusChanged);
-            Automation.AddAutomationFocusChangedEventHandler(focusHandler);
+            _hManager.FocusChanged += OnFocusChanged;
         }
 
         /// <summary>
@@ -467,6 +501,8 @@ namespace mmswitcherAPI.Messangers
                 _incomeMessageAE = null;
                 _wmmon.onMessageTraced -= OnMessageTraced;
                 _wmmon = null;
+                _hManager.FocusChanged -= OnFocusChanged;
+                _hManager.Dispose();
             }
             _messengersCollection.Remove(this);
             _activity.Remove(this);

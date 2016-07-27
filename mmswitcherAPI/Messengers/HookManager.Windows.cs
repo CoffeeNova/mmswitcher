@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace mmswitcherAPI.Messangers.Web
+namespace mmswitcherAPI.Messangers
 {
-    internal partial class WebMessengerHookManager
+    internal partial class MessengerHookManager
     {
         #region Windows constants
 
