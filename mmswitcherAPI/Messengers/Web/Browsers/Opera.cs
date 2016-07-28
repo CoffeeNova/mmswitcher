@@ -26,6 +26,15 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             throw new NotImplementedException();
         }
 
+        public override AutomationElement BrowserTabControl(AutomationElement mainWindowAE)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override AutomationElement ActiveTabItem(AutomationElementCollection tabItems, AutomationElement windowAE)
+        {
+            throw new NotImplementedException();
+        }
         /// <summary>
         /// Получает <see cref="AutomationElement"/>, которые будет получать фокус при переключении на мессенджер.
         /// </summary>
@@ -39,7 +48,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             throw new NotImplementedException();
         }
 
-        public override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
+        protected override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
         {
             throw new NotImplementedException();
         }

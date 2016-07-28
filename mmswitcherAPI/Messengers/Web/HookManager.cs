@@ -47,25 +47,40 @@ namespace mmswitcherAPI.Messangers.Web
             }
         }
 
-        private event EventHandler _selection;
+        private event EventHandler _tabSelected;
 
-        public event EventHandler TabSelection
+        public event EventHandler TabSelected
         {
             add
             {
-                EnsureSubscribedToTabSelectionEvent();
-                _selection += value;
+                EnsureSubscribedToTabSelectedEvent();
+                _tabSelected += value;
             }
             remove
             {
-                _selection -= value;
-                TryUnsubscribeFromTabSelectionEvent();
+                _tabSelected -= value;
+                TryUnsubscribeFromTabSelectedEvent();
             }
         }
 
-        private event AutomationFocusChangedEventHandler _tabClosed;
+        private event EventHandler _tabSelectionCountChanged;
 
-        public event AutomationFocusChangedEventHandler TabClosed
+        public event EventHandler TabSelectionCountChanged
+        {
+            add
+            {
+                EnsureSubscribedToTabSelectionCountChangedEvent();
+                _tabSelectionCountChanged += value;
+            }
+            remove
+            {
+                _tabSelectionCountChanged -= value;
+                TryUnsubscribeFromTabSelectionCountChangedEvent();
+            }
+        }
+        private event EventHandler _tabClosed;
+
+        public event EventHandler TabClosed
         {
             add
             {
@@ -95,7 +110,9 @@ namespace mmswitcherAPI.Messangers.Web
                 _hWnd = IntPtr.Zero;
             }
             TryUnsubscribeFromTabNameChangeEvent();
-            TryUnsubscribeFromTabSelectionEvent();
+            TryUnsubscribeFromTabSelectedEvent();
+            TryUnsubscribeFromTabSelectionCountChangedEvent();
+            TryUnsubscribeFromTabClosedEvent();
             _disposed = true;
         }
 
@@ -123,11 +140,12 @@ namespace mmswitcherAPI.Messangers.Web
         public const int EVENT_OBJECT_FOCUS = 0x8005;
         public const int EVENT_OBJECT_CONTENTSCROLLED = 0x8015;
         public const int EVENT_OBJECT_SELECTION = 0x8006;
+        public const int EVENT_OBJECT_SELECTIONADD = 0x0007;
         public const int EVENT_OBJECT_SELECTIONREMOVE = 0x8008;
         public const int EVENT_OBJECT_SELECTIONWITHIN = 0x8009;
         public const int EVENT_SYSTEM_FOREGROUND = 0x0003;
-        public const int EVENT_OBJECT_SELECTIONADD = 0x0007;
         public const int EVENT_OBJECT_STATECHANGE = 0x800A;
         public const int EVENT_OBJECT_NAMECHANGE = 0x800C;
+        public const int EVENT_OBJECT_INVOKED = 0x8013;
     }
 }

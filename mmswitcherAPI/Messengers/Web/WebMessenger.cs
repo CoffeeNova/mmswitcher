@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 
+
 namespace mmswitcherAPI.Messangers.Web
 {
     /// <summary>
@@ -73,14 +74,18 @@ namespace mmswitcherAPI.Messangers.Web
 
         #region private fields
         private WebMessengerHookManager _hManager;
+        private AutomationElement _browserWindowAE;
         private AutomationElement _renderTabWidgetAE;
-        private IntPtr _renderTabWidgetHandle;
+        private AutomationElement _tabControl;
+        private AutomationElementCollection _tabCollection;
+        //private IntPtr _renderTabWidgetHandle;
         private IntPtr _previousForegroundWindow = IntPtr.Zero;
         //private AutomationElement _previousTab;
         //private AutomationElement _currentTab;
         private AutomationElementCollection _tabContainer;
-        private int _currentTabNumber = 0;
-        private int _previousTabNumber = 0;
+        private System.Windows.Rect _currentTabBounding = new System.Windows.Rect();
+        private System.Windows.Rect _previousTabBounding = new System.Windows.Rect();
+        private bool _browserComponentsInitialized = false;
         #endregion
 
         protected WebMessenger(Process browserProcess)
@@ -90,14 +95,17 @@ namespace mmswitcherAPI.Messangers.Web
                 throw new ArgumentException();
             if (_browserSet == null)
                 InitBrowserSet(browserProcess);
+
+            InitBrowserComponents();
+
             if (_hManager == null)
-                InitHookManager(browserProcess);
+                InitHookManager();
+
             // _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
             // _hManager.TabClosed += _hManager_TabClosed;
-            _renderTabWidgetAE = _browserSet.BrowserTabControlWindowAutomationElement(base._windowHandle);
-            _renderTabWidgetHandle = (IntPtr)_renderTabWidgetAE.Current.NativeWindowHandle;
 
-            _hManager.TabSelection += _hManager_TabSelected;
+
+
         }
 
 
@@ -111,7 +119,7 @@ namespace mmswitcherAPI.Messangers.Web
         {
             if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
                 return;
-            if (hWnd == _renderTabWidgetHandle)
+            if (hWnd == (IntPtr)_renderTabWidgetAE.Cached.NativeWindowHandle)
                 Dispose(true);
             base.OnMessageTraced(sender, hWnd, shell);
         }
@@ -148,10 +156,31 @@ namespace mmswitcherAPI.Messangers.Web
             }
         }
 
-        private void InitHookManager(Process browserProcess)
+        private void InitHookManager()
         {
+            InitBrowserSet(base._process);
+
             if (_hManager != null) return;
             _hManager = new WebMessengerHookManager(base._windowHandle, _browserSet);
+            _hManager.TabSelected += _hManager_TabSelected;
+            _hManager.TabSelectionCountChanged += _hManager_TabSelectionCountChanged;
+        }
+
+        private void InitBrowserComponents()
+        {
+            if (_browserComponentsInitialized)
+                return;
+            InitBrowserSet(base._process);
+
+            //_tabControl = TreeWalker.RawViewWalker.GetParent(base.MessengerAE);
+            //_browserWindowAE = _browserSet.BrowserMainWindowAutomationElement(base._windowHandle);
+            CacheAutomationElementProperties(base._windowHandle, ref _browserWindowAE, (s) => _browserSet.BrowserMainWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
+            _tabControl = _browserSet.BrowserTabControl(_browserWindowAE);
+            _tabCollection = _browserSet.TabItems(_tabControl);
+            //_renderTabWidgetAE = _browserSet.BrowserTabControlWindowAutomationElement(base._windowHandle);
+            CacheAutomationElementProperties(base._windowHandle, ref _renderTabWidgetAE, (s) => _browserSet.BrowserTabControlWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
+
+            _browserComponentsInitialized = true;
         }
 
         /// <summary>
@@ -269,21 +298,38 @@ namespace mmswitcherAPI.Messangers.Web
 
         private void _hManager_TabSelected(object sender, EventArgs e)
         {
-            //try
-            //{
-            //    _previousTabNumber = _currentTabNumber;
-            //    //var element = sender as AutomationElement;
-            //    //try { var name = element.Current.Name; }
-            //    //catch { return; }
-            //    var hWnd = (IntPtr)sender;
-            //    AutomationElementCollection tabItems;
-            //    var activeTab = _browserSet.ActiveTab(hWnd, out tabItems);
-            //    _tabContainer = tabItems;
-            //    _currentTabNumber = (_tabContainer as IEnumerable<AutomationElement>).TakeWhile(x => x.Equals(activeTab)).Count();
-            //}
-            //catch { Dispose(true); }
+            if (!_browserComponentsInitialized)
+                InitBrowserComponents();
+
+            var hWnd = (IntPtr)sender;
+            var browserHandle = (IntPtr)_browserWindowAE.Cached.NativeWindowHandle;
+            if (!hWnd.Equals(browserHandle))
+                return;
+
+            try
+            {
+                _previousTabBounding = _currentTabBounding;
+                var activeTab = _browserSet.ActiveTab(_tabCollection, _browserWindowAE);
+                if (activeTab == null)
+                    return;
+                _currentTabBounding = activeTab.Current.BoundingRectangle;
+
+                Console.WriteLine(String.Format("current: {0} | prev: {1}", _currentTabBounding, _previousTabBounding));
+            }
+            catch { Dispose(true); }
         }
 
+        void _hManager_TabSelectionCountChanged(object sender, EventArgs e)
+        {
+            if (!_browserComponentsInitialized)
+                InitBrowserComponents();
+
+            var browserHandle = (IntPtr)_browserWindowAE.Cached.NativeWindowHandle;
+            if (!((IntPtr)sender).Equals(browserHandle))
+                return;
+            _tabCollection = _browserSet.TabItems(_tabControl);
+            Console.WriteLine(_tabCollection.Count);
+        }
 
         private bool disposed = false;
         protected override void Dispose(bool disposing)
@@ -294,7 +340,8 @@ namespace mmswitcherAPI.Messangers.Web
             {
                 if (_hManager != null)
                 {
-                    _hManager.TabSelection -= _hManager_TabSelected;
+                    _hManager.TabSelected -= _hManager_TabSelected;
+                    _hManager.TabSelectionCountChanged -= _hManager_TabSelectionCountChanged;
                     _hManager.Dispose();
                 }
                 _browserSet = null;

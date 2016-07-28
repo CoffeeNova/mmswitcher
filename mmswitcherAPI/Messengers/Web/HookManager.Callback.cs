@@ -82,68 +82,61 @@ namespace mmswitcherAPI.Messangers.Web
             }
         }
 
-        private int _selectionHookHandle;
-        private WinApi.WinEventHookProc _selectionDelegate;
+        #region TabSelected
+        private int _tabSelectedHookHandle;
+        private WinApi.WinEventHookProc _tabSelectedDelegate;
 
-        private void SelectionHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
+        private void TabSelectedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
-            if (hWnd == IntPtr.Zero)
+            if (hWnd == IntPtr.Zero || hWnd != HWnd)
                 return;
-            //AutomationElement aElement;
-            //try
-            //{
-            //    aElement = AutomationElement.FromHandle(hWnd);
-            //}
-            //catch { return; }
-            //AutomationFocusChangedEventArgs e = new AutomationFocusChangedEventArgs(idObject, idChild);
-
             var e = new EventArgs();
-            _selection.Invoke(hWnd, e);
+            _tabSelected.Invoke(hWnd, e);
         }
 
-        private void EnsureSubscribedToTabSelectionEvent()
+        private void EnsureSubscribedToTabSelectedEvent()
         {
             // install Focus hook only if it is not installed and must be installed
-            if (_selectionHookHandle == 0)
+            if (_tabSelectedHookHandle == 0)
             {
                 //See comment of this field. To avoid GC to clean it up.
-                _selectionDelegate = SelectionHookProc;
+                _tabSelectedDelegate = TabSelectedHookProc;
                 int processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
                 //install hook
-                _selectionHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTION, EventConstants.EVENT_OBJECT_SELECTIONWITHIN, IntPtr.Zero, _selectionDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
+                _tabSelectedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTION, EventConstants.EVENT_OBJECT_SELECTION, IntPtr.Zero, _tabSelectedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
                 //If SetWinEventHook fails.
-                if (_selectionHookHandle == 0)
+                if (_tabSelectedHookHandle == 0)
                 {
                     //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
                     //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
-                if (_selectionHookHandle == -1)
-                    _selectionHookHandle = 0;
+                if (_tabSelectedHookHandle == -1)
+                    _tabSelectedHookHandle = 0;
             }
 
         }
-        private void TryUnsubscribeFromTabSelectionEvent()
+        private void TryUnsubscribeFromTabSelectedEvent()
         {
             //if no subsribers are registered unsubsribe from hook
-            if (_selection == null)
+            if (_tabSelected == null)
             {
-                ForceUnsunscribeFromTabSelectionEvent();
+                ForceUnsunscribeFromTabSelectedEvent();
             }
         }
 
-        private void ForceUnsunscribeFromTabSelectionEvent()
+        private void ForceUnsunscribeFromTabSelectedEvent()
         {
-            if (_selectionHookHandle != 0)
+            if (_tabSelectedHookHandle != 0)
             {
                 //uninstall hook
-                bool result = WinApi.UnhookWinEvent(_selectionHookHandle);
+                bool result = WinApi.UnhookWinEvent(_tabSelectedHookHandle);
                 //reset invalid handle
-                _selectionHookHandle = 0;
+                _tabSelectedHookHandle = 0;
                 //Free up for GC
-                _selectionDelegate = null;
+                _tabSelectedDelegate = null;
                 //if failed and exception must be thrown
                 if (result == false)
                 {
@@ -155,6 +148,68 @@ namespace mmswitcherAPI.Messangers.Web
             }
         }
 
+        #endregion
+
+        #region TabSelectionCountChanged
+        private int _tabSelectionCountChangedHookHandle;
+        private WinApi.WinEventHookProc _tabSelectionCountChangedDelegate;
+
+        private void TabSelectionCountChangedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
+        {
+            if (hWnd == IntPtr.Zero || hWnd != HWnd)
+                return;
+            var e = new EventArgs();
+            _tabSelectionCountChanged.Invoke(hWnd, e);
+        }
+
+        private GCHandle hnd;
+
+        private void EnsureSubscribedToTabSelectionCountChangedEvent()
+        {
+            if (_tabSelectionCountChangedHookHandle == 0)
+            {
+                _tabSelectionCountChangedDelegate = TabSelectionCountChangedHookProc;
+                int processId;
+                WinApi.GetWindowThreadProcessId(HWnd, out processId);
+
+                hnd = GCHandle.Alloc(_tabSelectionCountChangedHookHandle);
+                _tabSelectionCountChangedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTIONADD, EventConstants.EVENT_OBJECT_SELECTIONREMOVE, IntPtr.Zero, _tabSelectionCountChangedDelegate, processId, 0, WINEVENT_INCONTEXT);
+                if (_tabSelectionCountChangedHookHandle == 0)
+                {
+                    int errorCode = Marshal.GetLastWin32Error();
+                    throw new Win32Exception(errorCode);
+                }
+                if (_tabSelectionCountChangedHookHandle == -1)
+                    _tabSelectionCountChangedHookHandle = 0;
+            }
+
+        }
+        private void TryUnsubscribeFromTabSelectionCountChangedEvent()
+        {
+            if (_tabSelectionCountChanged == null)
+            {
+                ForceUnsunscribeFromTabSelectionCountChangedEvent();
+            }
+        }
+
+        private void ForceUnsunscribeFromTabSelectionCountChangedEvent()
+        {
+            if (_tabSelectionCountChangedHookHandle != 0)
+            {
+                bool result = WinApi.UnhookWinEvent(_tabSelectionCountChangedHookHandle);
+                hnd.Free();
+                _tabSelectionCountChangedHookHandle = 0;
+                _tabSelectionCountChangedDelegate = null;
+                if (result == false)
+                {
+                    int errorCode = Marshal.GetLastWin32Error();
+                    throw new Win32Exception(errorCode);
+                }
+            }
+        }
+
+        #endregion
+
         #region TabClosed
 
         private int _closedHookHandle;
@@ -162,23 +217,16 @@ namespace mmswitcherAPI.Messangers.Web
 
         private void ClosedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
-            if (hWnd == IntPtr.Zero)
+           if (hWnd == IntPtr.Zero || hWnd != HWnd)
                 return;
-            //AutomationElement aElement;
-            //try
-            //{
-            //    aElement = AutomationElement.FromHandle(hWnd);
-            //}
-            //catch { return; }
-            //AutomationFocusChangedEventArgs e = new AutomationFocusChangedEventArgs(idObject, idChild);
-
-            //_selected.Invoke(aElement, e);
+            var e = new EventArgs();
+            _tabClosed.Invoke(hWnd, e);
         }
 
         private void EnsureSubscribedToTabClosedEvent()
         {
             // install Focus hook only if it is not installed and must be installed
-            if (_selectionHookHandle == 0)
+            if (_closedHookHandle == 0)
             {
                 //See comment of this field. To avoid GC to clean it up.
                 _closedDelegate = ClosedHookProc;
@@ -202,7 +250,7 @@ namespace mmswitcherAPI.Messangers.Web
         private void TryUnsubscribeFromTabClosedEvent()
         {
             //if no subsribers are registered unsubsribe from hook
-            if (_selection == null)
+            if (_tabClosed == null)
             {
                 ForceUnsunscribeFromTabCLosedEvent();
             }

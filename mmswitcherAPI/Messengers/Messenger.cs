@@ -341,7 +341,7 @@ namespace mmswitcherAPI.Messangers
                 _activity.OrderByDescending((messenger) => { return messenger.NewMessagesCount; });
         }
 
-        private delegate AutomationElement GetAutomationDel(IntPtr hWnd);
+        protected delegate AutomationElement GetAutomationDel(IntPtr hWnd);
 
         /// <summary>
         /// Кэширует заданные свойства <paramref name="properties"/> при поиске <see cref="AutomationElement"/> методом, представленным делегатом <paramref name="getAutomationDel"/> по дескриптору окна <paramref name="hWnd"/>.
@@ -350,7 +350,7 @@ namespace mmswitcherAPI.Messangers
         /// <param name="element"></param>
         /// <param name="getAutomationDel"></param>
         /// <param name="properties"></param>
-        private void CacheAutomationElementProperties(IntPtr hWnd, ref AutomationElement element, GetAutomationDel getAutomationDel, params AutomationProperty[] properties)
+        protected void CacheAutomationElementProperties(IntPtr hWnd, ref AutomationElement element, GetAutomationDel getAutomationDel, params AutomationProperty[] properties)
         {
             var cacheRequest = new CacheRequest();
             foreach (var property in properties)

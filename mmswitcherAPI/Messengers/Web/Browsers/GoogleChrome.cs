@@ -34,7 +34,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// </summary>
         /// <param name="chrome"></param>
         /// <returns></returns>
-        private AutomationElement TabControl(AutomationElement chrome)
+        public override AutomationElement BrowserTabControl(AutomationElement chrome)
         {
             if (chrome == null)
                 return null;
@@ -93,9 +93,9 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
 
         public override bool OnFocusLostPermission(IntPtr hWnd)
         {
-            var element = AutomationElement.FromHandle(hWnd);
             try
             {
+                var element = AutomationElement.FromHandle(hWnd);
                 if (element.Current.ClassName == Constants.CHROME_CLASS_NAME)
                     return false;
                 return true;
@@ -103,21 +103,10 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             catch { return true; }
         }
 
-        public override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
-        {
-            tabItems = null;
-            try
-            {
-                AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
-                if (windowAE == null)
-                    return null;
-                AutomationElement tabControl = TabControl(windowAE);
-                tabItems = TabItems(tabControl);
-                AutomationElement currentTab = ActiveTabItem(tabItems, windowAE);
-                return currentTab;
-            }
-            catch { return null; }
-        }
+        //public override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
+        //{
+ 
+        //}
 
         /// <summary>
         /// Retrieve active tab from google chrome tab collecion.
@@ -126,8 +115,14 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// <param name="windowAE">Окно браузера.</param>
         /// <returns></returns>
         /// <remarks>this method is pretty shitty cos idk why the hell AutomationElement.GetSupportedPatterns doesn't returns any paterns. Using inspect.exe we can find that tabitem has IsSelectionItemPatternAvailable. </remarks>
-        private AutomationElement ActiveTabItem(AutomationElementCollection tabItems, AutomationElement windowAE)
+        protected override AutomationElement ActiveTabItem(AutomationElementCollection tabItems, AutomationElement windowAE)
         {
+            if (windowAE == null)
+                throw new ArgumentNullException("windowAE");
+
+            if (tabItems == null)
+                throw new ArgumentNullException("tabItems");
+
             foreach (AutomationElement tab in tabItems)
             {
                 if (windowAE.Current.Name.StartsWith(tab.Current.Name))
@@ -147,7 +142,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 if (windowAE == null)
                     return null;
                 //situation if process is not foreground, and/or skype tab is not active
-                AutomationElement tabControl = TabControl(windowAE);
+                AutomationElement tabControl = BrowserTabControl(windowAE);
                 AutomationElementCollection tabItems = TabItems(tabControl);
                 AutomationElement skype = SkypeTabItem(tabItems);
                 return skype;
@@ -184,7 +179,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 if (windowAE == null)
                     return null;
                 //situation if process is not foreground, and/or skype tab is not active
-                AutomationElement tabControl = TabControl(windowAE);
+                AutomationElement tabControl = BrowserTabControl(windowAE);
                 AutomationElementCollection tabItems = TabItems(tabControl);
                 AutomationElement skype = WhatsAppTabItem(tabItems);
                 return skype;

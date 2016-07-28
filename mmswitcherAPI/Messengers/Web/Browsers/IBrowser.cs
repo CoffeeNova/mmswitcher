@@ -11,6 +11,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
     {
         AutomationElement BrowserMainWindowAutomationElement(IntPtr hWnd);
         AutomationElement BrowserTabControlWindowAutomationElement(IntPtr hWnd);
+        AutomationElement BrowserTabControl(AutomationElement windowAe);
         AutomationElement MessengerTab(IntPtr hWnd);
         AutomationElement MessengerFocusAutomationElement(IntPtr hWnd);
         AutomationElement MessengerIncomeMessageAutomationElement(IntPtr hWnd);
@@ -264,16 +265,52 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// </summary>
         /// <param name="tab"></param>
         /// <returns></returns>
-        protected virtual AutomationElementCollection TabItems(AutomationElement tab)
+        public virtual AutomationElementCollection TabItems(AutomationElement tab)
         {
             return tab.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.TabItem));
+        }
+
+        /// <summary>
+        /// Возвращает текущую активную вкладку (TabControl.Item), как <see cref="AutomationElement"/>.
+        /// </summary>
+        /// <param name="hWnd">Дескриптор окна браузера.</param>
+        /// <returns></returns>
+        protected virtual AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
+        {
+            if (hWnd == null)
+                throw new ArgumentNullException("hWnd");
+            if (hWnd == IntPtr.Zero)
+                throw new ArgumentException("Window handle should not be IntPtr.Zero");
+
+            tabItems = null;
+            try
+            {
+                AutomationElement windowAE = BrowserMainWindowAutomationElement(hWnd);
+                if (windowAE == null)
+                    return null;
+                AutomationElement tabControl = BrowserTabControl(windowAE);
+                tabItems = TabItems(tabControl);
+                AutomationElement currentTab = ActiveTabItem(tabItems, windowAE);
+                return currentTab;
+            }
+            catch { return null; }
+        }
+
+        public AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE)
+        {
+            if (tabItems == null)
+                throw new ArgumentNullException("tabItems");
+            if (windowAE == null)
+                throw new ArgumentNullException("windowAE");
+            
+            var currentTab = ActiveTabItem(tabItems, windowAE);
+            
+            return currentTab;
         }
 
         public abstract AutomationElement MessengerFocusAutomationElement(IntPtr hWnd);
 
         public abstract AutomationElement BrowserTabControlWindowAutomationElement(IntPtr hWnd);
-
-        //public abstract AutomationElement TabControl(IntPtr hWnd);
 
         /// <summary>
         /// Messenger caption in browser/
@@ -288,12 +325,15 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// <returns></returns>
         /// <remarks>Бывает так, что после получения фокуса элементом, который служит индикатором получения фокуса веб мессенджера, он передает фокус другому элементу, который является общим для других функций браузера. Этот метод призван выявлять такие элементы и возвращать <see langword="false"/>, если <paramref name="hWnd"/> является хэндлом такого элемента.</remarks>
         public abstract bool OnFocusLostPermission(IntPtr hWnd);
+
         /// <summary>
-        /// Возвращает текущую активную вкладку (TabControl.Item), как <see cref="AutomationElement"/>.
+        /// Возвращает <see cref="AutomationElement"/> контрола вкладок родительского элемента <paramref name="mainWindowAE"/>
         /// </summary>
-        /// <param name="hWnd">Дескриптор окна браузера.</param>
+        /// <param name="mainWindowAE"></param>
         /// <returns></returns>
-        public abstract AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems);
+        public abstract AutomationElement BrowserTabControl(AutomationElement mainWindowAE);
+
+        protected abstract AutomationElement ActiveTabItem(AutomationElementCollection tabItems, AutomationElement windowAE);
 
         protected abstract AutomationElement SkypeTab(IntPtr hWnd);
 
