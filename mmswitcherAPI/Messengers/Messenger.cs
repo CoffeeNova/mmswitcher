@@ -231,6 +231,7 @@ namespace mmswitcherAPI.Messangers
             IntPtr hWnd;
             try
             {
+                _messengerAE = AutomationElement.RootElement;
                 var aEdel = new GetMessengerAEDel(GetMainAutomationElement);
                 CacheAutomationElementProperties(msgProcess, out hWnd, ref _messengerAE, aEdel, AutomationElement.NativeWindowHandleProperty);
                 CacheAutomationElementProperties(hWnd, ref _focusableAE, (s) => GetFocusHandlerAutomationElement(s), AutomationElement.ClassNameProperty, AutomationElement.NativeWindowHandleProperty);
@@ -344,20 +345,29 @@ namespace mmswitcherAPI.Messangers
         protected delegate AutomationElement GetAutomationDel(IntPtr hWnd);
 
         /// <summary>
-        /// Кэширует заданные свойства <paramref name="properties"/> при поиске <see cref="AutomationElement"/> методом, представленным делегатом <paramref name="getAutomationDel"/> по дескриптору окна <paramref name="hWnd"/>.
+        /// Кэширует заданные свойства или паттерны <paramref name="cacheData"/> при поиске <see cref="AutomationElement"/> методом, представленным делегатом <paramref name="getAutomationDel"/> по дескриптору окна <paramref name="hWnd"/>.
         /// </summary>
         /// <param name="hWnd"></param>
         /// <param name="element"></param>
         /// <param name="getAutomationDel"></param>
-        /// <param name="properties"></param>
-        protected void CacheAutomationElementProperties(IntPtr hWnd, ref AutomationElement element, GetAutomationDel getAutomationDel, params AutomationProperty[] properties)
+        /// <param name="cacheData"></param>
+        /// <exception cref="ArgumentException">Неправильный тим параметра <paramref name="cacheData"/>.</exception>
+        /// <remarks><paramref name="cacheData"/> параметры, должны состояить только из типов <see cref="AutomationProperty"/> и <see cref="AutomationPAttern"/>.</remarks>
+        protected void CacheAutomationElementProperties(IntPtr hWnd, ref AutomationElement element, GetAutomationDel getAutomationDel, params AutomationIdentifier[] cacheData)
         {
-            var cacheRequest = new CacheRequest();
-            foreach (var property in properties)
-            {
-                cacheRequest.Add(property);
-            }
 
+            var cacheRequest = new CacheRequest();
+            foreach (var ai in cacheData)
+            {
+                var aPropType = typeof(AutomationProperty);
+                var aPattType = typeof(AutomationPattern);
+                if (ai.GetType() == aPropType)
+                    cacheRequest.Add((AutomationProperty)ai);
+                else if((ai.GetType() == aPattType))
+                    cacheRequest.Add((AutomationPattern)ai);
+                else
+                    throw new ArgumentException(string.Format("CacheData has a wrong type."));
+            }
             using (cacheRequest.Activate())
             {
                 element = getAutomationDel.Invoke(hWnd);

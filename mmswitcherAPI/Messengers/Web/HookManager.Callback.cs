@@ -162,8 +162,6 @@ namespace mmswitcherAPI.Messangers.Web
             _tabSelectionCountChanged.Invoke(hWnd, e);
         }
 
-        private GCHandle hnd;
-
         private void EnsureSubscribedToTabSelectionCountChangedEvent()
         {
             if (_tabSelectionCountChangedHookHandle == 0)
@@ -172,8 +170,7 @@ namespace mmswitcherAPI.Messangers.Web
                 int processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
 
-                hnd = GCHandle.Alloc(_tabSelectionCountChangedHookHandle);
-                _tabSelectionCountChangedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTIONADD, EventConstants.EVENT_OBJECT_SELECTIONREMOVE, IntPtr.Zero, _tabSelectionCountChangedDelegate, processId, 0, WINEVENT_INCONTEXT);
+                _tabSelectionCountChangedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTIONADD, EventConstants.EVENT_OBJECT_SELECTIONREMOVE, IntPtr.Zero, _tabSelectionCountChangedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
                 if (_tabSelectionCountChangedHookHandle == 0)
                 {
                     int errorCode = Marshal.GetLastWin32Error();
@@ -197,7 +194,6 @@ namespace mmswitcherAPI.Messangers.Web
             if (_tabSelectionCountChangedHookHandle != 0)
             {
                 bool result = WinApi.UnhookWinEvent(_tabSelectionCountChangedHookHandle);
-                hnd.Free();
                 _tabSelectionCountChangedHookHandle = 0;
                 _tabSelectionCountChangedDelegate = null;
                 if (result == false)

@@ -31,7 +31,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             throw new NotImplementedException();
         }
 
-        protected override AutomationElement ActiveTabItem(AutomationElementCollection tabItems, AutomationElement windowAE)
+        public override AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE)
         {
             throw new NotImplementedException();
         }

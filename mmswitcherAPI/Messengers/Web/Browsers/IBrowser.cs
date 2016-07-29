@@ -290,23 +290,23 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                     return null;
                 AutomationElement tabControl = BrowserTabControl(windowAE);
                 tabItems = TabItems(tabControl);
-                AutomationElement currentTab = ActiveTabItem(tabItems, windowAE);
+                AutomationElement currentTab = ActiveTab(tabItems, windowAE);
                 return currentTab;
             }
             catch { return null; }
         }
 
-        public AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE)
-        {
-            if (tabItems == null)
-                throw new ArgumentNullException("tabItems");
-            if (windowAE == null)
-                throw new ArgumentNullException("windowAE");
+        //public AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE)
+        //{
+        //    if (tabItems == null)
+        //        throw new ArgumentNullException("tabItems");
+        //    if (windowAE == null)
+        //        throw new ArgumentNullException("windowAE");
             
-            var currentTab = ActiveTabItem(tabItems, windowAE);
+        //    var currentTab = ActiveTabItem(tabItems, windowAE);
             
-            return currentTab;
-        }
+        //    return currentTab;
+        //}
 
         public abstract AutomationElement MessengerFocusAutomationElement(IntPtr hWnd);
 
@@ -333,7 +333,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// <returns></returns>
         public abstract AutomationElement BrowserTabControl(AutomationElement mainWindowAE);
 
-        protected abstract AutomationElement ActiveTabItem(AutomationElementCollection tabItems, AutomationElement windowAE);
+        public abstract AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE);
 
         protected abstract AutomationElement SkypeTab(IntPtr hWnd);
 

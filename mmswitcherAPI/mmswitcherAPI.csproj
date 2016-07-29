@@ -22,7 +22,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>
     </DocumentationFile>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -50,8 +50,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="UIAutomationClient" />
-    <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +93,12 @@
     <Folder Include="Extensions\" />
     <Folder Include="Messengers\Desktop\" />
     <Folder Include="Messengers\Hooks\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\DEMO\uiautomationverify\UIAVerify\UIAComWrapper\UIAComWrapper\UIAComWrapper.csproj">
+      <Project>{1dd63894-dbb9-40ef-bff2-55624cb285af}</Project>
+      <Name>UIAComWrapper</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -163,7 +163,7 @@ namespace mmswitcherAPI.Messangers.Web
             if (_hManager != null) return;
             _hManager = new WebMessengerHookManager(base._windowHandle, _browserSet);
             _hManager.TabSelected += _hManager_TabSelected;
-            _hManager.TabSelectionCountChanged += _hManager_TabSelectionCountChanged;
+            //_hManager.TabSelectionCountChanged += _hManager_TabSelectionCountChanged;
         }
 
         private void InitBrowserComponents()
@@ -176,7 +176,8 @@ namespace mmswitcherAPI.Messangers.Web
             //_browserWindowAE = _browserSet.BrowserMainWindowAutomationElement(base._windowHandle);
             CacheAutomationElementProperties(base._windowHandle, ref _browserWindowAE, (s) => _browserSet.BrowserMainWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
             _tabControl = _browserSet.BrowserTabControl(_browserWindowAE);
-            _tabCollection = _browserSet.TabItems(_tabControl);
+            _tabCollection = CacheAutomationElementProperties(_tabControl, (s) => _browserSet.TabItems(s), SelectionItemPattern.Pattern);
+            //_tabCollection = _browserSet.TabItems(_tabControl);
             //_renderTabWidgetAE = _browserSet.BrowserTabControlWindowAutomationElement(base._windowHandle);
             CacheAutomationElementProperties(base._windowHandle, ref _renderTabWidgetAE, (s) => _browserSet.BrowserTabControlWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
 
@@ -267,6 +268,35 @@ namespace mmswitcherAPI.Messangers.Web
             }
             catch { Dispose(true); }
         }
+
+        private delegate AutomationElementCollection GetAutomationCollectionDel(AutomationElement hWnd);
+        /// <summary>
+        /// Кэширует заданные свойства или паттерны <paramref name="cacheData"/> при создании <see cref="AutomationElementCollection"/> методом, представленным делегатом <paramref name="getAutomationCollectionDel"/> из родительского <paramref name="parrent"/>.
+        /// </summary>
+        /// <exception cref="ArgumentException">Неправильный тим параметра <paramref name="cacheData"/>.</exception>
+        /// <remarks><paramref name="cacheData"/> параметры, должны состояить только из типов <see cref="AutomationProperty"/> и <see cref="AutomationPAttern"/>.</remarks>
+        private AutomationElementCollection CacheAutomationElementProperties(AutomationElement parrent, GetAutomationCollectionDel getAutomationCollectionDel, params AutomationIdentifier[] cacheData)
+        {
+            AutomationElementCollection aeCollection;
+            var cacheRequest = new CacheRequest();
+            foreach (var ai in cacheData)
+            {
+                var aPropType = typeof(AutomationProperty);
+                var aPattType = typeof(AutomationPattern);
+                if (ai.GetType() == aPropType)
+                    cacheRequest.Add((AutomationProperty)ai);
+                else if((ai.GetType() == aPattType))
+                    cacheRequest.Add((AutomationPattern)ai);
+                else
+                    throw new ArgumentException(string.Format("CacheData has a wrong type."));
+            }
+            using (cacheRequest.Activate())
+            {
+                aeCollection = getAutomationCollectionDel.Invoke(parrent);
+            }
+            return aeCollection;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -308,7 +338,13 @@ namespace mmswitcherAPI.Messangers.Web
 
             try
             {
+                Console.WriteLine("");
+
                 _previousTabBounding = _currentTabBounding;
+
+                _tabCollection = CacheAutomationElementProperties(_tabControl, (s) => _browserSet.TabItems(s), SelectionItemPattern.Pattern);
+
+                var t = _tabCollection[0].GetCachedPattern(SelectionItemPattern.Pattern);
                 var activeTab = _browserSet.ActiveTab(_tabCollection, _browserWindowAE);
                 if (activeTab == null)
                     return;

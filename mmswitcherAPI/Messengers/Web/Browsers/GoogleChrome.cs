@@ -38,15 +38,35 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         {
             if (chrome == null)
                 return null;
-            var asdasd = TreeWalker.RawViewWalker.GetFirstChild(chrome);
+            //var asdasd = TreeWalker.RawViewWalker.GetFirstChild(chrome);
             // manually walk through the tree, searching using TreeScope.Descendants is too slow (even if it's more reliable)
             var chromeDaughter = chrome.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.NameProperty, "Google Chrome"));
 
             if (chromeDaughter == null) { return null; } // not the right chrome.exe
 
+            
+
+            List<AutomationElement> tempList = new List<AutomationElement>();
+            AutomationElement temp = TreeWalker.RawViewWalker.GetFirstChild(chromeDaughter);
+            tempList.Add(temp);
+            while(temp!=null)
+            {
+                temp = TreeWalker.RawViewWalker.GetNextSibling(temp);
+                if(temp!=null)
+                tempList.Add(temp);
+            }
+
+            var tempo = chromeDaughter.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab)); 
+
             // here, you can optionally check if Incognito is enabled:
-            var chromeGranddaughter = TreeWalker.RawViewWalker.GetLastChild(chromeDaughter);
-            var chromeGreatgranddaughter = chromeGranddaughter.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.NameProperty, ""))[1];
+            var chromeGranddaughter = TreeWalker.RawViewWalker.GetFirstChild(chromeDaughter);
+            
+
+
+            var chromeGreatgranddaughter = TreeWalker.RawViewWalker.GetFirstChild(chromeGranddaughter);
+
+            var test = chromeGreatgranddaughter.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab)); 
+           // var chromeGreatgranddaughter = chromeGranddaughter.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.NameProperty, ""))[1];
             return chromeGreatgranddaughter.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab));
         }
 
@@ -105,7 +125,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
 
         //public override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
         //{
- 
+
         //}
 
         /// <summary>
@@ -115,7 +135,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// <param name="windowAE">Окно браузера.</param>
         /// <returns></returns>
         /// <remarks>this method is pretty shitty cos idk why the hell AutomationElement.GetSupportedPatterns doesn't returns any paterns. Using inspect.exe we can find that tabitem has IsSelectionItemPatternAvailable. </remarks>
-        protected override AutomationElement ActiveTabItem(AutomationElementCollection tabItems, AutomationElement windowAE)
+        public override AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE)
         {
             if (windowAE == null)
                 throw new ArgumentNullException("windowAE");
@@ -147,7 +167,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 AutomationElement skype = SkypeTabItem(tabItems);
                 return skype;
             }
-            catch 
+            catch
             {
                 throw new ElementNotAvailableException("Skype tab is not available in a Google Chrome.");
             }
