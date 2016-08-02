@@ -64,9 +64,11 @@
     <Compile Include="GlobalBindController.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Messengers\Desktop\Telegram.cs" />
     <Compile Include="Messengers\HookManager.Callback.cs" />
     <Compile Include="Messengers\HookManager.cs" />
     <Compile Include="Messengers\HookManager.Windows.cs" />
+    <Compile Include="Messengers\IMessenger.cs" />
     <Compile Include="Messengers\MessengerController.cs" />
     <Compile Include="Messengers\Web\HookManager.Callback.cs" />
     <Compile Include="Messengers\Web\HookManager.cs" />
@@ -91,7 +93,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Extensions\" />
-    <Folder Include="Messengers\Desktop\" />
     <Folder Include="Messengers\Hooks\" />
   </ItemGroup>
   <ItemGroup>

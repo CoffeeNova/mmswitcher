@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Diagnostics;
 
-namespace mmswitcherAPI.Messangers.Web.Browsers
+namespace mmswitcherAPI.Messengers.Web.Browsers
 {
     internal sealed class OperaSet : BrowserSet
     {
@@ -31,7 +31,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             throw new NotImplementedException();
         }
 
-        public override AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE)
+        public override AutomationElement SelectedTab(AutomationElementCollection tabItems)
         {
             throw new NotImplementedException();
         }

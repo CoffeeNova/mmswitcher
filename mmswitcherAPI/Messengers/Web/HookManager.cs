@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Windows.Automation;
-using mmswitcherAPI.Messangers.Web.Browsers;
+using mmswitcherAPI.Messengers.Web.Browsers;
 
-namespace mmswitcherAPI.Messangers.Web
+namespace mmswitcherAPI.Messengers.Web
 {
     /// <summary>
     /// Класс отслеживает глобальную активность веб мессенджеров

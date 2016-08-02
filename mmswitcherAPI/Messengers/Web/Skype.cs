@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Windows.Automation;
-using mmswitcherAPI.Messangers.Web.Browsers;
+using mmswitcherAPI.Messengers.Web.Browsers;
 using System.Collections.ObjectModel;
 
-namespace mmswitcherAPI.Messangers.Web
+namespace mmswitcherAPI.Messengers.Web
 {
     public sealed class WebSkype : WebMessenger, IDisposable
     {
@@ -23,8 +23,7 @@ namespace mmswitcherAPI.Messangers.Web
             if (browserProcess == null)
                 throw new ArgumentException();
 
-            OnFocusChangedSubscribe();
-            OnMessageProcessingSubscribe();
+  
         }
 
         protected override bool IncomeMessagesDetect(AutomationElement tab)

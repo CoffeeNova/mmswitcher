@@ -17,8 +17,8 @@ using mmswitcherAPI.winmsg;
 using mmswitcherAPI.AltTabSimulator;
 using System.Windows.Automation;
 //using mmswitcherAPI.Messangers.Web;
-using mmswitcherAPI.Messangers;
-using mmswitcherAPI.Messangers.Web;
+using mmswitcherAPI.Messengers;
+using mmswitcherAPI.Messengers.Web;
 
 namespace test
 {
@@ -39,27 +39,10 @@ namespace test
             InitializeComponent();
             //var focusHandler = new AutomationFocusChangedEventHandler(OnFocusChanged);
             //Automation.AddAutomationFocusChangedEventHandler(focusHandler);
-            var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
-
-            System.Diagnostics.Process process = null;
-            foreach (var cProcess in chromeProcesses)
-            {
-                if (cProcess.MainWindowHandle != IntPtr.Zero)
-                {
-                    process = cProcess;
-                    break;
-                }
-            }
-
-            if (process == null)
-                return;
-            ws = (WebSkype)MessengerBase.Create(typeof(WebSkype), process);
-            ws.GotFocus += ws_GotFocus;
-            ws.LostFocus += ws_LostFocus;
-            ws.GotNewMessage += ws_GotNewMessage;
-            ws.MessagesGone += ws_MessagesGone;
+           
 
         }
+
 
         void ws_MessagesGone(IMessenger wss)
         {
@@ -139,6 +122,34 @@ namespace test
                 return windowAE.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ClassNameProperty, "Chrome_RenderWidgetHostHWND"));
             }
             catch { return null; }
+        }
+
+        private void Window_Initialized(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
+
+            System.Diagnostics.Process process = null;
+            foreach (var cProcess in chromeProcesses)
+            {
+                if (cProcess.MainWindowHandle != IntPtr.Zero)
+                {
+                    process = cProcess;
+                    break;
+                }
+            }
+
+            if (process == null)
+                return;
+            ws = (WebSkype)MessengerBase.Create(typeof(WebSkype), process);
+            ws.GotFocus += ws_GotFocus;
+            ws.LostFocus += ws_LostFocus;
+            ws.GotNewMessage += ws_GotNewMessage;
+            ws.MessagesGone += ws_MessagesGone;
         }
     }
 }

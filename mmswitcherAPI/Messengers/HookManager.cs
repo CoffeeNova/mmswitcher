@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Windows.Automation;
-using mmswitcherAPI.Messangers.Web.Browsers;
+using mmswitcherAPI.Messengers.Web.Browsers;
 
-namespace mmswitcherAPI.Messangers
+namespace mmswitcherAPI.Messengers
 {
     /// <summary>
     /// Класс отслеживает глобальную активность мессенджеров
@@ -28,7 +28,7 @@ namespace mmswitcherAPI.Messangers
         private event EventHandler _focusChanged;
 
         /// <summary>
-        /// Происходит при изменении названия любого обекта в процессе веб мессенджера
+        /// 
         /// </summary>
         public event EventHandler FocusChanged
         {

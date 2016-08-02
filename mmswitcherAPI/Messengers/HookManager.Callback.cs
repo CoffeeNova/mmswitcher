@@ -9,7 +9,7 @@ using System.ComponentModel;
 using mmswitcherAPI;
 using System.Windows.Automation;
 
-namespace mmswitcherAPI.Messangers
+namespace mmswitcherAPI.Messengers
 {
     internal partial class MessengerHookManager
     {

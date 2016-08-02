@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace mmswitcherAPI.Messangers
+namespace mmswitcherAPI.Messengers
 {
     internal partial class MessengerHookManager
     {

@@ -5,14 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Diagnostics;
-using mmswitcherAPI.Messangers.Web.Browsers;
+using mmswitcherAPI.Messengers.Web.Browsers;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 
 
-namespace mmswitcherAPI.Messangers.Web
+namespace mmswitcherAPI.Messengers.Web
 {
     /// <summary>
     /// Представляет функционал для отслеживания состояния и управления веб версии популярных мессенджеров.
@@ -61,13 +61,13 @@ namespace mmswitcherAPI.Messangers.Web
         //    }
         //}
 
-        protected AutomationElementCollection TabContainer
-        {
-            get
-            {
-                return _tabContainer;
-            }
-        }
+        //protected AutomationElementCollection TabContainer
+        //{
+        //    get
+        //    {
+        //        return _tabContainer;
+        //    }
+        //}
         #region protected fields
         protected BrowserSet _browserSet;
         #endregion
@@ -78,13 +78,9 @@ namespace mmswitcherAPI.Messangers.Web
         private AutomationElement _renderTabWidgetAE;
         private AutomationElement _tabControl;
         private AutomationElementCollection _tabCollection;
-        //private IntPtr _renderTabWidgetHandle;
-        private IntPtr _previousForegroundWindow = IntPtr.Zero;
-        //private AutomationElement _previousTab;
-        //private AutomationElement _currentTab;
-        private AutomationElementCollection _tabContainer;
-        private System.Windows.Rect _currentTabBounding = new System.Windows.Rect();
-        private System.Windows.Rect _previousTabBounding = new System.Windows.Rect();
+        private AutomationElement[] _tabArray = new AutomationElement[2];
+        private AutomationElement _selectedTab;
+        private AutomationElement _previousSelectedTab;
         private bool _browserComponentsInitialized = false;
         #endregion
 
@@ -101,11 +97,10 @@ namespace mmswitcherAPI.Messangers.Web
             if (_hManager == null)
                 InitHookManager();
 
+            _selectedTab = _tabArray[0];
+            _previousSelectedTab = _tabArray[1];
             // _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
             // _hManager.TabClosed += _hManager_TabClosed;
-
-
-
         }
 
 
@@ -163,7 +158,6 @@ namespace mmswitcherAPI.Messangers.Web
             if (_hManager != null) return;
             _hManager = new WebMessengerHookManager(base._windowHandle, _browserSet);
             _hManager.TabSelected += _hManager_TabSelected;
-            //_hManager.TabSelectionCountChanged += _hManager_TabSelectionCountChanged;
         }
 
         private void InitBrowserComponents()
@@ -172,13 +166,9 @@ namespace mmswitcherAPI.Messangers.Web
                 return;
             InitBrowserSet(base._process);
 
-            //_tabControl = TreeWalker.RawViewWalker.GetParent(base.MessengerAE);
-            //_browserWindowAE = _browserSet.BrowserMainWindowAutomationElement(base._windowHandle);
             CacheAutomationElementProperties(base._windowHandle, ref _browserWindowAE, (s) => _browserSet.BrowserMainWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
             _tabControl = _browserSet.BrowserTabControl(_browserWindowAE);
             _tabCollection = CacheAutomationElementProperties(_tabControl, (s) => _browserSet.TabItems(s), SelectionItemPattern.Pattern);
-            //_tabCollection = _browserSet.TabItems(_tabControl);
-            //_renderTabWidgetAE = _browserSet.BrowserTabControlWindowAutomationElement(base._windowHandle);
             CacheAutomationElementProperties(base._windowHandle, ref _renderTabWidgetAE, (s) => _browserSet.BrowserTabControlWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
 
             _browserComponentsInitialized = true;
@@ -257,16 +247,19 @@ namespace mmswitcherAPI.Messangers.Web
 
         public override void SetForeground()
         {
-            IntPtr initFore;
-            AutomationElement initTab;
             bool isMinim;
+            IntPtr previousForegroundWindow;
             try
             {
-                _browserSet.SetForegroundMessengerTab(base.WindowHandle, out initFore, out initTab, out isMinim);
-                //_previousForegroundWindow = initFore;
-                //_previousTab = initTab;
+                _browserSet.SetForegroundMessengerTab(base.WindowHandle, out previousForegroundWindow, ref _selectedTab, out isMinim);
             }
             catch { Dispose(true); }
+        }
+
+        public void ReturnPreviousSelectedTab()
+        {
+            if (_previousSelectedTab != null && _previousSelectedTab.Current.BoundingRectangle != System.Windows.Rect.Empty)
+                    _browserSet.FocusBrowserTab(_windowHandle, _previousSelectedTab);
         }
 
         private delegate AutomationElementCollection GetAutomationCollectionDel(AutomationElement hWnd);
@@ -285,7 +278,7 @@ namespace mmswitcherAPI.Messangers.Web
                 var aPattType = typeof(AutomationPattern);
                 if (ai.GetType() == aPropType)
                     cacheRequest.Add((AutomationProperty)ai);
-                else if((ai.GetType() == aPattType))
+                else if ((ai.GetType() == aPattType))
                     cacheRequest.Add((AutomationPattern)ai);
                 else
                     throw new ArgumentException(string.Format("CacheData has a wrong type."));
@@ -310,21 +303,6 @@ namespace mmswitcherAPI.Messangers.Web
                 return;
             base.OnFocusChanged(sender, e);
         }
-        //public override void ReturnForeground()
-        //{
-        //    if (_previousForegroundWindow == IntPtr.Zero || _previousTab == null)
-        //        return;
-        //    try
-        //    {
-        //        if (_previousForegroundWindow != base.WindowHandle)
-        //            WinApi.SetForegroundWindow(_previousForegroundWindow);
-        //        else
-        //            _browserSet.FocusBrowserTab(base.WindowHandle, _previousTab);
-        //        _previousForegroundWindow = IntPtr.Zero;
-        //        _previousTab = null;
-        //    }
-        //    catch { Dispose(true); }
-        //}
 
         private void _hManager_TabSelected(object sender, EventArgs e)
         {
@@ -338,19 +316,14 @@ namespace mmswitcherAPI.Messangers.Web
 
             try
             {
-                Console.WriteLine("");
-
-                _previousTabBounding = _currentTabBounding;
-
+                _tabArray[1] = _tabArray[0];
                 _tabCollection = CacheAutomationElementProperties(_tabControl, (s) => _browserSet.TabItems(s), SelectionItemPattern.Pattern);
+                _tabArray[0] = _browserSet.SelectedTab(_tabCollection); ;
 
-                var t = _tabCollection[0].GetCachedPattern(SelectionItemPattern.Pattern);
-                var activeTab = _browserSet.ActiveTab(_tabCollection, _browserWindowAE);
-                if (activeTab == null)
-                    return;
-                _currentTabBounding = activeTab.Current.BoundingRectangle;
-
-                Console.WriteLine(String.Format("current: {0} | prev: {1}", _currentTabBounding, _previousTabBounding));
+                if (_tabArray[0]!=null)
+                Debug.WriteLine(String.Format("current: {0}", _tabArray[0].Current.BoundingRectangle));
+                if (_tabArray[1] != null)
+                    Debug.WriteLine(String.Format("prev: {0}", _tabArray[1].Current.BoundingRectangle));
             }
             catch { Dispose(true); }
         }
@@ -377,7 +350,7 @@ namespace mmswitcherAPI.Messangers.Web
                 if (_hManager != null)
                 {
                     _hManager.TabSelected -= _hManager_TabSelected;
-                    _hManager.TabSelectionCountChanged -= _hManager_TabSelectionCountChanged;
+                    //_hManager.TabSelectionCountChanged -= _hManager_TabSelectionCountChanged;
                     _hManager.Dispose();
                 }
                 _browserSet = null;

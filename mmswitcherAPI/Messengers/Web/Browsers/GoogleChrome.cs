@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Diagnostics;
 
-namespace mmswitcherAPI.Messangers.Web.Browsers
+namespace mmswitcherAPI.Messengers.Web.Browsers
 {
     internal sealed class GoogleChromeSet : BrowserSet
     {
@@ -32,42 +32,21 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// Manual search google chrome tab control element
         /// walking path found using inspect.exe (Windows SDK) for Chrome Version 43.0.2357.65 m (currently the latest stable)
         /// </summary>
-        /// <param name="chrome"></param>
+        /// <param name="windowAE"></param>
         /// <returns></returns>
-        public override AutomationElement BrowserTabControl(AutomationElement chrome)
+        public override AutomationElement BrowserTabControl(AutomationElement windowAE)
         {
-            if (chrome == null)
+            if (windowAE == null)
                 return null;
-            //var asdasd = TreeWalker.RawViewWalker.GetFirstChild(chrome);
-            // manually walk through the tree, searching using TreeScope.Descendants is too slow (even if it's more reliable)
-            var chromeDaughter = chrome.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.NameProperty, "Google Chrome"));
+            var childElement = windowAE.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.NameProperty, "Google Chrome"));
 
-            if (chromeDaughter == null) { return null; } // not the right chrome.exe
+            if (childElement == null) { return null; } // not the right chrome.exe
+            var firstEmptyCustom = TreeWalker.RawViewWalker.GetLastChild(childElement);
 
-            
+            var secondEmptyCustom = firstEmptyCustom.FindAll(TreeScope.Children, Condition.TrueCondition)[1];
+            var tabControlAE = secondEmptyCustom.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab));
 
-            List<AutomationElement> tempList = new List<AutomationElement>();
-            AutomationElement temp = TreeWalker.RawViewWalker.GetFirstChild(chromeDaughter);
-            tempList.Add(temp);
-            while(temp!=null)
-            {
-                temp = TreeWalker.RawViewWalker.GetNextSibling(temp);
-                if(temp!=null)
-                tempList.Add(temp);
-            }
-
-            var tempo = chromeDaughter.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab)); 
-
-            // here, you can optionally check if Incognito is enabled:
-            var chromeGranddaughter = TreeWalker.RawViewWalker.GetFirstChild(chromeDaughter);
-            
-
-
-            var chromeGreatgranddaughter = TreeWalker.RawViewWalker.GetFirstChild(chromeGranddaughter);
-
-            var test = chromeGreatgranddaughter.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab)); 
-           // var chromeGreatgranddaughter = chromeGranddaughter.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.NameProperty, ""))[1];
-            return chromeGreatgranddaughter.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab));
+            return tabControlAE;
         }
 
         /// <summary>
@@ -90,9 +69,9 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                 {
                     //при переключении вкладок этот контрол перерисовывается, поэтому чтобы получить нужный, нам необходимо задать фокус на наш мессенджер
                     IntPtr initForeHwnd;
-                    AutomationElement initControl;
+                    AutomationElement initControl = null; ;
                     bool minimWind;
-                    bool setForeTab = SetForegroundMessengerTab(hWnd, out initForeHwnd, out initControl, out minimWind);
+                    bool setForeTab = SetForegroundMessengerTab(hWnd, out initForeHwnd, ref initControl, out minimWind);
                     if (!setForeTab)
                         return null;
                     System.Threading.Thread.Sleep(50);
@@ -123,32 +102,33 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
             catch { return true; }
         }
 
-        //public override AutomationElement ActiveTab(IntPtr hWnd, out AutomationElementCollection tabItems)
-        //{
-
-        //}
-
         /// <summary>
         /// Retrieve active tab from google chrome tab collecion.
         /// </summary>
         /// <param name="tabItems"></param>
         /// <param name="windowAE">Окно браузера.</param>
         /// <returns></returns>
-        /// <remarks>this method is pretty shitty cos idk why the hell AutomationElement.GetSupportedPatterns doesn't returns any paterns. Using inspect.exe we can find that tabitem has IsSelectionItemPatternAvailable. </remarks>
-        public override AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE)
+        public override AutomationElement SelectedTab(AutomationElementCollection tabItems)
         {
-            if (windowAE == null)
-                throw new ArgumentNullException("windowAE");
-
             if (tabItems == null)
                 throw new ArgumentNullException("tabItems");
 
+            SelectionItemPattern pattern;
+            AutomationElement selectedItem = null;
             foreach (AutomationElement tab in tabItems)
             {
-                if (windowAE.Current.Name.StartsWith(tab.Current.Name))
-                    return tab;
+                pattern = tab.GetCurrentPattern(SelectionItemPattern.Pattern) as SelectionItemPattern;
+                if (pattern.Current.IsSelected)
+                {
+                    selectedItem = tab;
+                    break;
+                }
             }
-            return null;
+
+            if (selectedItem == null)
+                throw new Exception("Something wrong. Tab collection has no selected tabs.");
+
+            return selectedItem;
         }
 
         #region Skype

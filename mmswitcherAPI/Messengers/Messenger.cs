@@ -11,7 +11,7 @@ using System.Reflection;
 using mmswitcherAPI.winmsg;
 using System.Collections.ObjectModel;
 
-namespace mmswitcherAPI.Messangers
+namespace mmswitcherAPI.Messengers
 {
     /// <summary>
     /// 
@@ -19,52 +19,6 @@ namespace mmswitcherAPI.Messangers
     /// <param name="wss"></param>
     public delegate void newMessageDelegate(MessengerBase wss);
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public interface IMessenger
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        string Caption { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        IntPtr WindowHandle { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        Messenger Messenger { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        bool Focused { get; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        event newMessageDelegate GotNewMessage;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        event newMessageDelegate MessagesGone;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        event EventHandler GotFocus;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        event EventHandler LostFocus;
-
-    }
 
     /// <summary>
     /// 
@@ -213,7 +167,7 @@ namespace mmswitcherAPI.Messangers
         #endregion
 
         #region private fields
-        private bool _focused = false;
+        private bool _focused = true;
         private bool _incomeMessages = false;
         private static MessengerBase _lastAlerted = null;
         private static MessengerBase _lastActive = null;
@@ -246,15 +200,14 @@ namespace mmswitcherAPI.Messangers
             _hManager = new MessengerHookManager(_windowHandle);
             GotNewMessage += MessengerBase_GotNewMessage;
             IncomeMessages = IncomeMessagesDetect(IncomeMessageAE) ? true : false;
-            //if (FocusableAE.Current.HasKeyboardFocus)
-            //    _focused = true;
             _wmmon = new WindowLifeCycle();
             _wmmon.onMessageTraced += OnMessageTraced;
             _messengersCollection.Add(this);
             _activity.Add(this);
 
             SetForeground();
-            _focused = true;
+            OnFocusChangedSubscribe();
+            OnMessageProcessingSubscribe();
         }
 
         /// <summary>
@@ -363,7 +316,7 @@ namespace mmswitcherAPI.Messangers
                 var aPattType = typeof(AutomationPattern);
                 if (ai.GetType() == aPropType)
                     cacheRequest.Add((AutomationProperty)ai);
-                else if((ai.GetType() == aPattType))
+                else if ((ai.GetType() == aPattType))
                     cacheRequest.Add((AutomationPattern)ai);
                 else
                     throw new ArgumentException(string.Format("CacheData has a wrong type."));
@@ -432,8 +385,6 @@ namespace mmswitcherAPI.Messangers
         //}
 
         public abstract void SetForeground();
-
-        //public abstract void ReturnForeground();
 
         /// <summary>
         /// Должен получать <see cref="AutomationElement"/> главного (или нет) окна процесса <paramref name="process"/> и его дескриптор.

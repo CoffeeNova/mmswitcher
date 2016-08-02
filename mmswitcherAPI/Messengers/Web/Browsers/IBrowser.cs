@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 
-namespace mmswitcherAPI.Messangers.Web.Browsers
+namespace mmswitcherAPI.Messengers.Web.Browsers
 {
     public interface IBrowserSet
     {
@@ -107,35 +107,38 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// <param name="isBrowserWindowWasMinimized">Возвращает <see langword="true"/>, если окно браузера было свернуто.</param>
         /// <param name="onlyTab">Возвращает <see langword="true"/>, если окно браузера переместилось на передний план.</param>
         /// <returns></returns>
-        public virtual bool SetForegroundMessengerTab(IntPtr hWnd, out IntPtr initialFore, out AutomationElement initialTab, out bool isBrowserWindowWasMinimized)
+        public virtual bool SetForegroundMessengerTab(IntPtr hWnd, out IntPtr initialFore, ref AutomationElement initialTab, out bool isBrowserWindowWasMinimized)
         {
             initialFore = IntPtr.Zero;
-            initialTab = null;
             isBrowserWindowWasMinimized = false;
             var windowAE = BrowserMainWindowAutomationElement(hWnd);
             if (windowAE == null)
                 return false;
             SetForegroundBrowserWindow(hWnd, out initialFore, out isBrowserWindowWasMinimized);
             EscMaximizedBrowserWindow(hWnd);
-            return FocusMessenger(hWnd, windowAE, out initialTab);
+            return FocusMessenger(hWnd, windowAE, ref initialTab);
         }
 
         //пока что кривая реализация через костыль (разворачиваем окно хрома, определяем положение границы вкладки мессенджера и нажимаем на нее мышкой
-        protected virtual bool FocusMessenger(IntPtr hWnd, AutomationElement windowAE, out AutomationElement initialTab)
+        protected virtual bool FocusMessenger(IntPtr hWnd, AutomationElement windowAE, ref AutomationElement initialTab)
         {
-            initialTab = null;
             AutomationElement messengerTab = null;
-            if (hWnd == IntPtr.Zero || windowAE == null)
-                return false;
+            if (hWnd == IntPtr.Zero)
+                throw new ArgumentException("Window handle should not be IntPtr.Zero");
+            if (windowAE == null)
+                throw new ArgumentNullException("windowAE");
+
             try
             {
                 AutomationElementCollection items;
-                initialTab = ActiveTab(hWnd, out items);
+                if (initialTab == null)
+                    initialTab = ActiveTab(hWnd, out items);
             }
             catch (Exception ex)
             {
                 throw new ElementNotAvailableException("Impossible to define current active browser tab.", ex);
             }
+
             try
             {
                 var mtd = DefineTab(MessengerType);
@@ -290,7 +293,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
                     return null;
                 AutomationElement tabControl = BrowserTabControl(windowAE);
                 tabItems = TabItems(tabControl);
-                AutomationElement currentTab = ActiveTab(tabItems, windowAE);
+                AutomationElement currentTab = SelectedTab(tabItems);
                 return currentTab;
             }
             catch { return null; }
@@ -302,9 +305,9 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         //        throw new ArgumentNullException("tabItems");
         //    if (windowAE == null)
         //        throw new ArgumentNullException("windowAE");
-            
+
         //    var currentTab = ActiveTabItem(tabItems, windowAE);
-            
+
         //    return currentTab;
         //}
 
@@ -333,7 +336,7 @@ namespace mmswitcherAPI.Messangers.Web.Browsers
         /// <returns></returns>
         public abstract AutomationElement BrowserTabControl(AutomationElement mainWindowAE);
 
-        public abstract AutomationElement ActiveTab(AutomationElementCollection tabItems, AutomationElement windowAE);
+        public abstract AutomationElement SelectedTab(AutomationElementCollection tabItems);
 
         protected abstract AutomationElement SkypeTab(IntPtr hWnd);
 
