@@ -183,7 +183,7 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
 
             if (initialForeWindow != hWnd)
             {
-                isBrowserWindowWasMinimized = Tools.RestoreMinimizedWindow(hWnd);
+                isBrowserWindowWasMinimized = Tools.RestoreWindow(hWnd);
                 newForegroundSet = WinApi.SetForegroundWindow(hWnd);
             }
             return newForegroundSet;

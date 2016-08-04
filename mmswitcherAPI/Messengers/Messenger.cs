@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Reflection;
 using mmswitcherAPI.winmsg;
 using System.Collections.ObjectModel;
+using mmswitcherAPI.Extensions;
 
 namespace mmswitcherAPI.Messengers
 {
@@ -55,15 +56,15 @@ namespace mmswitcherAPI.Messengers
         /// <summary>
         /// Элемент модели автоматизации, которая служит индикатором получения фокуса для предыдущего активного окна, не являющимся мессенджером.
         /// </summary>
-        protected static AutomationElement PreviousNonMessenger
-        {
-            get { return _previousNonMessenger; }
-            private set
-            {
-                if (MessengerBase.MessengersCollection.SingleOrDefault((m) => m._focusableAE == value) == null)
-                    _previousNonMessenger = value;
-            }
-        }
+        //protected static AutomationElement PreviousNonMessenger
+        //{
+        //    get { return _previousNonMessenger; }
+        //    private set
+        //    {
+        //        if (MessengerBase.MessengersCollection.SingleOrDefault((m) => m._focusableAE == value) == null)
+        //            _previousNonMessenger = value;
+        //    }
+        //}
 
         protected bool IncomeMessages
         {
@@ -117,12 +118,10 @@ namespace mmswitcherAPI.Messengers
         {
             get
             {
-                try
-                {
-                    var t = _incomeMessageAE.Current.Name;
+                if (_messengerAE.IsAlive())
                     return _messengerAE;
-                }
-                catch { Dispose(true); return null; }
+                else
+                { Dispose(true); return null; }
             }
         }
 
@@ -132,12 +131,10 @@ namespace mmswitcherAPI.Messengers
         {
             get
             {
-                try
-                {
-                    var t = _incomeMessageAE.Current.Name;
+                if (_focusableAE.IsAlive())
                     return _focusableAE;
-                }
-                catch { Dispose(true); return null; }
+                else
+                { Dispose(true); return null; }
             }
         }
 
@@ -147,12 +144,10 @@ namespace mmswitcherAPI.Messengers
         {
             get
             {
-                try
-                {
-                    var t = _incomeMessageAE.Current.Name;
+                if (_incomeMessageAE.IsAlive())
                     return _incomeMessageAE;
-                }
-                catch { Dispose(true); return null; }
+                else
+                { Dispose(true); return null; }
             }
         }
 
@@ -188,12 +183,12 @@ namespace mmswitcherAPI.Messengers
                 _messengerAE = AutomationElement.RootElement;
                 var aEdel = new GetMessengerAEDel(GetMainAutomationElement);
                 CacheAutomationElementProperties(msgProcess, out hWnd, ref _messengerAE, aEdel, AutomationElement.NativeWindowHandleProperty);
-                CacheAutomationElementProperties(hWnd, ref _focusableAE, (s) => GetFocusHandlerAutomationElement(s), AutomationElement.ClassNameProperty, AutomationElement.NativeWindowHandleProperty);
+                CacheAutomationElementProperties(hWnd, ref _focusableAE, (s) => GetFocusRecieverAutomationElement(s), AutomationElement.ClassNameProperty, AutomationElement.NativeWindowHandleProperty);
                 CacheAutomationElementProperties(hWnd, ref _incomeMessageAE, (s) => GetIncomeMessageAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
             }
             catch
             {
-                throw new Exception(String.Format("Can't find a messenger for this process {0}", msgProcess.ProcessName));
+                throw new Exception(String.Format("Cannot build a messenger for this process {0}", msgProcess.ProcessName));
             }
 
             _windowHandle = hWnd;
@@ -407,7 +402,7 @@ namespace mmswitcherAPI.Messengers
         /// <param name="hWnd">Хэндл окна мессенджера.</param>
         /// <returns></returns>
         /// <remarks>По-умолчанию <see cref="AutomationElement"/> главного окна мессенджера служит получателем фокуса при переключении на него. </remarks>
-        protected virtual AutomationElement GetFocusHandlerAutomationElement(IntPtr hWnd)
+        protected virtual AutomationElement GetFocusRecieverAutomationElement(IntPtr hWnd)
         {
             return MessengerAE;
         }

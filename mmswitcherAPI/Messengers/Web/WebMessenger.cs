@@ -35,39 +35,6 @@ namespace mmswitcherAPI.Messengers.Web
             }
         }
 
-        //protected AutomationElement PreviousTab
-        //{
-        //    get
-        //    {
-        //        try
-        //        {
-        //            var t = _previousTab.Current.Name;
-        //            return _previousTab;
-        //        }
-        //        catch { return null; }
-        //    }
-        //}
-
-        //protected AutomationElement CurrentTab
-        //{
-        //    get
-        //    {
-        //        try
-        //        {
-        //            var t = _currentTab.Current.Name;
-        //            return _currentTab;
-        //        }
-        //        catch { return null; }
-        //    }
-        //}
-
-        //protected AutomationElementCollection TabContainer
-        //{
-        //    get
-        //    {
-        //        return _tabContainer;
-        //    }
-        //}
         #region protected fields
         protected BrowserSet _browserSet;
         #endregion
@@ -191,7 +158,7 @@ namespace mmswitcherAPI.Messengers.Web
             //произведем поиск по виджетам браузера в поиске вкладки мессенджера
             foreach (IntPtr widgetHandle in widgetHandles)
             {
-                bool isRestored = Tools.RestoreMinimizedWindow(widgetHandle);
+                bool isRestored = Tools.RestoreWindow(widgetHandle);
                 var tabElement = DefineTabAutomationAelement(widgetHandle);
 
                 if (isRestored)
@@ -227,7 +194,7 @@ namespace mmswitcherAPI.Messengers.Web
         /// </summary>
         /// <param name="hWnd">Хэндл окна браузера.</param>
         /// <returns></returns>
-        protected override AutomationElement GetFocusHandlerAutomationElement(IntPtr hWnd)
+        protected override AutomationElement GetFocusRecieverAutomationElement(IntPtr hWnd)
         {
             if (_browserSet == null)
                 InitBrowserSet(base._process);

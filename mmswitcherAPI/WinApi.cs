@@ -162,6 +162,8 @@ namespace mmswitcherAPI
 
         public delegate void WinEventHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime);
 
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr OpenProcess(UInt32 dwDesiredAccess, Int32 bInheritHandle, UInt32 dwProcessId);
     }
 
 }

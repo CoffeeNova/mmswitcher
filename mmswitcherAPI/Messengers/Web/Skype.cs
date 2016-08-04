@@ -22,8 +22,6 @@ namespace mmswitcherAPI.Messengers.Web
         {
             if (browserProcess == null)
                 throw new ArgumentException();
-
-  
         }
 
         protected override bool IncomeMessagesDetect(AutomationElement tab)

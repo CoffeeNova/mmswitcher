@@ -61,9 +61,11 @@
     <Compile Include="AltTabSimulator\WinApi.cs" />
     <Compile Include="AltTabSimulator\WindowContainer.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Extensions\AuomationElementExtension.cs" />
     <Compile Include="GlobalBindController.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Messengers\Desktop\DesktopMessenger.cs" />
     <Compile Include="Messengers\Desktop\Telegram.cs" />
     <Compile Include="Messengers\HookManager.Callback.cs" />
     <Compile Include="Messengers\HookManager.cs" />
@@ -92,7 +94,6 @@
     <Compile Include="Window Messages\Window messages.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Extensions\" />
     <Folder Include="Messengers\Hooks\" />
   </ItemGroup>
   <ItemGroup>

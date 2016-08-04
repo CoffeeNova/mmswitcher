@@ -17,8 +17,9 @@ namespace mmswitcherAPI.AltTabSimulator
     /// </summary>
     public sealed class ActiveWindowStack
     {
+        public static ActiveWindowStack _instance;
+
         private WindowLifeCycle _winMesMon;
-        private static ActiveWindowStack _instance;
         private static readonly object _locker = new object();
         private HookManager _hManager;
         public delegate void StackActionDelegate(StackAction action, IntPtr hWnd);

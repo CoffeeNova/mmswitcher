@@ -90,7 +90,7 @@ namespace mmswitcherAPI.winmsg
                         handler(_control, lParam, (ShellEvents)wParam.ToInt32());
                 }
             return IntPtr.Zero;
-        }
+       }
 
         /// <summary>
         /// Функция отбора необходимых сообщений

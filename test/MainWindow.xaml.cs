@@ -16,9 +16,9 @@ using mmswitcherAPI;
 using mmswitcherAPI.winmsg;
 using mmswitcherAPI.AltTabSimulator;
 using System.Windows.Automation;
-//using mmswitcherAPI.Messangers.Web;
 using mmswitcherAPI.Messengers;
 using mmswitcherAPI.Messengers.Web;
+using mmswitcherAPI.Messengers.Desktop;
 
 namespace test
 {
@@ -33,13 +33,14 @@ namespace test
         ActiveWindowStack aws;
         AutomationElement ae;
         WebSkype ws;
+        Telegram telegram;
 
         public MainWindow()
         {
             InitializeComponent();
             //var focusHandler = new AutomationFocusChangedEventHandler(OnFocusChanged);
             //Automation.AddAutomationFocusChangedEventHandler(focusHandler);
-           
+
 
         }
 
@@ -126,30 +127,35 @@ namespace test
 
         private void Window_Initialized(object sender, EventArgs e)
         {
-            
+
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
+            //var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
 
-            System.Diagnostics.Process process = null;
-            foreach (var cProcess in chromeProcesses)
-            {
-                if (cProcess.MainWindowHandle != IntPtr.Zero)
-                {
-                    process = cProcess;
-                    break;
-                }
-            }
+            //System.Diagnostics.Process process = null;
+            //foreach (var cProcess in chromeProcesses)
+            //{
+            //    if (cProcess.MainWindowHandle != IntPtr.Zero)
+            //    {
+            //        process = cProcess;
+            //        break;
+            //    }
+            //}
 
-            if (process == null)
-                return;
-            ws = (WebSkype)MessengerBase.Create(typeof(WebSkype), process);
-            ws.GotFocus += ws_GotFocus;
-            ws.LostFocus += ws_LostFocus;
-            ws.GotNewMessage += ws_GotNewMessage;
-            ws.MessagesGone += ws_MessagesGone;
+            //if (process == null)
+            //    return;
+            //ws = (WebSkype)MessengerBase.Create(typeof(WebSkype), process);
+            //ws.GotFocus += ws_GotFocus;
+            //ws.LostFocus += ws_LostFocus;
+            //ws.GotNewMessage += ws_GotNewMessage;
+            //ws.MessagesGone += ws_MessagesGone;
+
+            var telegramProcesses = System.Diagnostics.Process.GetProcessesByName("telegram");
+            if (telegramProcesses.Count() > 0)
+                telegram = Telegram.Instance(telegramProcesses.First());
+
         }
     }
 }

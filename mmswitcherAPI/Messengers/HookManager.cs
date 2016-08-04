@@ -79,6 +79,7 @@ namespace mmswitcherAPI.Messengers
     /// </summary>
     internal struct EventConstants
     {
+        public const int EVENT_AIA_START = 0xA000;
         public const int EVENT_OBJECT_CREATE = 0x8000;
         public const int EVENT_OBJECT_DESTROY = 0x8001;
         public const int EVENT_OBJECT_SHOW = 0x8002;
@@ -92,5 +93,6 @@ namespace mmswitcherAPI.Messengers
         public const int EVENT_OBJECT_SELECTIONADD = 0x0007;
         public const int EVENT_OBJECT_STATECHANGE = 0x800A;
         public const int EVENT_OBJECT_NAMECHANGE = 0x800C;
+        public const int EVENT_AIA_END = 0xAFFF;
     }
 }

@@ -189,17 +189,27 @@ namespace mmswitcherAPI
         /// </summary>
         /// <param name="hWnd"></param>
         /// <returns></returns>
-        internal static bool RestoreMinimizedWindow(IntPtr hWnd)
+        internal static bool RestoreWindow(IntPtr hWnd)
         {
-
             var placement = GetPlacement(hWnd);
-            if (placement.showCmd == ShowWindowCommands.Minimized)
+            if (placement.showCmd == ShowWindowCommands.Minimized || placement.showCmd == ShowWindowCommands.Hide)
             {
                 WinApi.ShowWindow(hWnd, ShowWindowEnum.Restore);
                 return true;
             }
             return false;
         }
+
+        //internal static bool ShowNormalWindow(IntPtr hWnd)
+        //{
+        //    var placement = GetPlacement(hWnd);
+        //    if (!WinApi.IsWindowVisible(hWnd) ||  placement.showCmd == ShowWindowCommands.Minimized)
+        //    {
+        //        WinApi.ShowWindow(hWnd, ShowWindowEnum.Show);
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         internal static WINDOWPLACEMENT GetPlacement(IntPtr hwnd)
         {
@@ -253,6 +263,10 @@ namespace mmswitcherAPI
         /// <param name="handle"></param>
         internal static void SimulateClickUIAutomation(AutomationElement child, AutomationElement parent, IntPtr handle)
         {
+            if (child == null) throw new ArgumentNullException("child");
+            if (parent == null) throw new ArgumentNullException("parent");
+            if (handle == IntPtr.Zero) throw new ArgumentException("IntPtr.Zero value",
+                 "handle");
             //get new rectangle relatively parent window
             System.Windows.Rect clickZone = BoundingRectangleUIElement(child, parent);
 
