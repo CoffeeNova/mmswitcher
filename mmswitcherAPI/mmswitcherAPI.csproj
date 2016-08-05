@@ -85,12 +85,14 @@
     <Compile Include="Messengers\Web\WebMessenger.cs" />
     <Compile Include="WinApi.cs" />
     <Compile Include="Messengers\Messenger.cs" />
+    <Compile Include="Window Messages\GlobalHookTraper.cs" />
+    <Compile Include="Window Messages\MControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Window Messages\MessageMonitors.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools.cs" />
-    <Compile Include="Window Messages\MsgMonitor.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="Window Messages\MsgMonitor.cs" />
     <Compile Include="Window Messages\Window messages.cs" />
   </ItemGroup>
   <ItemGroup>

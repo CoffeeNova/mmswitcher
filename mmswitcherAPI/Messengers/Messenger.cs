@@ -65,7 +65,9 @@ namespace mmswitcherAPI.Messengers
         //            _previousNonMessenger = value;
         //    }
         //}
-
+        /// <summary>
+        /// 
+        /// </summary>
         protected bool IncomeMessages
         {
             get { return _incomeMessages; }
@@ -196,12 +198,12 @@ namespace mmswitcherAPI.Messengers
             GotNewMessage += MessengerBase_GotNewMessage;
             IncomeMessages = IncomeMessagesDetect(IncomeMessageAE) ? true : false;
             _wmmon = new WindowLifeCycle();
-            _wmmon.onMessageTraced += OnMessageTraced;
+            //_wmmon.onMessageTraced += OnMessageTraced;
             _messengersCollection.Add(this);
             _activity.Add(this);
 
-            SetForeground();
-            OnFocusChangedSubscribe();
+            //SetForeground();
+            //OnFocusChangedSubscribe();
             OnMessageProcessingSubscribe();
         }
 
@@ -432,10 +434,16 @@ namespace mmswitcherAPI.Messengers
         /// <remarks>Можно реализовать вручную, например через winapi SetWinEventHook.</remarks>
         protected virtual void OnMessageProcessingSubscribe()
         {
-            var propertyHandler = new AutomationPropertyChangedEventHandler(OnMessageProcessing);
+            propertyHandler = new AutomationPropertyChangedEventHandler(OnMessageProcessing);
             Automation.AddAutomationPropertyChangedEventHandler(IncomeMessageAE, TreeScope.Element, propertyHandler, AutomationElement.NameProperty);
+            _onMessageProcesseongSubsribed = true;
         }
 
+        protected virtual void OnMessageProcessingUnSubscribe()
+        {
+            if (propertyHandler != null && _onMessageProcesseongSubsribed)
+                Automation.RemoveAutomationPropertyChangedEventHandler(IncomeMessageAE, propertyHandler);
+        }
         private bool disposed = false;
 
         public void Dispose()
@@ -449,7 +457,6 @@ namespace mmswitcherAPI.Messengers
                 return;
             if (disposing)
             {
-                Automation.RemoveAllEventHandlers();
                 GotNewMessage -= MessengerBase_GotNewMessage;
                 _process = null;
                 _messengerAE = null;
@@ -460,6 +467,7 @@ namespace mmswitcherAPI.Messengers
                 _hManager.FocusChanged -= OnFocusChanged;
                 _hManager.Dispose();
             }
+            OnMessageProcessingUnSubscribe();
             _messengersCollection.Remove(this);
             _activity.Remove(this);
             disposed = true;
@@ -469,5 +477,8 @@ namespace mmswitcherAPI.Messengers
             Dispose(false);
         }
 
+
+        private AutomationPropertyChangedEventHandler propertyHandler = null;
+        private bool _onMessageProcesseongSubsribed = false;
     }
 }

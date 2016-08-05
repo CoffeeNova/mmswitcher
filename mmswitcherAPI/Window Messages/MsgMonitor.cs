@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Interop;
 using System.Windows;
-using System.Windows.Forms;
+
 
 namespace mmswitcherAPI.winmsg
 {
@@ -15,7 +15,7 @@ namespace mmswitcherAPI.winmsg
     public abstract class MsgMonitor
     {
         private object _control;
-        private readonly int _msgNotify;
+        private readonly int[] _msgNotify;
         private bool _disposed = false;
         private HwndSource _hwndWindow;
         private MControl _msgReceiver;
@@ -30,12 +30,12 @@ namespace mmswitcherAPI.winmsg
         /// Конструктор для общих сообщений.
         /// </summary>
         /// <param name="window">Окно WPF.</param>
-        /// <param name="msgNotify">Значение сообщения. См. http://wiki.winehq.org/List_Of_Windows_Messages </param>
-        public MsgMonitor(Window window, int msgNotify)
+        /// <param name="msgNotify">Значения сообщений. См. http://wiki.winehq.org/List_Of_Windows_Messages </param>
+        public MsgMonitor(Window window, params WindowMessage[] msgNotify)
         {
             _isWpfSpecial = true;
             _control = window;
-            _msgNotify = msgNotify;
+            _msgNotify = msgNotify.Cast<int>().ToArray(); ;
             _hwndWindow = PresentationSource.FromVisual(_control as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
         }
@@ -49,7 +49,7 @@ namespace mmswitcherAPI.winmsg
         {
             _isWpfSpecial = true;
             _control = window;
-            _msgNotify = WinApi.RegisterWindowMessage("SHELLHOOK");
+            _msgNotify = new int[1] { WinApi.RegisterWindowMessage("SHELLHOOK") };
             WinApi.RegisterShellHookWindow(new WindowInteropHelper(window).Handle);
             _hwndWindow = PresentationSource.FromVisual(_control as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
@@ -58,12 +58,12 @@ namespace mmswitcherAPI.winmsg
         /// <summary>
         /// Конструктор для общих сообщений.
         /// </summary>
-        /// <param name="msgNotify">Значение сообщения. См. http://wiki.winehq.org/List_Of_Windows_Messages. </param>
-        public MsgMonitor(int msgNotify)
+        /// <param name="msgNotify">Значения сообщений. См. http://wiki.winehq.org/List_Of_Windows_Messages. </param>
+        public MsgMonitor(params WindowMessage[] msgNotify)
         {
             _msgReceiver = new MControl();
             _control = _msgReceiver;
-            _msgNotify = msgNotify;
+            _msgNotify = msgNotify.Cast<int>().ToArray();
             _msgReceiver.onWndProc += MessageTrace;
         }
 
@@ -74,15 +74,27 @@ namespace mmswitcherAPI.winmsg
         {
             _msgReceiver = new MControl();
             _control = _msgReceiver;
-            _msgNotify = WinApi.RegisterWindowMessage("SHELLHOOK");
+            _msgNotify = new int[1] { WinApi.RegisterWindowMessage("SHELLHOOK") };
             WinApi.RegisterShellHookWindow(_msgReceiver.Handle);
             _msgReceiver.onWndProc += MessageTrace;
         }
 
+        /// <summary>
+        /// Конструктор для пользовательских сообщений.
+        /// </summary>
+        /// <param name="CustomMessage"></param>
+        public MsgMonitor(params string[] CustomMessage)
+        {
+            _msgReceiver = new MControl();
+            _control = _msgReceiver;
+            var registredHandles = CustomMessage.Select<string, int>((s, i) => { return WinApi.RegisterWindowMessage(s); });
+            _msgNotify = registredHandles.ToArray();
+            _msgReceiver.onWndProc += MessageTrace;
+        }
         //Callback функция хука
         private IntPtr MessageTrace(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg == _msgNotify)
+            if (_msgNotify.Any((x) => x == msg))
                 if (MessageRecognize(hwnd, msg, wParam, lParam, ref handled))
                 {
                     var handler = onMessageTraced;
@@ -90,7 +102,7 @@ namespace mmswitcherAPI.winmsg
                         handler(_control, lParam, (ShellEvents)wParam.ToInt32());
                 }
             return IntPtr.Zero;
-       }
+        }
 
         /// <summary>
         /// Функция отбора необходимых сообщений
@@ -139,25 +151,6 @@ namespace mmswitcherAPI.winmsg
         }
     }
 
-    internal class MControl : Control, IDisposable
-    {
-        public delegate IntPtr WndProcDelegate(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled);
-        public event WndProcDelegate onWndProc;
-
-        protected override void WndProc(ref Message m)
-        {
-            var handler = onWndProc;
-            bool handled = false;
-            if (handler != null)
-                handler(m.HWnd, m.Msg, m.WParam, m.LParam, ref handled);
-            base.WndProc(ref m);
-        }
-        protected override void Dispose(bool disposing)
-        {
-            onWndProc = null;
-            base.Dispose(disposing);
-        }
-    }
 }
 
 

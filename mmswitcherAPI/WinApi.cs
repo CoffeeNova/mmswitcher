@@ -12,7 +12,7 @@ namespace mmswitcherAPI
 {
     public static class WinApi
     {
-        public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        public delegate IntPtr CallBackHookProc(int nCode, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         public static extern int RegisterWindowMessage(string lpString);
@@ -26,7 +26,7 @@ namespace mmswitcherAPI
         public static extern int GetWindowTextLength(IntPtr hwnd);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern IntPtr SetWindowsHookEx(int id, LowLevelKeyboardProc callback, IntPtr hMod, uint dwThreadId);
+        public static extern IntPtr SetWindowsHookEx(int id, CallBackHookProc callback, IntPtr hMod, uint dwThreadId);
         [DllImport("user32.dll", SetLastError = true)]
         public static extern int SetWinEventHook(int eventMin, int eventMax, IntPtr hmodWinEventProc, WinEventHookProc lpfnWinEventProc, int idProcess, int idThread, int dwflags);
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]

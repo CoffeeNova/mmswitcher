@@ -59,6 +59,11 @@ namespace mmswitcherAPI.Messengers.Desktop
             get { return _trayButtonName; }
         }
 
+        protected override void _wm_paintMonitor_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
+        {
+            throw new NotImplementedException();
+        }
+
         public static Telegram _instance;
 
         private static object _locker = new object();

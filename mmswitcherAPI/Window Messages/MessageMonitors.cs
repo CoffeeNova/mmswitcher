@@ -35,30 +35,56 @@ namespace mmswitcherAPI.winmsg
         }
     }
 
-    //todo
-    public class SetTextMessageMonitor : MsgMonitor
+    public class MW_PAINT_Monitor : GlobalHookTrapper
     {
-        //конструктор для wpf приложения
-        public SetTextMessageMonitor(Window window)
-            : base(window, (int)WindowMessage.WM_SETTEXT) { }
+        public MW_PAINT_Monitor(GlobalHookTypes Type) : base(Type) { }
 
-        //общий конструктор
-        public SetTextMessageMonitor()
-            : base((int)WindowMessage.WM_SETTEXT) { }
-
-        protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        protected override bool Handle(IntPtr wparam, IntPtr lparam)
         {
-            // Receive shell messages
-            switch ((ShellEvents)wParam.ToInt32())
-            {
-                case ShellEvents.HSHELL_WINDOWCREATED:
-                case ShellEvents.HSHELL_WINDOWDESTROYED:
-                case ShellEvents.HSHELL_WINDOWACTIVATED:
-                    return true;
-            }
-            return false;
+            throw new NotImplementedException();
         }
+
     }
+    ///// <summary>
+    ///// Класс перехвата сообщения Windows WM_PAINT
+    ///// </summary>
+    //public class WM_PAINT_Monitor : MsgMonitor
+    //{
+    //    /// <summary>
+    //    /// Конструктор для приложения WPF
+    //    /// </summary>
+    //    /// <param name="window"></param>
+    //    /// <param name="hWnd">Дескриптор элемента, которому предназначено сообщение.</param>
+    //    public WM_PAINT_Monitor(Window window, IntPtr hWnd)
+    //        : base(window, (int)WindowMessage.WM_PAINT) 
+    //    {
+    //        WindowHandleControl(hWnd);
+    //        _windowHandle = hWnd;
+    //    }
+
+    //    /// <summary>
+    //    /// Общий конструктор.
+    //    /// </summary>
+    //    /// <param name="hWnd">Дескриптор элемента, которому предназначено сообщение.</param>
+    //    public WM_PAINT_Monitor(IntPtr hWnd)
+    //        : base((int)WindowMessage.WM_PAINT) 
+    //    {
+    //        WindowHandleControl(hWnd);
+    //        _windowHandle = hWnd;
+    //    }
+
+    //    protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    //    {
+    //        return hwnd.Equals(_windowHandle);
+    //    }
+
+    //    private void WindowHandleControl(IntPtr hWnd)
+    //    {
+    //        if (hWnd == IntPtr.Zero)
+    //            throw new ArgumentException("hWnd should not be IntPtr.Zero");
+    //    }
+    //    private IntPtr _windowHandle = IntPtr.Zero;
+    //}
 
 }
 
