@@ -9,6 +9,7 @@ using System.Windows.Automation;
 using mmswitcherAPI.Extensions;
 using System.Threading;
 using mmswitcherAPI.winmsg;
+using System.Runtime.InteropServices;
 
 namespace mmswitcherAPI.Messengers.Desktop
 {
@@ -148,12 +149,18 @@ namespace mmswitcherAPI.Messengers.Desktop
             //var windowHandle = (IntPtr)IncomeMessageAE.Current.NativeWindowHandle;
             //var processId = (IntPtr)IncomeMessageAE.Current.ProcessId;
             //uint threadID = WinApi.GetWindowThreadProcessId(windowHandle, processId);
+            //IntPtr hMod = WinApi.LoadLibrary(@"e:\Visual Studio Projects\mmswitcher\mmswitcherAPI\bin\Debug\mmswitcherAPI.dll");
+            //hMod = Marshal.GetHINSTANCE(GetType().Module);
+            //hMod = Marshal.GetHINSTANCE(typeof(DesktopMessenger).Module);
+            //int processId;
+            //IntPtr threadId = (IntPtr)WinApi.GetWindowThreadProcessId((IntPtr)IncomeMessageAE.Current.NativeWindowHandle, out processId);
+            //testMon = new WM_PAINT_Monitor(GlobalHookTypes.MessageQueue, hMod, threadId);
+            //testMon = new WM_PAINT_Monitor(GlobalHookTypes.AfterWindow, IntPtr.Zero, IntPtr.Zero);
 
-            testMon = new MW_PAINT_Monitor(GlobalHookTypes.AfterWindow);
-
+           // testMon = new WM_PAINT_Monitor((IntPtr)IncomeMessageAE.Current.NativeWindowHandle);
         }
 
-        private MW_PAINT_Monitor testMon;
+        private WM_PAINT_Monitor testMon;
 
 
         #region public properties

@@ -18,7 +18,8 @@ namespace mmswitcherAPI.winmsg
         private readonly int[] _msgNotify;
         private bool _disposed = false;
         private HwndSource _hwndWindow;
-        private MControl _msgReceiver;
+        private WindowsMessagesHandler _msgReceiver;
+        
         private bool _isWpfSpecial = false;
 
         public delegate void MsgEventHandler(object sender, IntPtr hWnd, ShellEvents shell);
@@ -61,10 +62,11 @@ namespace mmswitcherAPI.winmsg
         /// <param name="msgNotify">Значения сообщений. См. http://wiki.winehq.org/List_Of_Windows_Messages. </param>
         public MsgMonitor(params WindowMessage[] msgNotify)
         {
-            _msgReceiver = new MControl();
+            WindowsMessagesHandler.Start();
+            _msgReceiver = WindowsMessagesHandler.Instance;
             _control = _msgReceiver;
             _msgNotify = msgNotify.Cast<int>().ToArray();
-            _msgReceiver.onWndProc += MessageTrace;
+            WindowsMessagesHandler.onWndProc += MessageTrace;
         }
 
         /// <summary>
@@ -72,11 +74,12 @@ namespace mmswitcherAPI.winmsg
         /// </summary>
         public MsgMonitor()
         {
-            _msgReceiver = new MControl();
+            WindowsMessagesHandler.Start();
+            _msgReceiver = WindowsMessagesHandler.Instance;
             _control = _msgReceiver;
             _msgNotify = new int[1] { WinApi.RegisterWindowMessage("SHELLHOOK") };
             WinApi.RegisterShellHookWindow(_msgReceiver.Handle);
-            _msgReceiver.onWndProc += MessageTrace;
+            WindowsMessagesHandler.onWndProc += MessageTrace;
         }
 
         /// <summary>
@@ -85,12 +88,21 @@ namespace mmswitcherAPI.winmsg
         /// <param name="CustomMessage"></param>
         public MsgMonitor(params string[] CustomMessage)
         {
-            _msgReceiver = new MControl();
-            _control = _msgReceiver;
+            
             var registredHandles = CustomMessage.Select<string, int>((s, i) => { return WinApi.RegisterWindowMessage(s); });
             _msgNotify = registredHandles.ToArray();
-            _msgReceiver.onWndProc += MessageTrace;
+            WindowsMessagesHandler.onWndProc += MessageTrace;
         }
+
+        private async void  HandlerStarter()
+        {
+            WindowsMessagesHandler.Start();
+            await WindowsMessagesHandler.Instance.On
+            _msgReceiver = WindowsMessagesHandler.Instance;
+            _control = _msgReceiver;
+        }
+
+
         //Callback функция хука
         private IntPtr MessageTrace(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
@@ -133,6 +145,7 @@ namespace mmswitcherAPI.winmsg
                 {
                     if (!_isWpfSpecial)
                         WinApi.DeregisterShellHookWindow(_msgReceiver.Handle);
+                    WindowsMessagesHandler.onWndProc -= MessageTrace; 
                 }
                 catch { }
                 _disposed = true;
@@ -142,7 +155,7 @@ namespace mmswitcherAPI.winmsg
         public void Dispose()
         {
             Dispose(true);
-            //GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
 
         ~MsgMonitor()

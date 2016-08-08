@@ -164,6 +164,9 @@ namespace mmswitcherAPI
 
         [DllImport("kernel32.dll")]
         public static extern IntPtr OpenProcess(UInt32 dwDesiredAccess, Int32 bInheritHandle, UInt32 dwProcessId);
+
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr LoadLibrary(string lpFileName);
     }
 
 }

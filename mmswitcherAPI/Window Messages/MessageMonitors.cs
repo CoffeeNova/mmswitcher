@@ -35,56 +35,57 @@ namespace mmswitcherAPI.winmsg
         }
     }
 
-    public class MW_PAINT_Monitor : GlobalHookTrapper
-    {
-        public MW_PAINT_Monitor(GlobalHookTypes Type) : base(Type) { }
+    //public class WM_PAINT_Monitor : GlobalHookTrapper
+    //{
 
-        protected override bool Handle(IntPtr wparam, IntPtr lparam)
+    //    public WM_PAINT_Monitor(GlobalHookTypes Type, IntPtr hMod, IntPtr dThreadId) : base(Type, hMod, dThreadId) { }
+
+    //    protected override bool Handle(IntPtr wparam, IntPtr lparam)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //}
+    /// <summary>
+    /// Класс перехвата сообщения Windows WM_PAINT
+    /// </summary>
+    public class WM_PAINT_Monitor : MsgMonitor
+    {
+        /// <summary>
+        /// Конструктор для приложения WPF
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="hWnd">Дескриптор элемента, которому предназначено сообщение.</param>
+        public WM_PAINT_Monitor(Window window, IntPtr hWnd)
+            : base(window, WindowMessage.WM_PAINT)
         {
-            throw new NotImplementedException();
+            WindowHandleControl(hWnd);
+            _windowHandle = hWnd;
         }
 
+        /// <summary>
+        /// Общий конструктор.
+        /// </summary>
+        /// <param name="hWnd">Дескриптор элемента, которому предназначено сообщение.</param>
+        public WM_PAINT_Monitor(IntPtr hWnd)
+            : base(WindowMessage.WM_PAINT)
+        {
+            WindowHandleControl(hWnd);
+            _windowHandle = hWnd;
+        }
+
+        protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            return hwnd.Equals(_windowHandle);
+        }
+
+        private void WindowHandleControl(IntPtr hWnd)
+        {
+            if (hWnd == IntPtr.Zero)
+                throw new ArgumentException("hWnd should not be IntPtr.Zero");
+        }
+        private IntPtr _windowHandle = IntPtr.Zero;
     }
-    ///// <summary>
-    ///// Класс перехвата сообщения Windows WM_PAINT
-    ///// </summary>
-    //public class WM_PAINT_Monitor : MsgMonitor
-    //{
-    //    /// <summary>
-    //    /// Конструктор для приложения WPF
-    //    /// </summary>
-    //    /// <param name="window"></param>
-    //    /// <param name="hWnd">Дескриптор элемента, которому предназначено сообщение.</param>
-    //    public WM_PAINT_Monitor(Window window, IntPtr hWnd)
-    //        : base(window, (int)WindowMessage.WM_PAINT) 
-    //    {
-    //        WindowHandleControl(hWnd);
-    //        _windowHandle = hWnd;
-    //    }
-
-    //    /// <summary>
-    //    /// Общий конструктор.
-    //    /// </summary>
-    //    /// <param name="hWnd">Дескриптор элемента, которому предназначено сообщение.</param>
-    //    public WM_PAINT_Monitor(IntPtr hWnd)
-    //        : base((int)WindowMessage.WM_PAINT) 
-    //    {
-    //        WindowHandleControl(hWnd);
-    //        _windowHandle = hWnd;
-    //    }
-
-    //    protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-    //    {
-    //        return hwnd.Equals(_windowHandle);
-    //    }
-
-    //    private void WindowHandleControl(IntPtr hWnd)
-    //    {
-    //        if (hWnd == IntPtr.Zero)
-    //            throw new ArgumentException("hWnd should not be IntPtr.Zero");
-    //    }
-    //    private IntPtr _windowHandle = IntPtr.Zero;
-    //}
 
 }
 
