@@ -61,7 +61,7 @@ namespace mmswitcherAPI.AltTabSimulator
         private ActiveWindowStack(Window window)
         {
             _winMesMon = new WindowLifeCycle(window);
-            _hManager = new HookManager();
+           _hManager = new HookManager();
         }
 
         //конструктор для Windows.Forms приложения

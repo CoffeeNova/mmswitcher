@@ -139,29 +139,21 @@ namespace mmswitcherAPI.Messengers.Desktop
             catch { return null; }
         }
 
+        private static void MessagesProcessingTimerCallback(object state)
+        {
+            MessagesProcessingTimerTick.Invoke(state, new EventArgs());
+        }
+
+        protected override void OnMessageProcessingSubscribe()
+        {
+            if (_messageProcessingTimer == null)
+                _messageProcessingTimer = new Timer(MessagesProcessingTimerCallback, null, 1000, 1000);
+        }
+
         #region abstract methods
         protected abstract AutomationElement FocusReciever(IntPtr hWnd);
         protected abstract void _wm_paintMonitor_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell);
         #endregion
-
-        protected override void OnMessageProcessingSubscribe()
-        {
-            //var windowHandle = (IntPtr)IncomeMessageAE.Current.NativeWindowHandle;
-            //var processId = (IntPtr)IncomeMessageAE.Current.ProcessId;
-            //uint threadID = WinApi.GetWindowThreadProcessId(windowHandle, processId);
-            //IntPtr hMod = WinApi.LoadLibrary(@"e:\Visual Studio Projects\mmswitcher\mmswitcherAPI\bin\Debug\mmswitcherAPI.dll");
-            //hMod = Marshal.GetHINSTANCE(GetType().Module);
-            //hMod = Marshal.GetHINSTANCE(typeof(DesktopMessenger).Module);
-            //int processId;
-            //IntPtr threadId = (IntPtr)WinApi.GetWindowThreadProcessId((IntPtr)IncomeMessageAE.Current.NativeWindowHandle, out processId);
-            //testMon = new WM_PAINT_Monitor(GlobalHookTypes.MessageQueue, hMod, threadId);
-            //testMon = new WM_PAINT_Monitor(GlobalHookTypes.AfterWindow, IntPtr.Zero, IntPtr.Zero);
-
-           // testMon = new WM_PAINT_Monitor((IntPtr)IncomeMessageAE.Current.NativeWindowHandle);
-        }
-
-        private WM_PAINT_Monitor testMon;
-
 
         #region public properties
         public override Messenger Messenger
@@ -190,6 +182,30 @@ namespace mmswitcherAPI.Messengers.Desktop
         private MessengerHookManager hManager;
         private IntPtr _notifyIconHwnd;
         private static AutomationElement _userPromotedNotificationArea = GetNotificationArea();
+        private static Timer _messageProcessingTimer;
         #endregion
+
+        protected static event EventHandler MessagesProcessingTimerTick;
     }
 }
+
+
+//var windowHandle = (IntPtr)IncomeMessageAE.Current.NativeWindowHandle;
+//var processId = (IntPtr)IncomeMessageAE.Current.ProcessId;
+//uint threadID = WinApi.GetWindowThreadProcessId(windowHandle, processId);
+//IntPtr hMod = WinApi.LoadLibrary(@"e:\Visual Studio Projects\mmswitcher\mmswitcherAPI\bin\Debug\mmswitcherAPI.dll");
+//IntPtr hMod = WinApi.LoadLibrary(@"c:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\spyxxhk_amd64.dll");
+//IntPtr hMod = Marshal.GetHINSTANCE(GetType().Module);
+//var asm = System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0];
+//hMod = Marshal.GetHINSTANCE(asm);
+//hMod = WinApi.LoadLibrary("user32.dll");
+//hMod = WinApi.LoadLibrary(@"e:\Visual Studio Projects\mmswitcher\mmswitcherAPI\bin\Debug\mmswitcherAPI.dll");
+//hMod = Marshal.GetHINSTANCE(typeof(DesktopMessenger).Module);
+//int processId;
+//uint threadId = WinApi.GetWindowThreadProcessId((IntPtr)IncomeMessageAE.Current.NativeWindowHandle, out processId);
+//testMon = new WM_PAINT_Monitor1(GlobalHookTypes.AfterWindow, hMod, 0);
+////testMon = new WM_PAINT_Monitor(GlobalHookTypes.AfterWindow, IntPtr.Zero, IntPtr.Zero);
+
+//testMon = new WM_PAINT_Monitor((IntPtr)IncomeMessageAE.Current.NativeWindowHandle);
+//var hManager = new MessengerHookManager((IntPtr)IncomeMessageAE.Current.NativeWindowHandle);
+//hManager.EventsListener += hManager_EventsListener;

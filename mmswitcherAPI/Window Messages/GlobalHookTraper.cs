@@ -14,14 +14,14 @@ namespace mmswitcherAPI.winmsg
     /// </summary>
     public abstract class GlobalHookTrapper : FinalizerBase
     {
-        [DllImport("user32", EntryPoint = "SetWindowsHookExA")]
-        static extern IntPtr SetWindowsHookEx(int idHook, Delegate lpfn, IntPtr hmod, IntPtr dwThreadId);
+        //[DllImport("user32", EntryPoint = "SetWindowsHookExA")]
+        //static extern IntPtr SetWindowsHookEx(int idHook, HookProc lpfn, IntPtr hmod, IntPtr dwThreadId);
 
-        [DllImport("user32", EntryPoint = "UnhookWindowsHookEx")]
-        private static extern int UnhookWindowsHookEx(IntPtr hHook);
+        //[DllImport("user32", EntryPoint = "UnhookWindowsHookEx")]
+        //private static extern int UnhookWindowsHookEx(IntPtr hHook);
 
-        [DllImport("user32", EntryPoint = "CallNextHookEx")]
-        static extern int CallNextHook(IntPtr hHook, int ncode, IntPtr wParam, IntPtr lParam);
+        //[DllImport("user32", EntryPoint = "CallNextHookEx")]
+        //static extern int CallNextHook(IntPtr hHook, int ncode, IntPtr wParam, IntPtr lParam);
 
         [DllImport("kernel32.dll")]
         static extern IntPtr GetCurrentThreadId();
@@ -31,16 +31,16 @@ namespace mmswitcherAPI.winmsg
         public readonly GlobalHookTypes HookType;
 
         public GlobalHookTrapper(GlobalHookTypes Type)
-            : this(Type, IntPtr.Zero, IntPtr.Zero)
+            : this(Type, IntPtr.Zero, 0)
         {
         }
 
-        public GlobalHookTrapper(GlobalHookTypes Type, IntPtr hMod, IntPtr dThreadId)
+        public GlobalHookTrapper(GlobalHookTypes Type, IntPtr hMod, uint dThreadId)
         {
             this.HookType = Type;
             this.HookId = (int)Type;
-            del = ProcessMessage;
-            _hook = SetWindowsHookEx(HookId, del, hMod, dThreadId);
+             del = ProcessMessage;
+            _hook = WinApi.SetWindowsHookEx(HookId, del, hMod, dThreadId);
 
             if (_hook == IntPtr.Zero)
             {
@@ -51,22 +51,22 @@ namespace mmswitcherAPI.winmsg
         }
         private const int HC_ACTION = 0;
 
-        [MarshalAs(UnmanagedType.FunctionPtr)]
-        private MessageDelegate del;
+        //[MarshalAs(UnmanagedType.FunctionPtr)]
+        private WinApi.HookProc del;
+        //private delegate int HookProc(int nCode, int wParam, IntPtr lParam);
+        //private delegate int MessageDelegate(int code, IntPtr wparam, IntPtr lparam);
 
-        private delegate int MessageDelegate(int code, IntPtr wparam, IntPtr lparam);
-
-        private int ProcessMessage(int hookcode, IntPtr wparam, IntPtr lparam)
+        private IntPtr ProcessMessage(int hookcode, IntPtr wparam, IntPtr lparam)
         {
             if (HC_ACTION == hookcode)
             {
                 try
                 {
-                    if (Handle(wparam, lparam)) return 1;
+                    Handle(wparam, lparam);
                 }
                 catch { }
             }
-            return CallNextHook(_hook, hookcode, wparam, lparam);
+            return WinApi.CallNextHookEx(_hook, hookcode, wparam, lparam);
         }
 
         protected abstract bool Handle(IntPtr wparam, IntPtr lparam);
@@ -75,7 +75,7 @@ namespace mmswitcherAPI.winmsg
 
         protected override sealed void OnDispose()
         {
-            UnhookWindowsHookEx(_hook);
+            WinApi.UnhookWindowsHookEx(_hook);
             AfterDispose();
         }
 

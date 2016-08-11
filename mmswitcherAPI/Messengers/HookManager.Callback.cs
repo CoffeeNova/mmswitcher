@@ -13,7 +13,8 @@ namespace mmswitcherAPI.Messengers
 {
     internal partial class MessengerHookManager
     {
-        private int _focusChangedHookHandle;
+        #region DocusChanged
+        private IntPtr _focusChangedHookHandle;
         private WinApi.WinEventHookProc _focusChangedDelegate;
         private void FocusChangedProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
@@ -24,24 +25,23 @@ namespace mmswitcherAPI.Messengers
 
         private void EnsureSubscribedToFocusChangedEvent()
         {
-            if (_focusChangedHookHandle == 0)
+            if (_focusChangedHookHandle == IntPtr.Zero)
             {
                 _focusChangedDelegate = FocusChangedProc;
                 //int processId;
                 //WinApi.GetWindowThreadProcessId(HWnd, out processId);
-                _focusChangedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_FOCUS, EventConstants.EVENT_OBJECT_FOCUS, IntPtr.Zero, _focusChangedDelegate, 0, 0, WINEVENT_OUTOFCONTEXT);
-                if (_focusChangedHookHandle == 0)
+                _focusChangedHookHandle = WinApi.SetWinEventHook(EventConstants.EVENT_OBJECT_FOCUS, EventConstants.EVENT_OBJECT_FOCUS, IntPtr.Zero, _focusChangedDelegate, 0, 0, WINEVENT_OUTOFCONTEXT);
+                if (_focusChangedHookHandle == IntPtr.Zero)
                 {
                     int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
-                if (_focusChangedHookHandle == -1)
-                    _focusChangedHookHandle = 0;
+                if (_focusChangedHookHandle == (IntPtr)(-1))
+                    _focusChangedHookHandle = IntPtr.Zero;
             }
         }
         private void TryUnsubscribeFromFocusChangedEvent()
         {
-            //if no subsribers are registered unsubsribe from hook
             if (_focusChanged == null)
             {
                 ForceUnsunscribeFromFocusChangedEvent();
@@ -50,23 +50,71 @@ namespace mmswitcherAPI.Messengers
 
         private void ForceUnsunscribeFromFocusChangedEvent()
         {
-            if (_focusChangedHookHandle != 0)
+            if (_focusChangedHookHandle != IntPtr.Zero)
             {
-                //uninstall hook
                 bool result = WinApi.UnhookWinEvent(_focusChangedHookHandle);
-                //reset invalid handle
-                _focusChangedHookHandle = 0;
-                //Free up for GC
+                _focusChangedHookHandle = IntPtr.Zero;
                 _focusChangedDelegate = null;
-                //if failed and exception must be thrown
                 if (result == false)
                 {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
             }
         }
+        #endregion
+
+        #region EventListener
+
+        private IntPtr _eventsListenerHookHandle;
+        private WinApi.WinEventHookProc _eventsListenerDelegate;
+        private void EventsListenerProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
+        {
+            if (hWnd == IntPtr.Zero)
+                return;
+            //iEvent != 32782 && iEvent != 30050 && iEvent != 32779 && iEvent != 32778
+            Debug.WriteLineIf(true, iEvent);
+            _eventsListener.Invoke(hWnd, new EventArgs());
+        }
+
+        private void EnsureSubscribedToEventsListener()
+        {
+            if (_eventsListenerHookHandle == IntPtr.Zero)
+            {
+                _eventsListenerDelegate = EventsListenerProc;
+                uint processId;
+                var threadId = WinApi.GetWindowThreadProcessId(HWnd, out processId);
+                _eventsListenerHookHandle = WinApi.SetWinEventHook(0x00000001, 0x7FFFFFFF, IntPtr.Zero, _eventsListenerDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
+                if (_eventsListenerHookHandle == IntPtr.Zero)
+                {
+                    int errorCode = Marshal.GetLastWin32Error();
+                    throw new Win32Exception(errorCode);
+                }
+                if (_eventsListenerHookHandle == (IntPtr)(-1))
+                    _eventsListenerHookHandle = IntPtr.Zero;
+            }
+        }
+        private void TryUnsubscribeFromEventsListener()
+        {
+            if (_eventsListener == null)
+                ForceUnsunscribeFromEventsListener();
+        }
+
+        private void ForceUnsunscribeFromEventsListener()
+        {
+            if (_eventsListenerHookHandle != IntPtr.Zero)
+            {
+                bool result = WinApi.UnhookWinEvent(_eventsListenerHookHandle);
+                _eventsListenerHookHandle = IntPtr.Zero;
+                _eventsListenerDelegate = null;
+                if (result == false)
+                {
+                    int errorCode = Marshal.GetLastWin32Error();
+                    throw new Win32Exception(errorCode);
+                }
+            }
+        }
+
+        #endregion
     }
 }

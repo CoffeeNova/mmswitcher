@@ -13,6 +13,17 @@ namespace mmswitcherAPI.Messengers.Desktop
         private Telegram(Process process)
             : base(process)
         {
+            MessagesProcessingTimerTick += Telegram_MessagesProcessingTimerTick;
+        }
+
+        private void Telegram_MessagesProcessingTimerTick(object sender, EventArgs e)
+        {
+            var handle = WinApi.OpenProcess(ProcessSecurityAndAccessRights.PROCESS_VM_READ, false, base._process.Id);
+            IntPtr bytesRead;
+            var buffer = new byte[4];
+            WinApi.ReadProcessMemory(handle, (IntPtr)Constants.TELEGRAM_NEWMESSAGES_COUNT_BASE_ADDRESS, buffer, buffer.Length, out bytesRead);
+            var i = BitConverter.ToInt32(buffer, 0);
+            WinApi.CloseHandle(handle);
         }
 
         public static Telegram Instance(Process process)

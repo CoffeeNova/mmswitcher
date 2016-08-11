@@ -44,6 +44,9 @@ namespace mmswitcherAPI
         internal const int BM_CLICK = 0x00F5;
         internal const int CTRL_F = 0xA20046; //ctrl+F 
 
+        internal const int TELEGRAM_NEWMESSAGES_COUNT_BASE_ADDRESS = 0x02C4F570;
+
+
         internal const string CHROME_PROCESS_NAME = "chrome";
         internal const string OPERA_PROCESS_NAME = "opera";
         internal const string FIREFOX_PROCESS_NAME = "firefox";
@@ -63,5 +66,6 @@ namespace mmswitcherAPI
         internal const string TOR_BROWSER_CAPTION = "";//todo
         internal const string SKYPE_BROWSER_TAB_CAPTION = "Skype";
         internal const string WHATSAPP_BROWSER_TAB_CAPTION = "WhatsApp";
+
     }
 }

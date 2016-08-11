@@ -168,7 +168,7 @@ namespace mmswitcherAPI.Messengers
         private bool _incomeMessages = false;
         private static MessengerBase _lastAlerted = null;
         private static MessengerBase _lastActive = null;
-        private WindowLifeCycle _wmmon;
+        //private WindowLifeCycle _wmmon;
         private static Collection<MessengerBase> _messengersCollection = new Collection<MessengerBase>();
         private static Collection<MessengerBase> _activity = new Collection<MessengerBase>();
         private MessengerHookManager _hManager;
@@ -197,7 +197,7 @@ namespace mmswitcherAPI.Messengers
             _hManager = new MessengerHookManager(_windowHandle);
             GotNewMessage += MessengerBase_GotNewMessage;
             IncomeMessages = IncomeMessagesDetect(IncomeMessageAE) ? true : false;
-            _wmmon = new WindowLifeCycle();
+            //_wmmon = new WindowLifeCycle();
             //_wmmon.onMessageTraced += OnMessageTraced;
             _messengersCollection.Add(this);
             _activity.Add(this);
@@ -462,8 +462,8 @@ namespace mmswitcherAPI.Messengers
                 _messengerAE = null;
                 _focusableAE = null;
                 _incomeMessageAE = null;
-                _wmmon.onMessageTraced -= OnMessageTraced;
-                _wmmon = null;
+                //_wmmon.onMessageTraced -= OnMessageTraced;
+                //_wmmon = null;
                 _hManager.FocusChanged -= OnFocusChanged;
                 _hManager.Dispose();
             }

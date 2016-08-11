@@ -16,10 +16,10 @@ namespace mmswitcherAPI.winmsg
     {
         //конструктор для wpf приложения
         public WindowLifeCycle(Window window)
-            : base(window) { }
+            : base(window, "SHELLHOOK") { }
         //общий конструктор
         public WindowLifeCycle()
-            : base() { }
+            : base("SHELLHOOK") { }
 
         protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
@@ -35,17 +35,18 @@ namespace mmswitcherAPI.winmsg
         }
     }
 
-    //public class WM_PAINT_Monitor : GlobalHookTrapper
-    //{
+    public class WM_PAINT_Monitor1 : GlobalHookTrapper
+    {
 
-    //    public WM_PAINT_Monitor(GlobalHookTypes Type, IntPtr hMod, IntPtr dThreadId) : base(Type, hMod, dThreadId) { }
+        public WM_PAINT_Monitor1(GlobalHookTypes Type, IntPtr hMod, uint dThreadId) : base(Type, hMod, dThreadId) { }
 
-    //    protected override bool Handle(IntPtr wparam, IntPtr lparam)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        protected override bool Handle(IntPtr wparam, IntPtr lparam)
+        {
+            System.Diagnostics.Debug.WriteLine(string.Format("wparam: {0} , lparam: {1}", wparam, lparam));
+            return true;
+        }
 
-    //}
+    }
     /// <summary>
     /// Класс перехвата сообщения Windows WM_PAINT
     /// </summary>
@@ -72,6 +73,17 @@ namespace mmswitcherAPI.winmsg
         {
             WindowHandleControl(hWnd);
             _windowHandle = hWnd;
+            try
+            {
+                var disp = WindowsMessagesTrapper.Dispatcher;
+                var mtHandle = (IntPtr)disp.Invoke(new Func<IntPtr>(() => { return (MessagesTrapper as WindowsMessagesTrapper).Handle; }));
+
+                var t =WinApi.PostMessage(_windowHandle, base.MsgNotify[0], IntPtr.Zero, mtHandle);
+
+                var r = t;
+            }
+            catch { }
+
         }
 
         protected override bool MessageRecognize(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

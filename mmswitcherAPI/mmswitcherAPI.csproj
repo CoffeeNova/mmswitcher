@@ -86,7 +86,7 @@
     <Compile Include="WinApi.cs" />
     <Compile Include="Messengers\Messenger.cs" />
     <Compile Include="Window Messages\GlobalHookTraper.cs" />
-    <Compile Include="Window Messages\WindowsMessagesHandler.cs">
+    <Compile Include="Window Messages\WindowsMessagesTrapper.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Window Messages\MessageMonitors.cs" />

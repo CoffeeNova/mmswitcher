@@ -24,7 +24,7 @@ namespace mmswitcherAPI.Messengers
         {
             _hWnd = hWnd;
         }
-
+        #region FocusChanged
         private event EventHandler _focusChanged;
 
         /// <summary>
@@ -44,8 +44,26 @@ namespace mmswitcherAPI.Messengers
             }
         }
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern int SetWinEventHook(int eventMin, int eventMax, IntPtr hmodWinEventProc, WinApi.WinEventHookProc lpfnWinEventProc, int idProcess, int idThread, int dwflags);
+        private event EventHandler _eventsListener;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public event EventHandler EventsListener
+        {
+            add
+            {
+                EnsureSubscribedToEventsListener();
+                _eventsListener += value;
+            }
+            remove
+            {
+                _eventsListener -= value;
+                TryUnsubscribeFromEventsListener();
+                TryUnsubscribeFromEventsListener();
+            }
+        }
+        #endregion
 
         private bool _disposed = false;
 
@@ -93,6 +111,7 @@ namespace mmswitcherAPI.Messengers
         public const int EVENT_OBJECT_SELECTIONADD = 0x0007;
         public const int EVENT_OBJECT_STATECHANGE = 0x800A;
         public const int EVENT_OBJECT_NAMECHANGE = 0x800C;
+        public const int EVENT_OBJECT_INVOKED = 0x8013;
         public const int EVENT_AIA_END = 0xAFFF;
     }
 }

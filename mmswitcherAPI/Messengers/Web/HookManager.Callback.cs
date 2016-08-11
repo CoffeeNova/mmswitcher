@@ -13,7 +13,7 @@ namespace mmswitcherAPI.Messengers.Web
 {
     internal partial class WebMessengerHookManager
     {
-        private int _tabNameChangeHookHandle;
+        private IntPtr _tabNameChangeHookHandle;
         private WinApi.WinEventHookProc _tabNameChangeDelegate;
         private void TabNameChangeProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
@@ -28,62 +28,46 @@ namespace mmswitcherAPI.Messengers.Web
             }
         }
 
-        //protected void
-
         private void EnsureSubscribedToTabNameChangeEvent()
         {
-            // install Focus hook only if it is not installed and must be installed
-            if (_tabNameChangeHookHandle == 0)
+            if (_tabNameChangeHookHandle == IntPtr.Zero)
             {
                 _tabNameChangeDelegate = TabNameChangeProc;
-                int processId;
+                uint processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
-                //install hook
-                _tabNameChangeHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_NAMECHANGE, EventConstants.EVENT_OBJECT_NAMECHANGE, IntPtr.Zero, _tabNameChangeDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
-                //If SetWinEventHook fails.
-                if (_tabNameChangeHookHandle == 0)
-                {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
+                _tabNameChangeHookHandle = WinApi.SetWinEventHook(EventConstants.EVENT_OBJECT_NAMECHANGE, EventConstants.EVENT_OBJECT_NAMECHANGE, IntPtr.Zero, _tabNameChangeDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
+                if (_tabNameChangeHookHandle == IntPtr.Zero)
+                { 
                     int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
-                if (_tabNameChangeHookHandle == -1)
-                    _tabNameChangeHookHandle = 0;
+                if (_tabNameChangeHookHandle == (IntPtr)(-1))
+                    _tabNameChangeHookHandle = IntPtr.Zero;
             }
         }
         private void TryUnsubscribeFromTabNameChangeEvent()
         {
-            //if no subsribers are registered unsubsribe from hook
             if (_tabNameChanged == null)
-            {
                 ForceUnsunscribeFromTabNameChangeEvent();
-            }
         }
 
         private void ForceUnsunscribeFromTabNameChangeEvent()
         {
-            if (_tabNameChangeHookHandle != 0)
+            if (_tabNameChangeHookHandle != IntPtr.Zero)
             {
-                //uninstall hook
                 bool result = WinApi.UnhookWinEvent(_tabNameChangeHookHandle);
-                //reset invalid handle
-                _tabNameChangeHookHandle = 0;
-                //Free up for GC
+                _tabNameChangeHookHandle = IntPtr.Zero;
                 _tabNameChangeDelegate = null;
-                //if failed and exception must be thrown
                 if (result == false)
                 {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
-                    int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
+                  int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
             }
         }
 
         #region TabSelected
-        private int _tabSelectedHookHandle;
+        private IntPtr _tabSelectedHookHandle;
         private WinApi.WinEventHookProc _tabSelectedDelegate;
 
         private void TabSelectedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
@@ -96,53 +80,38 @@ namespace mmswitcherAPI.Messengers.Web
 
         private void EnsureSubscribedToTabSelectedEvent()
         {
-            // install Focus hook only if it is not installed and must be installed
-            if (_tabSelectedHookHandle == 0)
+            if (_tabSelectedHookHandle == IntPtr.Zero)
             {
-                //See comment of this field. To avoid GC to clean it up.
                 _tabSelectedDelegate = TabSelectedHookProc;
-                int processId;
+                uint processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
-                //install hook
-                _tabSelectedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTION, EventConstants.EVENT_OBJECT_SELECTION, IntPtr.Zero, _tabSelectedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
-                //If SetWinEventHook fails.
-                if (_tabSelectedHookHandle == 0)
+                _tabSelectedHookHandle = WinApi.SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTION, EventConstants.EVENT_OBJECT_SELECTION, IntPtr.Zero, _tabSelectedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
+                if (_tabSelectedHookHandle == IntPtr.Zero)
                 {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
-                if (_tabSelectedHookHandle == -1)
-                    _tabSelectedHookHandle = 0;
+                if (_tabSelectedHookHandle == (IntPtr)(-1))
+                    _tabSelectedHookHandle = IntPtr.Zero;
             }
 
         }
         private void TryUnsubscribeFromTabSelectedEvent()
         {
-            //if no subsribers are registered unsubsribe from hook
             if (_tabSelected == null)
-            {
                 ForceUnsunscribeFromTabSelectedEvent();
-            }
         }
 
         private void ForceUnsunscribeFromTabSelectedEvent()
         {
-            if (_tabSelectedHookHandle != 0)
+            if (_tabSelectedHookHandle != IntPtr.Zero)
             {
-                //uninstall hook
                 bool result = WinApi.UnhookWinEvent(_tabSelectedHookHandle);
-                //reset invalid handle
-                _tabSelectedHookHandle = 0;
-                //Free up for GC
+                _tabSelectedHookHandle = IntPtr.Zero;
                 _tabSelectedDelegate = null;
-                //if failed and exception must be thrown
                 if (result == false)
                 {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
             }
@@ -151,7 +120,7 @@ namespace mmswitcherAPI.Messengers.Web
         #endregion
 
         #region TabSelectionCountChanged
-        private int _tabSelectionCountChangedHookHandle;
+        private IntPtr _tabSelectionCountChangedHookHandle;
         private WinApi.WinEventHookProc _tabSelectionCountChangedDelegate;
 
         private void TabSelectionCountChangedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
@@ -164,20 +133,20 @@ namespace mmswitcherAPI.Messengers.Web
 
         private void EnsureSubscribedToTabSelectionCountChangedEvent()
         {
-            if (_tabSelectionCountChangedHookHandle == 0)
+            if (_tabSelectionCountChangedHookHandle == IntPtr.Zero)
             {
                 _tabSelectionCountChangedDelegate = TabSelectionCountChangedHookProc;
-                int processId;
+                uint processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
 
-                _tabSelectionCountChangedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTIONADD, EventConstants.EVENT_OBJECT_SELECTIONREMOVE, IntPtr.Zero, _tabSelectionCountChangedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
-                if (_tabSelectionCountChangedHookHandle == 0)
+                _tabSelectionCountChangedHookHandle = WinApi.SetWinEventHook(EventConstants.EVENT_OBJECT_SELECTIONADD, EventConstants.EVENT_OBJECT_SELECTIONREMOVE, IntPtr.Zero, _tabSelectionCountChangedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
+                if (_tabSelectionCountChangedHookHandle == IntPtr.Zero)
                 {
                     int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
-                if (_tabSelectionCountChangedHookHandle == -1)
-                    _tabSelectionCountChangedHookHandle = 0;
+                if (_tabSelectionCountChangedHookHandle == (IntPtr)(- 1))
+                    _tabSelectionCountChangedHookHandle = IntPtr.Zero;
             }
 
         }
@@ -191,10 +160,10 @@ namespace mmswitcherAPI.Messengers.Web
 
         private void ForceUnsunscribeFromTabSelectionCountChangedEvent()
         {
-            if (_tabSelectionCountChangedHookHandle != 0)
+            if (_tabSelectionCountChangedHookHandle != IntPtr.Zero)
             {
                 bool result = WinApi.UnhookWinEvent(_tabSelectionCountChangedHookHandle);
-                _tabSelectionCountChangedHookHandle = 0;
+                _tabSelectionCountChangedHookHandle = IntPtr.Zero;
                 _tabSelectionCountChangedDelegate = null;
                 if (result == false)
                 {
@@ -208,7 +177,7 @@ namespace mmswitcherAPI.Messengers.Web
 
         #region TabClosed
 
-        private int _closedHookHandle;
+        private IntPtr _closedHookHandle;
         private WinApi.WinEventHookProc _closedDelegate;
 
         private void ClosedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
@@ -221,53 +190,38 @@ namespace mmswitcherAPI.Messengers.Web
 
         private void EnsureSubscribedToTabClosedEvent()
         {
-            // install Focus hook only if it is not installed and must be installed
-            if (_closedHookHandle == 0)
+            if (_closedHookHandle == IntPtr.Zero)
             {
-                //See comment of this field. To avoid GC to clean it up.
                 _closedDelegate = ClosedHookProc;
-                int processId;
+                uint processId;
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
-                //install hook
-                _closedHookHandle = SetWinEventHook(EventConstants.EVENT_OBJECT_DESTROY, EventConstants.EVENT_OBJECT_DESTROY, IntPtr.Zero, _closedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
-                //If SetWinEventHook fails.
-                if (_closedHookHandle == 0)
+                _closedHookHandle = WinApi.SetWinEventHook(EventConstants.EVENT_OBJECT_DESTROY, EventConstants.EVENT_OBJECT_DESTROY, IntPtr.Zero, _closedDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
+                if (_closedHookHandle == IntPtr.Zero)
                 {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
-                if (_closedHookHandle == -1)
-                    _closedHookHandle = 0;
+                if (_closedHookHandle == (IntPtr)(- 1))
+                    _closedHookHandle = IntPtr.Zero;
             }
 
         }
         private void TryUnsubscribeFromTabClosedEvent()
         {
-            //if no subsribers are registered unsubsribe from hook
             if (_tabClosed == null)
-            {
                 ForceUnsunscribeFromTabCLosedEvent();
-            }
         }
 
         private void ForceUnsunscribeFromTabCLosedEvent()
         {
-            if (_closedHookHandle != 0)
+            if (_closedHookHandle != IntPtr.Zero)
             {
-                //uninstall hook
                 bool result = WinApi.UnhookWinEvent(_closedHookHandle);
-                //reset invalid handle
-                _closedHookHandle = 0;
-                //Free up for GC
+                _closedHookHandle = IntPtr.Zero;
                 _closedDelegate = null;
-                //if failed and exception must be thrown
                 if (result == false)
                 {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
             }

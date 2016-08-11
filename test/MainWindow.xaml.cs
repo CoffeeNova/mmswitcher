@@ -29,7 +29,7 @@ namespace test
     {
         private readonly int _msgNotify;
         private int m = 0;
-        WindowLifeCycle _wmm;
+        //WindowLifeCycle _wmm;
         ActiveWindowStack aws;
         AutomationElement ae;
         WebSkype ws;
@@ -76,11 +76,11 @@ namespace test
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            _wmm = new WindowLifeCycle();
-            _wmm.onMessageTraced += _wmm_onMessageTraced;
-            aws = ActiveWindowStack.Instance(this);
-            aws.onActiveWindowStackChanged += aws_onActiveWindowStackChanged;
-            aws.Start();
+            //_wmm = new WindowLifeCycle();
+            //_wmm.onMessageTraced += _wmm_onMessageTraced;
+            //aws = ActiveWindowStack.Instance(this);
+            //aws.onActiveWindowStackChanged += aws_onActiveWindowStackChanged;
+            //aws.Start();
 
         }
 
