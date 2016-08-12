@@ -22,8 +22,11 @@ namespace mmswitcherAPI.Messengers.Desktop
             IntPtr bytesRead;
             var buffer = new byte[4];
             WinApi.ReadProcessMemory(handle, (IntPtr)Constants.TELEGRAM_NEWMESSAGES_COUNT_BASE_ADDRESS, buffer, buffer.Length, out bytesRead);
-            var i = BitConverter.ToInt32(buffer, 0);
+            var messagesNumber = BitConverter.ToInt32(buffer, 0);
             WinApi.CloseHandle(handle);
+
+            IncomeMessages = messagesNumber > 0 ? true : false;
+
         }
 
         public static Telegram Instance(Process process)
@@ -68,11 +71,6 @@ namespace mmswitcherAPI.Messengers.Desktop
         protected override string TrayButtonName
         {
             get { return _trayButtonName; }
-        }
-
-        protected override void _wm_paintMonitor_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
-        {
-            throw new NotImplementedException();
         }
 
         public static Telegram _instance;

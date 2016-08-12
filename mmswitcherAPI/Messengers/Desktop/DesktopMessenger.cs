@@ -57,7 +57,7 @@ namespace mmswitcherAPI.Messengers.Desktop
 
         protected override AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
         {
-            return UserPromotedNotificationArea;
+            return TrayButton();
             //return base.GetIncomeMessageAutomationElement(hWnd);
         }
 
@@ -152,7 +152,7 @@ namespace mmswitcherAPI.Messengers.Desktop
 
         #region abstract methods
         protected abstract AutomationElement FocusReciever(IntPtr hWnd);
-        protected abstract void _wm_paintMonitor_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell);
+        //protected abstract void _wm_paintMonitor_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell);
         #endregion
 
         #region public properties
