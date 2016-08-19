@@ -7,7 +7,7 @@ using System.Windows.Automation;
 
 namespace mmswitcherAPI.Extensions
 {
-    public static class AuomationElementExtension
+    public static class AutomationElementExtension
     {
         public static bool IsAlive(this AutomationElement element)
         {

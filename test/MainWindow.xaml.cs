@@ -34,6 +34,7 @@ namespace test
         AutomationElement ae;
         WebSkype ws;
         Telegram telegram;
+        Skype skype;
 
         public MainWindow()
         {
@@ -78,9 +79,9 @@ namespace test
             base.OnSourceInitialized(e);
             //_wmm = new WindowLifeCycle();
             //_wmm.onMessageTraced += _wmm_onMessageTraced;
-            //aws = ActiveWindowStack.Instance(this);
-            //aws.onActiveWindowStackChanged += aws_onActiveWindowStackChanged;
-            //aws.Start();
+            aws = ActiveWindowStack.Instance(this);
+            aws.onActiveWindowStackChanged += aws_onActiveWindowStackChanged;
+            aws.Start();
 
         }
 
@@ -132,30 +133,46 @@ namespace test
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
+            MessengerController mC = MessengerController.Instance(aws);
+            var key = new KeyValuePair<System.Windows.Forms.Keys, GlobalBindController.KeyModifierStuck>(System.Windows.Forms.Keys.A, GlobalBindController.KeyModifierStuck.Alt);
+            mC.SubScribe(MessengerController.SwitchBy.Recent, key);
+            
+            
+            var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
 
-            //System.Diagnostics.Process process = null;
-            //foreach (var cProcess in chromeProcesses)
-            //{
-            //    if (cProcess.MainWindowHandle != IntPtr.Zero)
-            //    {
-            //        process = cProcess;
-            //        break;
-            //    }
-            //}
+            System.Diagnostics.Process process = null;
+            foreach (var cProcess in chromeProcesses)
+            {
+                if (cProcess.MainWindowHandle != IntPtr.Zero)
+                {
+                    process = cProcess;
+                    break;
+                }
+            }
 
-            //if (process == null)
-            //    return;
-            //ws = (WebSkype)MessengerBase.Create(typeof(WebSkype), process);
-            //ws.GotFocus += ws_GotFocus;
-            //ws.LostFocus += ws_LostFocus;
-            //ws.GotNewMessage += ws_GotNewMessage;
-            //ws.MessagesGone += ws_MessagesGone;
+            if (process == null)
+                return;
+            ws = (WebSkype)MessengerBase.Create(typeof(WebSkype), process);
+            ws.GotFocus += ws_GotFocus;
+            ws.LostFocus += ws_LostFocus;
+            ws.GotNewMessage += ws_GotNewMessage;
+            ws.MessageGone += ws_MessagesGone;
+
+            
 
             var telegramProcesses = System.Diagnostics.Process.GetProcessesByName("telegram");
             if (telegramProcesses.Count() > 0)
                 telegram = Telegram.Instance(telegramProcesses.First());
+            telegram.GotFocus += ws_GotFocus;
+            telegram.LostFocus += ws_LostFocus;
 
+
+
+            //telegram.SetForeground();
+
+            //var skypeProcesses = System.Diagnostics.Process.GetProcessesByName("skype");
+            //if (skypeProcesses.Count() > 0)
+            //    skype = Skype.Instance(skypeProcesses.First());
         }
     }
 }

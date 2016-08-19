@@ -20,11 +20,19 @@ namespace mmswitcherAPI.Messengers.Desktop
         {
             if (process == null)
                 throw new ArgumentException();
+
+            _messagesCounter = GetMessagesCounterData();
+            MessagesProcessingTimerTick += DesktopMessenger_MessagesProcessingTimerTick;
         }
 
         public override void SetForeground()
         {
-            //throw new NotImplementedException();
+            var isVisible = WinApi.ShowWindow(base._windowHandle, ShowWindowEnum.Show);
+            if (!isVisible)
+                RestoreFromTray();
+            //  Thread.Sleep(100);
+            else
+                FocusableAE.SetFocus();
         }
 
         protected override AutomationElement GetMainAutomationElement(Process process, out IntPtr hWnd)
@@ -40,46 +48,16 @@ namespace mmswitcherAPI.Messengers.Desktop
             return messengerElement;
         }
 
-        protected override AutomationElement GetFocusRecieverAutomationElement(IntPtr hWnd)
-        {
-            if (hWnd == null)
-                throw new ArgumentNullException("hWnd");
-            if (hWnd == IntPtr.Zero)
-                throw new ArgumentException("Window handle should not be IntPtr.Zero");
-
-            WINDOWPLACEMENT placement = Tools.GetPlacement(hWnd);
-            var state = placement.showCmd;
-            if (state == ShowWindowCommands.Minimized || state == ShowWindowCommands.Hide)
-                RestoreFromTray();
-            return FocusReciever(hWnd);
-
-        }
-
-        protected override AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
-        {
-            return TrayButton();
-            //return base.GetIncomeMessageAutomationElement(hWnd);
-        }
-
-        
-
-
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-        }
-
 
         private void DefineNotifyHandle()
         {
 
         }
 
-        private bool RestoreFromTray()
+        protected bool RestoreFromTray()
         {
             var trayButton = TrayButton();
-            
+
             if ((bool)trayButton.GetCurrentPropertyValue(AutomationElement.IsInvokePatternAvailableProperty))
             {
                 var pattern = (InvokePattern)trayButton.GetCurrentPattern(InvokePattern.Pattern);
@@ -92,7 +70,8 @@ namespace mmswitcherAPI.Messengers.Desktop
 
         private AutomationElement TrayButton()
         {
-            var trayButton = UserPromotedNotificationArea.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.NameProperty, TrayButtonName));
+            var trayButtons = UserPromotedNotificationArea.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Button));
+            var trayButton = trayButtons.Cast<AutomationElement>().First(x => x.Current.Name.Contains(TrayButtonName));
             if (trayButton == null)
                 throw new Exception(string.Format("Cannot find {0} in a user promoted notification area. Messenger notify icon should be shown in a notification area.", TrayButtonName));
             return trayButton;
@@ -105,13 +84,35 @@ namespace mmswitcherAPI.Messengers.Desktop
             //probably hided in a tray, should restore a window from it first
             if (hWnd == IntPtr.Zero)
             {
-                RestoreFromTray();
-                Thread.Sleep(100);
+                var isVisible = WinApi.ShowWindow(hWnd, ShowWindowEnum.Show);
+                if (!isVisible)
+                {
+                    RestoreFromTray();
+                    Thread.Sleep(100);
+                }
                 hWnd = process.MainWindowHandle;
                 if (hWnd == IntPtr.Zero)
                     throw new Exception(string.Format("Cannot get main window handle of {0} process.", process.ProcessName));
             }
             return hWnd;
+        }
+
+        private void DesktopMessenger_MessagesProcessingTimerTick(object sender, EventArgs e)
+        {
+            if(_messagesCounter ==null)
+                return;
+            if (base._process.HasExited)
+                Dispose(true);
+            var handle = WinApi.OpenProcess(ProcessSecurityAndAccessRights.PROCESS_VM_READ, false, base._process.Id);
+            if (handle == IntPtr.Zero)
+                Dispose(true);
+            IntPtr bytesRead;
+            var buffer = new byte[_messagesCounter.Size];
+            var address = IntPtr.Add(_messagesCounter.Address, _messagesCounter.Offset);
+            WinApi.ReadProcessMemory(handle, address, buffer, buffer.Length, out bytesRead);
+            IncomeMessages = BitConverter.ToInt32(buffer, 0);
+            WinApi.CloseHandle(handle);
+
         }
 
         private static AutomationElement GetNotificationArea()
@@ -141,19 +142,38 @@ namespace mmswitcherAPI.Messengers.Desktop
 
         private static void MessagesProcessingTimerCallback(object state)
         {
+            if (MessagesProcessingTimerTick == null)
+                return;
             MessagesProcessingTimerTick.Invoke(state, new EventArgs());
         }
 
         protected override void OnMessageProcessingSubscribe()
         {
             if (_messageProcessingTimer == null)
-                _messageProcessingTimer = new Timer(MessagesProcessingTimerCallback, null, 1000, 1000);
+                _messageProcessingTimer = new Timer(MessagesProcessingTimerCallback, null, 3000, 1000);
         }
 
+        protected override void OnMessageProcessingUnSubscribe()
+        {
+            _messageProcessingTimer.Dispose();
+        }
         #region abstract methods
-        protected abstract AutomationElement FocusReciever(IntPtr hWnd);
         //protected abstract void _wm_paintMonitor_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell);
+        protected abstract VariableData GetMessagesCounterData();
         #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+            if (disposing)
+            {
+                _messagesCounter = null;
+                _userPromotedNotificationArea = null;
+            }
+            _disposed = true;
+            base.Dispose(disposing);
+        }
 
         #region public properties
         public override Messenger Messenger
@@ -173,19 +193,37 @@ namespace mmswitcherAPI.Messengers.Desktop
                     return TryGetNotificationArea();
             }
         }
+        
         #endregion
         #region protected properties
         protected abstract string TrayButtonName { get; }
+
+        /// <summary>
+        /// Счетчик сообщений в памяти процесса мессенджера.
+        /// </summary>
+        #endregion
+
+        #region overrided properties
+        protected override int IncomeMessages { get; set; }
         #endregion
 
         #region private fields
-        private MessengerHookManager hManager;
-        private IntPtr _notifyIconHwnd;
+        //private MessengerHookManager _hManager;
+        //private IntPtr _notifyIconHwnd;
         private static AutomationElement _userPromotedNotificationArea = GetNotificationArea();
         private static Timer _messageProcessingTimer;
+        private bool _disposed = false;
+        private VariableData _messagesCounter;
         #endregion
 
         protected static event EventHandler MessagesProcessingTimerTick;
+    }
+
+    public class VariableData
+    {
+        public int Size { get; set; }
+        public IntPtr Address { get; set; }
+        public int Offset { get; set; }
     }
 }
 

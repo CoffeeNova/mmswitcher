@@ -34,7 +34,7 @@ namespace mmswitcherAPI.Messengers
         /// <summary>
         /// 
         /// </summary>
-        event newMessageDelegate MessagesGone;
+        event newMessageDelegate MessageGone;
 
         /// <summary>
         /// 

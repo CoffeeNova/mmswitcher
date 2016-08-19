@@ -49,6 +49,8 @@ namespace mmswitcherAPI.Messengers.Web
         {
             if (_tabNameChanged == null)
                 ForceUnsunscribeFromTabNameChangeEvent();
+            else
+                throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
 
         private void ForceUnsunscribeFromTabNameChangeEvent()
@@ -100,6 +102,8 @@ namespace mmswitcherAPI.Messengers.Web
         {
             if (_tabSelected == null)
                 ForceUnsunscribeFromTabSelectedEvent();
+            else
+                throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
 
         private void ForceUnsunscribeFromTabSelectedEvent()
@@ -153,9 +157,9 @@ namespace mmswitcherAPI.Messengers.Web
         private void TryUnsubscribeFromTabSelectionCountChangedEvent()
         {
             if (_tabSelectionCountChanged == null)
-            {
                 ForceUnsunscribeFromTabSelectionCountChangedEvent();
-            }
+            else
+                throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
 
         private void ForceUnsunscribeFromTabSelectionCountChangedEvent()

@@ -29,23 +29,14 @@ namespace mmswitcherAPI.AltTabSimulator
 
         private void EnsureSubscribedToForegroundChangedEvent()
         {
-            // install Focus hook only if it is not installed and must be installed
             if (s_ForegroundChangedHookHandle == 0)
             {
-
-                //See comment of this field. To avoid GC to clean it up.
                 s_ForegroundChangedDelegate = ForegroundChangedHookProc;
-                //install hook
                 s_ForegroundChangedHookHandle = WinApi.SetWinEventHook(EventConstants.EVENT_SYSTEM_FOREGROUND, EventConstants.EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, s_ForegroundChangedDelegate, 0, 0, WINEVENT_OUTOFCONTEXT);
 
-                //If SetWinEventHook fails.
                 if (s_ForegroundChangedHookHandle == 0)
                 {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
-                    int errorCode = Marshal.GetLastWin32Error();
-                    //do cleanup
-
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
+                  int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
             }
@@ -53,29 +44,22 @@ namespace mmswitcherAPI.AltTabSimulator
         }
         private void TryUnsubscribeFromForegroundChangedEvent()
         {
-            //if no subsribers are registered unsubsribe from hook
             if (s_ForegroundChanged == null)
-            {
                 ForceUnsunscribeFromForegroundChangedEvent();
-            }
+            else
+                throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
 
         private void ForceUnsunscribeFromForegroundChangedEvent()
         {
             if (s_ForegroundChangedHookHandle != 0)
             {
-                //uninstall hook
                 bool result = WinApi.UnhookWinEvent(s_ForegroundChangedHookHandle);
-                //reset invalid handle
                 s_ForegroundChangedHookHandle = 0;
-                //Free up for GC
                 s_ForegroundChangedDelegate = null;
-                //if failed and exception must be thrown
                 if (result == false)
                 {
-                    //Returns the error code returned by the last unmanaged function called using platform invoke that has the DllImportAttribute.SetLastError flag set. 
                     int errorCode = Marshal.GetLastWin32Error();
-                    //Initializes and throws a new instance of the Win32Exception class with the specified error. 
                     throw new Win32Exception(errorCode);
                 }
             }

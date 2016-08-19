@@ -39,7 +39,7 @@ namespace mmswitcherAPI.AltTabSimulator
         }
 
         private bool started = false;
-        
+
         /// <summary>
         /// Возвращает состояние <see cref="ActiveWindowStack"/> запущен.
         /// </summary>
@@ -61,7 +61,7 @@ namespace mmswitcherAPI.AltTabSimulator
         private ActiveWindowStack(Window window)
         {
             _winMesMon = new WindowLifeCycle(window);
-           _hManager = new HookManager();
+            _hManager = new HookManager();
         }
 
         //конструктор для Windows.Forms приложения
@@ -151,7 +151,7 @@ namespace mmswitcherAPI.AltTabSimulator
         {
             _windowStack.Clear();
         }
-        
+
         //Callback функция хука, который отслеживает изменение активного окна Windows
         private void HookManager_ForegroundChanged(object sender, EventArgs e)
         {
@@ -219,6 +219,6 @@ namespace mmswitcherAPI.AltTabSimulator
         Added,
         Removed,
         MovedToFore
-        }
+    }
 
 }

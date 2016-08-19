@@ -43,9 +43,9 @@ namespace mmswitcherAPI.Messengers
         private void TryUnsubscribeFromFocusChangedEvent()
         {
             if (_focusChanged == null)
-            {
                 ForceUnsunscribeFromFocusChangedEvent();
-            }
+            else
+                throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
 
         private void ForceUnsunscribeFromFocusChangedEvent()
@@ -98,6 +98,8 @@ namespace mmswitcherAPI.Messengers
         {
             if (_eventsListener == null)
                 ForceUnsunscribeFromEventsListener();
+            else
+                throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
 
         private void ForceUnsunscribeFromEventsListener()

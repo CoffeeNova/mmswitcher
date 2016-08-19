@@ -399,11 +399,11 @@ namespace mmswitcherAPI
         Minimize = 6, ShowMinNoActivate = 7, ShowNoActivate = 8,
         Restore = 9, ShowDefault = 10, ForceMinimized = 11
     };
-    public enum SwitchTo
-    {
-        Tab = 0,
-        Window = 1
-    }
+    //public enum SwitchTo
+    //{
+    //    Tab = 0,
+    //    Window = 1
+    //}
 
     public enum InternetBrowser
     {

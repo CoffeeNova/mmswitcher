@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Windows.Automation;
 using mmswitcherAPI.Messengers.Web.Browsers;
 using System.Collections.ObjectModel;
+using mmswitcherAPI.Extensions;
 
 namespace mmswitcherAPI.Messengers.Web
 {
@@ -24,20 +25,20 @@ namespace mmswitcherAPI.Messengers.Web
                 throw new ArgumentException();
         }
 
-        protected override bool IncomeMessagesDetect(AutomationElement tab)
+        protected override int GetMessagesCount(AutomationElement tab)
         {
-            return tab.Current.Name.StartsWith("(") ? true : false;
+            return tab.Current.Name.ParseNumber();
         }
 
-        private bool disposed = false;
+        private bool _disposed = false;
         protected override void Dispose(bool disposing)
         {
-            if (disposed)
+            if (_disposed)
                 return;
             if (disposing)
             {
             }
-            disposed = true;
+            _disposed = true;
             base.Dispose(disposing);
         }
 

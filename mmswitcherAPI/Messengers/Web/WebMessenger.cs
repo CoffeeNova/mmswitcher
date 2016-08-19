@@ -9,7 +9,7 @@ using mmswitcherAPI.Messengers.Web.Browsers;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-
+using mmswitcherAPI.Extensions;
 
 
 namespace mmswitcherAPI.Messengers.Web
@@ -19,37 +19,6 @@ namespace mmswitcherAPI.Messengers.Web
     /// </summary>
     public abstract class WebMessenger : MessengerBase, IDisposable
     {
-        /// <summary>
-        /// <see cref="AutomationElement"/> окна, которое непосредственно отображает рабочие элементы веб мессенджера и создается/уничтожается при создании/закрытии вкладки.
-        /// </summary>
-        protected AutomationElement RenderTabWidgetAE
-        {
-            get
-            {
-                try
-                {
-                    var t = _renderTabWidgetAE.Current.Name;
-                    return _renderTabWidgetAE;
-                }
-                catch { Dispose(true); return null; }
-            }
-        }
-
-        #region protected fields
-        protected BrowserSet _browserSet;
-        #endregion
-
-        #region private fields
-        private WebMessengerHookManager _hManager;
-        private AutomationElement _browserWindowAE;
-        private AutomationElement _renderTabWidgetAE;
-        private AutomationElement _tabControl;
-        private AutomationElementCollection _tabCollection;
-        private AutomationElement[] _tabArray = new AutomationElement[2];
-        private AutomationElement _selectedTab;
-        private AutomationElement _previousSelectedTab;
-        private bool _browserComponentsInitialized = false;
-        #endregion
 
         protected WebMessenger(Process browserProcess)
             : base(browserProcess)
@@ -133,9 +102,13 @@ namespace mmswitcherAPI.Messengers.Web
                 return;
             InitBrowserSet(base._process);
 
+            CacheAutomationElementProperties(base._windowHandle, ref _incomeMessageAE, (s) => GetIncomeMessageAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
+
             CacheAutomationElementProperties(base._windowHandle, ref _browserWindowAE, (s) => _browserSet.BrowserMainWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
+
             _tabControl = _browserSet.BrowserTabControl(_browserWindowAE);
             _tabCollection = CacheAutomationElementProperties(_tabControl, (s) => _browserSet.TabItems(s), SelectionItemPattern.Pattern);
+
             CacheAutomationElementProperties(base._windowHandle, ref _renderTabWidgetAE, (s) => _browserSet.BrowserTabControlWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
 
             _browserComponentsInitialized = true;
@@ -234,7 +207,7 @@ namespace mmswitcherAPI.Messengers.Web
         /// Кэширует заданные свойства или паттерны <paramref name="cacheData"/> при создании <see cref="AutomationElementCollection"/> методом, представленным делегатом <paramref name="getAutomationCollectionDel"/> из родительского <paramref name="parrent"/>.
         /// </summary>
         /// <exception cref="ArgumentException">Неправильный тим параметра <paramref name="cacheData"/>.</exception>
-        /// <remarks><paramref name="cacheData"/> параметры, должны состояить только из типов <see cref="AutomationProperty"/> и <see cref="AutomationPAttern"/>.</remarks>
+        /// <remarks><paramref name="cacheData"/> параметры, должны состояить только из типов <see cref="AutomationProperty"/> и <see cref="AutomationPattern"/>.</remarks>
         private AutomationElementCollection CacheAutomationElementProperties(AutomationElement parrent, GetAutomationCollectionDel getAutomationCollectionDel, params AutomationIdentifier[] cacheData)
         {
             AutomationElementCollection aeCollection;
@@ -271,6 +244,28 @@ namespace mmswitcherAPI.Messengers.Web
             base.OnFocusChanged(sender, e);
         }
 
+        protected void OnMessageProcessing(object sender, AutomationPropertyChangedEventArgs e)
+        {
+            var element = sender as AutomationElement;
+            if (element == IncomeMessageAE)
+                IncomeMessages = GetMessagesCount(element);
+        }
+
+        protected abstract int GetMessagesCount(AutomationElement element);
+
+        protected override void OnMessageProcessingSubscribe()
+        {
+            propertyHandler = new AutomationPropertyChangedEventHandler(OnMessageProcessing);
+            Automation.AddAutomationPropertyChangedEventHandler(IncomeMessageAE, TreeScope.Element, propertyHandler, AutomationElement.NameProperty);
+            _onMessageProcesseongSubsribed = true;
+        }
+
+        protected override void OnMessageProcessingUnSubscribe()
+        {
+            if (propertyHandler != null && _onMessageProcesseongSubsribed)
+                Automation.RemoveAutomationPropertyChangedEventHandler(IncomeMessageAE, propertyHandler);
+        }
+
         private void _hManager_TabSelected(object sender, EventArgs e)
         {
             if (!_browserComponentsInitialized)
@@ -291,6 +286,8 @@ namespace mmswitcherAPI.Messengers.Web
                 Debug.WriteLine(String.Format("current: {0}", _tabArray[0].Current.BoundingRectangle));
                 if (_tabArray[1] != null)
                     Debug.WriteLine(String.Format("prev: {0}", _tabArray[1].Current.BoundingRectangle));
+
+                TabSelectedTime = DateTime.Now;
             }
             catch { Dispose(true); }
         }
@@ -307,15 +304,15 @@ namespace mmswitcherAPI.Messengers.Web
             Console.WriteLine(_tabCollection.Count);
         }
 
-        private bool disposed = false;
         protected override void Dispose(bool disposing)
         {
-            if (disposed)
+            if (_disposed)
                 return;
             if (disposing)
             {
                 if (_hManager != null)
                 {
+                    _incomeMessageAE = null;
                     _hManager.TabSelected -= _hManager_TabSelected;
                     //_hManager.TabSelectionCountChanged -= _hManager_TabSelectionCountChanged;
                     _hManager.Dispose();
@@ -323,11 +320,62 @@ namespace mmswitcherAPI.Messengers.Web
                 _browserSet = null;
 
             }
-            disposed = true;
+            _disposed = true;
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Посоеднее время переключения вкладки браузера.
+        /// </summary>
+        public DateTime TabSelectedTime { get; private set; }
+
+        protected AutomationElement IncomeMessageAE
+        {
+            get
+            {
+                if (_incomeMessageAE.IsAlive())
+                    return _incomeMessageAE;
+                else
+                { Dispose(true); return null; }
+            }
+        }
+
+        protected override int IncomeMessages { get; set; }
+
+        /// <summary>
+        /// <see cref="AutomationElement"/> окна, которое непосредственно отображает рабочие элементы веб мессенджера и создается/уничтожается при создании/закрытии вкладки.
+        /// </summary>
+        protected AutomationElement RenderTabWidgetAE
+        {
+            get
+            {
+                try
+                {
+                    var t = _renderTabWidgetAE.Current.Name;
+                    return _renderTabWidgetAE;
+                }
+                catch { Dispose(true); return null; }
+            }
+        }
+
+        #region protected fields
+        protected BrowserSet _browserSet;
+        #endregion
+
+        #region private fields
+        private WebMessengerHookManager _hManager;
+        private AutomationElement _browserWindowAE;
+        private AutomationElement _renderTabWidgetAE;
+        private AutomationElement _tabControl;
+        private AutomationElementCollection _tabCollection;
+        private AutomationElement[] _tabArray = new AutomationElement[2];
+        private AutomationElement _selectedTab;
+        private AutomationElement _previousSelectedTab;
+        private bool _browserComponentsInitialized = false;
+        private AutomationElement _incomeMessageAE;
+        private bool _disposed = false;
+        private AutomationPropertyChangedEventHandler propertyHandler = null;
+        private bool _onMessageProcesseongSubsribed = false;
+        #endregion
     }
-
-
 }

@@ -44,8 +44,13 @@ namespace mmswitcherAPI
         internal const int BM_CLICK = 0x00F5;
         internal const int CTRL_F = 0xA20046; //ctrl+F 
 
-        internal const int TELEGRAM_NEWMESSAGES_COUNT_BASE_ADDRESS = 0x02C4F570;
+        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_SIZE = 4;
+        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_BASE_ADDRESS = 0x02C4F570;
+        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_OFFSET = 0;
 
+        internal const int SKYPE_NEWMESSAGESCOUNT_MEMORY_SIZE = 4;
+        internal const int SKYPE_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER = 0x00B7344C;
+        internal const int SKYPE_NEWMESSAGESCOUNT_MEMORY_OFFSET = 292;
 
         internal const string CHROME_PROCESS_NAME = "chrome";
         internal const string OPERA_PROCESS_NAME = "opera";
@@ -67,5 +72,7 @@ namespace mmswitcherAPI
         internal const string SKYPE_BROWSER_TAB_CAPTION = "Skype";
         internal const string WHATSAPP_BROWSER_TAB_CAPTION = "WhatsApp";
 
+        internal const string TELEGRAM_TRAY_BUTTON_NAME = "Telegram Desktop";
+        internal const string SKYPE_TRAY_BUTTON_NAME = "Skype";
     }
 }
