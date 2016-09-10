@@ -1,0 +1,324 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MwLib</name>
+    </assembly>
+    <members>
+        <member name="T:Me.Catx.Input.MouseEventEncoder">
+            <summary>
+            <para>Encode mouse event into vector or 8,4-chaincode. (NOT implemented)</para>
+            <para>Usage:</para>
+            <para>1. Bind with mouse events (MouseUp, MouseMove and MouseDown) of a control</para>
+            <para>2. Config</para>
+            <para>3. Subscribe events of MouseEventEncoder</para>
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Native.EnumWindows">
+            <summary>
+            Get hWnd of all top level windows.
+            <para>Usage:</para>
+            <para>EnumWindows ew = new EnumWindows();</para>
+            <para>ew.Enum();</para>
+            <para>listOfhWnds = ew.hWnds;</para>
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Native.EnumWindows.Enum">
+            <summary>
+            Call EnumWindow
+            </summary>
+        </member>
+        <member name="P:Me.Catx.Native.EnumWindows.hWnds">
+            <summary>
+            hWnds of top level windows
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Native.Mouse">
+            <summary>
+            Simulate mouse events
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Visual.EventDispatcher">
+            <summary>
+            Maintain and dispatch a event (message) queue to isolate time consuming tasks in event handler.
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Visual.ScreenCapture">
+            <summary>
+            Provide methods to capture entire or partial screen.
+            <para>Managed code implementation.</para>
+            <para>Usage:</para>
+            <para>1. Set ROI (Region of interest, default to primary screen).</para>
+            <para>2. Capture</para>
+            <para>3. Reset ROI (optional) and re-capture</para>
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Visual.ScreenROI">
+            <summary>
+            Provide screen ROI management method
+            </summary>
+        </member>
+        <member name="F:Me.Catx.Visual.ScreenROI.PrimaryScreenOnly">
+            <summary>
+            Set default ROI to primary screen only or not. 
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenROI.#ctor">
+            <summary>
+            Constructor. Use primary screen as default ROI.
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenROI.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Constructor. Set custom ROI.
+            </summary>
+            <param name="left">The x of upper left point of the ROI.</param>
+            <param name="top">The y of upper left point of the ROI.</param>
+            <param name="width">The width of the ROI.</param>
+            <param name="height">The height of the ROI.</param>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenROI.ResetROI">
+            <summary>
+            Reset to default ROI (Primary Screen).
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenROI.GetEntireScreen">
+            <summary>
+            Get rect of entire screen
+            </summary>
+            <returns>Rect of entire screen</returns>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenROI.SetROI(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Set ROI. 
+            <para>Will work normally if ROI is out of screen rect. </para>
+            <para>Outside parts will be blank.</para>
+            </summary>
+            <param name="left">The x of upper left point of the ROI.</param>
+            <param name="top">The y of upper left point of the ROI.</param>
+            <param name="width">The width of the ROI.</param>
+            <param name="height">The height of the ROI.</param>
+        </member>
+        <member name="P:Me.Catx.Visual.ScreenROI.ROI">
+            <summary>
+            Gets or sets the ROI
+            TODO: Support Multiple ROIs.
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenCapture.#ctor">
+            <summary>
+            Constructor. Use primary screen as default ROI.
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenCapture.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Constructor. Set custom ROI.
+            </summary>
+            <param name="left">The x of upper left point of the ROI.</param>
+            <param name="top">The y of upper left point of the ROI.</param>
+            <param name="width">The width of the ROI.</param>
+            <param name="height">The height of the ROI.</param>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenCapture.Capture">
+            <summary>
+            Capture screen. ROI is default to primary screen.
+            </summary>
+            <returns>Bitmap object of capture.</returns>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenCapture.Capture(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Set ROI before capture.
+            </summary>
+            <param name="left">The x of upper left point of the ROI.</param>
+            <param name="top">The y of upper left point of the ROI.</param>
+            <param name="width">The width of the ROI.</param>
+            <param name="height">The height of the ROI.</param>
+            <returns></returns>
+        </member>
+        <member name="P:Me.Catx.Visual.ScreenCapture.LastCapture">
+            <summary>
+            Last Capture
+            </summary>
+        </member>
+        <member name="F:Me.Catx.Visual.ScreenChangeEventArgs.DirtyRects">
+            <summary>
+            Captures of changed areas.
+            <para>Location is stored in Tag property as Point</para>
+            </summary>
+        </member>
+        <member name="F:Me.Catx.Visual.ScreenChangeEventArgs.Duration">
+            <summary>
+            Changing duration (in frames)
+            </summary>
+        </member>
+        <member name="F:Me.Catx.Visual.ScreenChangeEventArgs.Capture">
+            <summary>
+            The screen capture
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Visual.ScreenWatcher">
+            <summary>
+            Provide method to watch screen change
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenWatcher.#ctor">
+            <summary>
+            Constructor. Use primary screen as default ROI.
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Visual.ScreenWatcher.#ctor(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Constructor. Set custom ROI.
+            </summary>
+            <param name="left">The x of upper left point of the ROI.</param>
+            <param name="top">The y of upper left point of the ROI.</param>
+            <param name="width">The width of the ROI.</param>
+            <param name="height">The height of the ROI.</param>
+        </member>
+        <member name="E:Me.Catx.Visual.ScreenWatcher.ScreenChangeBegin">
+            <summary>
+            Screen begins to change
+            </summary>
+        </member>
+        <member name="E:Me.Catx.Visual.ScreenWatcher.ScreenChanging">
+            <summary>
+            Screen is changing
+            </summary>
+        </member>
+        <member name="E:Me.Catx.Visual.ScreenWatcher.ScreenChangeEnd">
+            <summary>
+            Screen has changed
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Native.FindWindow">
+            <summary>
+            Find a window.
+            <para>Usage:</para>
+            <para>hanlde = (new FindWindow(hwndParent, className)).FoundHandle;</para>
+            
+            <para>Set hwndParent = IntPtr.Zero to use Desktop as the parent. </para>
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Native.FindWindow.FindChildClassHwnd(System.IntPtr,System.IntPtr)">
+            
+            <summary>
+            Find the child window, if found m_classname will be assigned 
+            </summary>
+            <param name="hwndParent">parent's handle</param>
+            <param name="lParam">the application value, nonuse</param>
+            <returns>found or not found</returns>
+        </member>
+        <member name="T:Me.Catx.Native.WindowInfo">
+            
+            <summary>
+            Get the given window's information.
+            <para>Useage: </para>
+            <para>WindowInfo wi = new WindowInfo(wndHandle); </para>
+            <para>Rectangle rect = wi.WindowRect;</para>
+            <para>String title = wi.WindowText</para>
+            </summary>
+            TODO: Add more window info
+        </member>
+        <member name="M:Me.Catx.Native.WindowInfo.SetPenetrable(System.Int32)">
+            <summary>
+            Set the window penetrable.
+            </summary>
+        </member>
+        <member name="P:Me.Catx.Native.WindowInfo.WindowRect">
+            <summary>
+            Window Rect
+            </summary>
+        </member>
+        <member name="P:Me.Catx.Native.WindowInfo.WindowText">
+            <summary>
+            Window Text
+            </summary>
+        </member>
+        <member name="P:Me.Catx.Native.WindowInfo.ClassName">
+            <summary>
+            Class Name
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Native.TernaryRasterOperations">
+            <summary>
+                Specifies a raster-operation code. These codes define how the color data for the
+                source rectangle is to be combined with the color data for the destination
+                rectangle to achieve the final color.
+            </summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.SRCCOPY">
+            <summary>dest = source</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.SRCPAINT">
+            <summary>dest = source OR dest</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.SRCAND">
+            <summary>dest = source AND dest</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.SRCINVERT">
+            <summary>dest = source XOR dest</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.SRCERASE">
+            <summary>dest = source AND (NOT dest)</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.NOTSRCCOPY">
+            <summary>dest = (NOT source)</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.NOTSRCERASE">
+            <summary>dest = (NOT src) AND (NOT dest)</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.MERGECOPY">
+            <summary>dest = (source AND pattern)</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.MERGEPAINT">
+            <summary>dest = (NOT source) OR dest</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.PATCOPY">
+            <summary>dest = pattern</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.PATPAINT">
+            <summary>dest = DPSnoo</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.PATINVERT">
+            <summary>dest = pattern XOR dest</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.DSTINVERT">
+            <summary>dest = (NOT dest)</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.BLACKNESS">
+            <summary>dest = BLACK</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.WHITENESS">
+            <summary>dest = WHITE</summary>
+        </member>
+        <member name="F:Me.Catx.Native.TernaryRasterOperations.CAPTUREBLT">
+            <summary>
+            Capture window as seen on screen.  This includes layered windows 
+            such as WPF windows with AllowsTransparency="true"
+            </summary>
+        </member>
+        <member name="T:Me.Catx.Native.WinAPI">
+            <summary>
+            Wrapper for Win32 API
+            </summary>
+        </member>
+        <member name="M:Me.Catx.Native.WinAPI.BitBlt(System.IntPtr,System.Int32,System.Int32,System.Int32,System.Int32,System.IntPtr,System.Int32,System.Int32,Me.Catx.Native.TernaryRasterOperations)">
+            <summary>
+               Performs a bit-block transfer of the color data corresponding to a
+               rectangle of pixels from the specified source device context into
+               a destination device context.
+            </summary>
+            <param name="hdc">Handle to the destination device context.</param>
+            <param name="nXDest">The leftmost x-coordinate of the destination rectangle (in pixels).</param>
+            <param name="nYDest">The topmost y-coordinate of the destination rectangle (in pixels).</param>
+            <param name="nWidth">The width of the source and destination rectangles (in pixels).</param>
+            <param name="nHeight">The height of the source and the destination rectangles (in pixels).</param>
+            <param name="hdcSrc">Handle to the source device context.</param>
+            <param name="nXSrc">The leftmost x-coordinate of the source rectangle (in pixels).</param>
+            <param name="nYSrc">The topmost y-coordinate of the source rectangle (in pixels).</param>
+            <param name="dwRop">A raster-operation code.</param>
+            <returns>
+               <c>true</c> if the operation succeeded, <c>false</c> otherwise.
+            </returns>
+        </member>
+    </members>
+</doc>
