@@ -17,11 +17,12 @@ namespace mmswitcherAPI.AltTabSimulator
     /// </summary>
     public sealed class ActiveWindowStack
     {
-        public static ActiveWindowStack _instance;
+        public static ActiveWindowStack Instance { get; private set; }
 
         private WindowLifeCycle _winMesMon;
         private static readonly object _locker = new object();
-        private HookManager _hManager;
+        private AltTabHookManager _hManager;
+        private bool _disposed = false;
         public delegate void StackActionDelegate(StackAction action, IntPtr hWnd);
 
         /// <summary>
@@ -38,85 +39,85 @@ namespace mmswitcherAPI.AltTabSimulator
             get { return _windowStack; }
         }
 
-        private bool started = false;
+        private bool _started = false;
 
         /// <summary>
         /// Возвращает состояние <see cref="ActiveWindowStack"/> запущен.
         /// </summary>
         public bool Started
         {
-            get { return started; }
+            get { return _started; }
         }
 
-        private bool suspended = true;
+        private bool _suspended = true;
         /// <summary>
         /// Возвращает состояние <see cref="ActiveWindowStack"/> приостановлен.
         /// </summary>
         public bool Suspended
         {
-            get { return suspended; }
+            get { return _suspended; }
         }
 
-        //конструктор для wpf приложения
-        private ActiveWindowStack(Window window)
-        {
-            _winMesMon = new WindowLifeCycle(window);
-            _hManager = new HookManager();
-        }
+        ////конструктор для wpf приложения
+        //private ActiveWindowStack(Window window)
+        //{
+        //    _winMesMon = new WindowLifeCycle(window);
+        //    _hManager = new AltTabHookManager();
+        //}
 
-        //конструктор для Windows.Forms приложения
-        private ActiveWindowStack(Form window)
+        private ActiveWindowStack()
         {
-            //todo
+            _winMesMon = new WindowLifeCycle();
+            _hManager = new AltTabHookManager();
         }
 
         /// <summary>
-        /// Инициализирует <see cref="ActiveWindowStack"/> для приложения <see cref="System.Windows.Forms"/>.
+        /// Инициализирует <see cref="ActiveWindowStack"/>..
         /// </summary>
-        /// <param name="window">Окно <see cref="System.Windows.Forms"/>.</param>
         /// <returns>Экземпляр класса.</returns>
-        public static ActiveWindowStack Instance(Form window)
+        public static ActiveWindowStack GetInstance()
         {
-            if (_instance == null)
+            if (Instance == null)
             {
                 lock (_locker)
                 {
-                    if (_instance == null)
-                        _instance = new ActiveWindowStack(window);
+                    if (Instance == null)
+                        Instance = new ActiveWindowStack();
                 }
             }
-            return _instance;
+            return Instance;
         }
-        /// <summary>
-        /// Инициализирует <see cref="ActiveWindowStack"/> для приложения wpf.
-        /// </summary>
-        /// <param name="window">Окно <see cref="System.Windows.Window"/>.</param>
-        /// <returns>Экземпляр класса.</returns>
-        public static ActiveWindowStack Instance(Window window)
-        {
-            if (_instance == null)
-            {
-                lock (_locker)
-                {
-                    if (_instance == null)
-                        _instance = new ActiveWindowStack(window);
-                }
-            }
-            return _instance;
-        }
+        ///// <summary>
+        ///// Инициализирует <see cref="ActiveWindowStack"/> для приложения wpf.
+        ///// </summary>
+        ///// <param name="window">Окно <see cref="System.Windows.Window"/>.</param>
+        ///// <returns>Экземпляр класса.</returns>
+        ///// <remarks>Должен быть выполняться в потоке графического интерфейса окна <paramref name="window"/>.</remarks>
+        //public static ActiveWindowStack GetInstance(Window window)
+        //{
+        //    if (Instance == null)
+        //    {
+        //        lock (_locker)
+        //        {
+        //            if (Instance == null)
+        //                Instance = new ActiveWindowStack(window);
+        //        }
+        //    }
+        //    return Instance;
+        //}
 
         /// <summary>
         /// Запускает <see cref="ActiveWindowStack"/>.
         /// </summary>
         public void Start()
         {
-            if (!started && suspended)
+            if (!_started && _suspended)
             {
                 RefreshStack();
                 _winMesMon.onMessageTraced += _winMesMon_onMessageTraced;
                 _hManager.ForegroundChanged += HookManager_ForegroundChanged;
-                started = true;
-                suspended = false;
+                _started = true;
+                _suspended = false;
             }
         }
 
@@ -125,13 +126,13 @@ namespace mmswitcherAPI.AltTabSimulator
         /// </summary>
         public void Suspend()
         {
-            if (!suspended && started)
+            if (!_suspended && _started)
             {
-                ClearAltTabList();
-                _winMesMon.onMessageTraced -= _winMesMon_onMessageTraced;
                 _hManager.ForegroundChanged -= HookManager_ForegroundChanged;
-                suspended = true;
-                started = false;
+                _winMesMon.onMessageTraced -= _winMesMon_onMessageTraced;
+                ClearAltTabList();
+                _suspended = true;
+                _started = false;
             }
         }
         /// <summary>
@@ -190,27 +191,44 @@ namespace mmswitcherAPI.AltTabSimulator
             if (shell == ShellEvents.HSHELL_WINDOWDESTROYED)
             {
                 _windowStack.Remove(hWnd);
-                onActiveWindowStackChanged(StackAction.Removed, hWnd);
+                if (onActiveWindowStackChanged != null)
+                    onActiveWindowStackChanged(StackAction.Removed, hWnd);
             }
 
             if (shell == ShellEvents.HSHELL_WINDOWCREATED && OpenWindowGetter.KeepWindowHandleInAltTabList(hWnd))
             {
                 _windowStack.Insert(0, hWnd);
-                onActiveWindowStackChanged(StackAction.Added, hWnd);
+                if (onActiveWindowStackChanged != null)
+                    onActiveWindowStackChanged(StackAction.Added, hWnd);
             }
         }
-        private void Dispose()
+
+        public void Dispose()
         {
-            try
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+            if (disposing)
             {
-                _winMesMon.onMessageTraced -= _winMesMon_onMessageTraced;
-                _hManager.ForegroundChanged -= HookManager_ForegroundChanged;
+                try
+                {
+                    _hManager.ForegroundChanged -= HookManager_ForegroundChanged;
+                    _hManager.Dispose();
+                    _winMesMon.onMessageTraced -= _winMesMon_onMessageTraced;
+                    _winMesMon.Dispose();
+                }
+                catch { }
             }
-            catch { }
+            _disposed = true;
         }
         ~ActiveWindowStack()
         {
-            Dispose();
+            Dispose(false);
         }
     }
 

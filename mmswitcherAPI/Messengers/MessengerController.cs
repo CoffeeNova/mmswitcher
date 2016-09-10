@@ -29,31 +29,34 @@ namespace mmswitcherAPI.Messengers
             _foregroundChangedTime = DateTime.Now;
         }
 
-        public static MessengerController Instance(ActiveWindowStack aws)
+        public static MessengerController GetInstance(ActiveWindowStack aws)
         {
-            if (_instance == null)
+            if (aws == null)
+                throw new ArgumentNullException("aws");
+
+            if (Instance == null)
             {
                 lock (_locker)
                 {
-                    if (_instance == null)
-                        _instance = new MessengerController(aws);
+                    if (Instance == null)
+                        Instance = new MessengerController(aws);
                 }
             }
-            return _instance;
+            return Instance;
         }
 
-        public void SubScribe(SwitchBy by, KeyValuePair<Keys, Gbc.KeyModifierStuck> key)
+        public void SubScribe(SwitchBy by, KeyValuePair<Keys, List<Gbc.KeyModifierStuck>> key)
         {
             switch (by)
             {
                 case SwitchBy.Activity:
-                    SwitchSubscribeA(key);
+                    SwitchSubscribe(ref _switchByActGBC, key, Activity, ref Subsribed.Activity);
                     break;
                 case SwitchBy.Recent:
-                    SwitchSubscribeR(key);
+                    SwitchSubscribe(ref _switchByRecGBC, key, Recent, ref Subsribed.Recent);
                     break;
                 case SwitchBy.Queue:
-                    SwitchSubscribeQ(key);
+                    SwitchSubscribe(ref _switchByQueGBC, key, Queue, ref Subsribed.Queue);
                     break;
             }
 
@@ -64,57 +67,37 @@ namespace mmswitcherAPI.Messengers
             switch (by)
             {
                 case SwitchBy.Activity:
-                    _switchByActGBC.Dispose();
-                    Subsribed.Activity = false;
+                    SwitchUnSubscribe(ref _switchByActGBC, ref Subsribed.Activity);
                     break;
                 case SwitchBy.Recent:
-                    _switchByRecGBC.Dispose();
-                    Subsribed.Recent = false;
+                    SwitchUnSubscribe(ref _switchByRecGBC, ref Subsribed.Recent);
                     break;
                 case SwitchBy.Queue:
-                    _switchByQueGBC.Dispose();
-                    Subsribed.Queue = false;
+                    SwitchUnSubscribe(ref _switchByQueGBC, ref Subsribed.Queue);
                     break;
             }
         }
 
-        private void SwitchSubscribeA(KeyValuePair<Keys, Gbc.KeyModifierStuck> key)
+        private void SwitchSubscribe(ref GlobalBindController gbc, KeyValuePair<Keys, List<Gbc.KeyModifierStuck>> key, Action action, ref bool subscribed)
         {
-            if (Subsribed.Activity)
+            if (subscribed)
                 throw new InvalidOperationException("Subscribed allready");
-            ActivityBind = key;
-            Action bindAction = Activity;
+
             var list = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
-            list.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(key.Value, bindAction));
-            _switchByActGBC = new Gbc(key.Key, Gbc.BindMethod.RegisterHotKey, Gbc.HookBehaviour.Replacement, list);
-            _switchByActGBC.Execute = true;
-            Subsribed.Activity = true;
+            foreach(var keyModStuck in key.Value)
+                list.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(keyModStuck, action));
+
+            gbc = new Gbc(key.Key, Gbc.BindMethod.RegisterHotKey, Gbc.HookBehaviour.Replacement, list);
+            gbc.Execute = true;
+            subscribed = true;
         }
 
-        private void SwitchSubscribeR(KeyValuePair<Keys, Gbc.KeyModifierStuck> key)
+        private void SwitchUnSubscribe(ref GlobalBindController gbc, ref bool subscribed)
         {
-            if (Subsribed.Recent)
-                throw new InvalidOperationException("Subscribed allready");
-            RecentBind = key;
-            Action bindAction = Recent;
-            var list = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
-            list.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(key.Value, bindAction));
-            _switchByRecGBC = new Gbc(key.Key, Gbc.BindMethod.RegisterHotKey, Gbc.HookBehaviour.Replacement, list);
-            _switchByRecGBC.Execute = true;
-            Subsribed.Recent = true;
-        }
-
-        private void SwitchSubscribeQ(KeyValuePair<Keys, Gbc.KeyModifierStuck> key)
-        {
-            if (Subsribed.Queue)
-                throw new InvalidOperationException("Subscribed allready");
-            QueueBind = key;
-            Action bindAction = Queue;
-            var list = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
-            list.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(key.Value, bindAction));
-            _switchByQueGBC = new Gbc(key.Key, Gbc.BindMethod.RegisterHotKey, Gbc.HookBehaviour.Replacement, list);
-            _switchByQueGBC.Execute = true;
-            Subsribed.Queue = true;
+            if (!subscribed)
+                throw new InvalidOperationException("Unsubscribed allready");
+            gbc.Dispose();
+            subscribed = false;
         }
 
         private void Recent()
@@ -179,7 +162,7 @@ namespace mmswitcherAPI.Messengers
             {
                 var webMess = messenger as WebMessenger;
                 if (webMess.TabSelectedTime > _foregroundChangedTime)
-                     webMess.ReturnPreviousSelectedTab();
+                    webMess.ReturnPreviousSelectedTab();
                 else
                     ReturnPreviousWindow();
             }
@@ -193,7 +176,6 @@ namespace mmswitcherAPI.Messengers
                 WinApi.SetForegroundWindow(_activeWindowStack.WindowStack[1]);
         }
 
-        private static MessengerController _instance;
         private static readonly object _locker = new object();
         private ActiveWindowStack _activeWindowStack;
         private Gbc _switchByActGBC;
@@ -201,9 +183,107 @@ namespace mmswitcherAPI.Messengers
         private Gbc _switchByQueGBC;
         private DateTime _foregroundChangedTime = DateTime.Now;
 
-        public KeyValuePair<Keys, Gbc.KeyModifierStuck> RecentBind { get; set; }
-        public KeyValuePair<Keys, Gbc.KeyModifierStuck> ActivityBind { get; set; }
-        public KeyValuePair<Keys, Gbc.KeyModifierStuck> QueueBind { get; set; }
+        public static MessengerController Instance { get; private set; }
+
+        //public KeyValuePair<Keys, Gbc.KeyModifierStuck> RecentBind { get; set; }
+        //public KeyValuePair<Keys, Gbc.KeyModifierStuck> ActivityBind { get; set; }
+        //public KeyValuePair<Keys, Gbc.KeyModifierStuck> QueueBind { get; set; }
+
+        public Keys ActivityKey
+        {
+            get
+            {
+                if (!Subsribed.Activity) throw new InvalidOperationException("Should subscribe to switch by activity first");
+                return _switchByActGBC.Key;
+            }
+            set
+            {
+                if (!Subsribed.Activity) throw new InvalidOperationException("Should subscribe to switch by activity first");
+                _switchByActGBC.Key = value;
+            }
+        }
+
+        public Keys RecentKey
+        {
+            get
+            {
+                if (!Subsribed.Recent) throw new InvalidOperationException("Should subscribe to switch by recent first");
+                return _switchByRecGBC.Key;
+            }
+            set
+            {
+                if (!Subsribed.Recent) throw new InvalidOperationException("Should subscribe to switch by recent first");
+                _switchByRecGBC.Key = value;
+            }
+        }
+
+        public Keys QueueKey
+        {
+            get
+            {
+                if (!Subsribed.Queue) throw new InvalidOperationException("Should subscribe to switch by queue first");
+                return _switchByQueGBC.Key;
+            }
+            set
+            {
+                if (!Subsribed.Queue) throw new InvalidOperationException("Should subscribe to switch by queue first");
+                _switchByQueGBC.Key = value;
+            }
+        }
+
+        public List<Gbc.KeyModifierStuck> ActivityModifiers
+        {
+            get
+            {
+                if (!Subsribed.Activity) throw new InvalidOperationException("Should subscribe to switch by activity first");
+                return _switchByActGBC.Tasks.Select<KeyValuePair<Gbc.KeyModifierStuck, Action>, Gbc.KeyModifierStuck>((pair, keymod) => { return pair.Key; }).ToList();
+            }
+            set
+            {
+                if (!Subsribed.Activity) throw new InvalidOperationException("Should subscribe to switch by activity first");
+                var kvp = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
+                foreach (Gbc.KeyModifierStuck mod in value)
+                    kvp.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(mod, Activity));
+                _switchByActGBC.Tasks = kvp;
+
+            }
+        }
+
+        public List<Gbc.KeyModifierStuck> RecentModifiers
+        {
+            get
+            {
+                if (!Subsribed.Recent) throw new InvalidOperationException("Should subscribe to switch by recent first");
+                return _switchByRecGBC.Tasks.Select<KeyValuePair<Gbc.KeyModifierStuck, Action>, Gbc.KeyModifierStuck>((pair, keymod) => { return pair.Key; }).ToList();
+            }
+            set
+            {
+                if (!Subsribed.Recent) throw new InvalidOperationException("Should subscribe to switch by recent first");
+                var kvp = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
+                foreach (Gbc.KeyModifierStuck mod in value)
+                    kvp.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(mod, Recent));
+                _switchByRecGBC.Tasks = kvp;
+
+            }
+        }
+
+        public List<Gbc.KeyModifierStuck> QueueModifiers
+        {
+            get
+            {
+                if (!Subsribed.Queue) throw new InvalidOperationException("Should subscribe to switch by queue first");
+                return _switchByQueGBC.Tasks.Select<KeyValuePair<Gbc.KeyModifierStuck, Action>, Gbc.KeyModifierStuck>((pair, keymod) => { return pair.Key; }).ToList();
+            }
+            set
+            {
+                if (!Subsribed.Queue) throw new InvalidOperationException("Should subscribe to switch by queue first");
+                var kvp = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
+                foreach (Gbc.KeyModifierStuck mod in value)
+                    kvp.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(mod, Queue));
+                _switchByQueGBC.Tasks = kvp;
+
+            }
+        }
 
         private struct Subsribed
         {
@@ -212,17 +292,17 @@ namespace mmswitcherAPI.Messengers
             public static bool Queue = false;
         }
 
-        public enum SwitchBy
-        {
-            Activity,
-            Recent,
-            Queue
-        }
-
         //private enum SwitchTo
         //{
         //    Tab = 0,
         //    Window = 1
         //}
+    }
+
+    public enum SwitchBy
+    {
+        Activity,
+        Recent,
+        Queue
     }
 }

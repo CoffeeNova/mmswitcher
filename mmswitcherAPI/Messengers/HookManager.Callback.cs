@@ -20,7 +20,13 @@ namespace mmswitcherAPI.Messengers
         {
             if (hWnd == IntPtr.Zero)
                 return;
-                _focusChanged.Invoke(hWnd, new EventArgs());
+            _focusChanged.Invoke(hWnd, new EventArgs());
+        }
+
+        private void TrySubscribeToFocusChangedEvent()
+        {
+            if (WindowsMessagesTrapper.Dispatcher != null)
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { EnsureSubscribedToFocusChangedEvent(); });
         }
 
         private void EnsureSubscribedToFocusChangedEvent()
@@ -42,8 +48,10 @@ namespace mmswitcherAPI.Messengers
         }
         private void TryUnsubscribeFromFocusChangedEvent()
         {
-            if (_focusChanged == null)
-                ForceUnsunscribeFromFocusChangedEvent();
+            if (WindowsMessagesTrapper.Dispatcher == null)
+                return;
+            if (_focusChanged == null) //unhook win event from WindowsMessagesTrapper Form thread
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromFocusChangedEvent(); });
             else
                 throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
@@ -77,6 +85,12 @@ namespace mmswitcherAPI.Messengers
             _eventsListener.Invoke(hWnd, new EventArgs());
         }
 
+        private void TrySubscribeToEventsListener()
+        {
+            if (WindowsMessagesTrapper.Dispatcher != null)
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { EnsureSubscribedToEventsListener(); });
+        }
+
         private void EnsureSubscribedToEventsListener()
         {
             if (_eventsListenerHookHandle == IntPtr.Zero)
@@ -96,8 +110,10 @@ namespace mmswitcherAPI.Messengers
         }
         private void TryUnsubscribeFromEventsListener()
         {
+            if (WindowsMessagesTrapper.Dispatcher == null)
+                return;
             if (_eventsListener == null)
-                ForceUnsunscribeFromEventsListener();
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromEventsListener(); });
             else
                 throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }

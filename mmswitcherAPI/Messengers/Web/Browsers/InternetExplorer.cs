@@ -89,5 +89,11 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
         }
         #endregion
 
+        #region Telegram
+        protected override AutomationElement TelegramTab(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

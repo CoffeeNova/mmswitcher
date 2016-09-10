@@ -43,11 +43,14 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
 
             switch (messenger)
             {
-                case Messenger.Skype:
+                case Messenger.WebSkype:
                     mtd = new MessangerTabDelegate(SkypeTab);
                     break;
-                case Messenger.WhatsApp:
+                case Messenger.WebWhatsApp:
                     mtd = new MessangerTabDelegate(WhatsAppTab);
+                    break;
+                case Messenger.WebTelegram:
+                    mtd = new MessangerTabDelegate(TelegramTab);
                     break;
                 default:
                     mtd = null;
@@ -341,6 +344,8 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
         protected abstract AutomationElement SkypeTab(IntPtr hWnd);
 
         protected abstract AutomationElement WhatsAppTab(IntPtr hWnd);
+
+        protected abstract AutomationElement TelegramTab(IntPtr hWnd);
 
         /// <summary>
         /// Определяет дочерний элемент, который будет получать фокус при переключении на мессенджер.

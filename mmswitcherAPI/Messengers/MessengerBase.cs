@@ -11,6 +11,7 @@ using System.Reflection;
 using mmswitcherAPI.winmsg;
 using System.Collections.ObjectModel;
 using mmswitcherAPI.Extensions;
+using mmswitcherAPI.Messengers.Exceptions;
 
 namespace mmswitcherAPI.Messengers
 {
@@ -98,7 +99,7 @@ namespace mmswitcherAPI.Messengers
         public int NewMessagesCount
         {
             get { return _newMessagesCount; }
-            private set
+            set
             {
                 if (value > _newMessagesCount)
                 {
@@ -111,16 +112,12 @@ namespace mmswitcherAPI.Messengers
                     PullFromActivity(this);
                     if (MessageGone != null)
                         MessageGone(this);
-
                 }
                 _newMessagesCount = value;
             }
         }
 
-
-
         public abstract Messenger Messenger { get; }
-
 
         public bool Focused
         {
@@ -149,6 +146,19 @@ namespace mmswitcherAPI.Messengers
             {
                 if (_messengerAE.IsAlive())
                     return _messengerAE;
+                else
+                { Dispose(true); return null; }
+            }
+        }
+
+        private AutomationElement _incomeMessageAE;
+
+        protected AutomationElement IncomeMessageAE
+        {
+            get
+            {
+                if (_incomeMessageAE.IsAlive())
+                    return _incomeMessageAE;
                 else
                 { Dispose(true); return null; }
             }
@@ -203,38 +213,50 @@ namespace mmswitcherAPI.Messengers
                 var aEdel = new GetMessengerAEDel(GetMainAutomationElement);
                 Focused = true;
                 CacheAutomationElementProperties(msgProcess, out hWnd, ref _messengerAE, aEdel, AutomationElement.NativeWindowHandleProperty);
+                CacheAutomationElementProperties(hWnd, ref _incomeMessageAE, (s) => GetIncomeMessageAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
                 CacheAutomationElementProperties(hWnd, ref _focusableAE, (s) => GetFocusRecieverAutomationElement(s), AutomationElement.ClassNameProperty, AutomationElement.NativeWindowHandleProperty);
 
             }
             catch
             {
-                throw new Exception(String.Format("Cannot build a messenger for this process {0}", msgProcess.ProcessName));
+                throw new MessengerBuildException(String.Format("Cannot build a messenger for this process {0}", msgProcess.ProcessName));
             }
 
             _windowHandle = hWnd;
-            _hManager = new MessengerHookManager(_windowHandle);
+            
             GotNewMessage += MessengerBase_GotNewMessage;
             NewMessagesCount = IncomeMessages;
             _wmmon = new WindowLifeCycle();
             _wmmon.onMessageTraced += OnMessageTraced;
+            _hManager = new MessengerHookManager(_windowHandle);
+
             _messengersCollection.Add(this);
             _activity.Add(this);
 
             SetForeground();
-            // OnFocusChangedSubscribe();
+             OnFocusChangedSubscribe();
             OnMessageProcessingSubscribe();
         }
 
         /// <summary>
-        /// Создает новый экземпляр класса типа <paramref name="derivedType"/>.
+        /// 
         /// </summary>
         /// <param name="derivedType">Тип класса.</param>
-        /// <param name="process">Процесс программы мессенджера.</param>
+        /// <param name="process"></param>
         /// <returns></returns>
-        /// <remarks>Пример создания экземпляра класса: DerivedClass derivedClass = (DerivedClass)BaseClass.Create(typeof(DerivedClass));</remarks>
-        public static MessengerBase Create(Type derivedType, Process process)
+        
+        /// 
+
+        /// <summary>
+        /// Создает новый экземпляр класса типа <typeparamref name="T"/>
+        /// </summary>
+        /// <typeparam name="T">Тип создаваемого клаcса (должен наследовать интерфейс <see cref="IMessenger"/>).</typeparam>
+        /// <param name="process">Процесс программы мессенджера.</param>
+        /// <returns>Возвращает экземляр созданного класса типа <typeparamref name="T"/>.</returns>
+        /// <remarks>Пример создания экземпляра класса: Skype derivedClass = BaseClass.Create&lt;Skype&gt;(process);</remarks>
+        public static T Create<T>(Process process) where T : IMessenger
         {
-            var newMessenger = (MessengerBase)Activator.CreateInstance(derivedType, process);
+            var newMessenger = (T)Activator.CreateInstance(typeof(T), process);
             return newMessenger;
         }
 
@@ -452,7 +474,7 @@ namespace mmswitcherAPI.Messengers
                 _messengerAE = null;
                 _focusableAE = null;
                 _wmmon.onMessageTraced -= OnMessageTraced;
-                _wmmon = null;
+                _wmmon.Dispose();
                 _hManager.FocusChanged -= OnFocusChanged;
                 _hManager.Dispose();
             }
@@ -465,8 +487,14 @@ namespace mmswitcherAPI.Messengers
         {
             Dispose(false);
         }
+    }
 
-
-
+    public enum Messenger
+    {
+        Skype,
+        Telegram,
+        WebSkype,
+        WebWhatsApp,
+        WebTelegram
     }
 }

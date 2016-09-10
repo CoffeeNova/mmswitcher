@@ -11,6 +11,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using mmswitcherAPI.Messengers;
 
 namespace mmswitcherAPI
 {
@@ -79,9 +80,9 @@ namespace mmswitcherAPI
         {
             switch (msg)
             {
-                case Messenger.Skype:
+                case Messenger.WebSkype:
                     return Constants.SKYPE_BROWSER_WINDOW_CAPTION;
-                case Messenger.WhatsApp:
+                case Messenger.WebWhatsApp:
                     return Constants.WHATSAPP_BROWSER_WINDOW_CAPTION;
                 default:
                     return string.Empty;
@@ -414,13 +415,13 @@ namespace mmswitcherAPI
         InternetExplorer
     }
 
-    public enum Messenger
-    {
-        Skype,
-        WhatsApp,
-        Telegram,
-        Viber
-    }
+    //public enum Messenger
+    //{
+    //    Skype,
+    //    WhatsApp,
+    //    Telegram,
+    //    Viber
+    //}
     public enum GaFlags
     {
         /// <summary>

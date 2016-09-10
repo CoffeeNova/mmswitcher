@@ -51,7 +51,13 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
+    <Reference Include="UIAComWrapper, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\UIAComWrapper\UIAComWrapper.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <Aliases>global</Aliases>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AltTabSimulator\ActiveWindowStack.cs" />
@@ -64,12 +70,11 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Extensions\AutomationElementExtension.cs" />
     <Compile Include="Extensions\StringExtension.cs" />
-    <Compile Include="GlobalBindController.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="GlobalBindController.cs" />
     <Compile Include="Messengers\Desktop\DesktopMessenger.cs" />
     <Compile Include="Messengers\Desktop\Skype.cs" />
     <Compile Include="Messengers\Desktop\Telegram.cs" />
+    <Compile Include="Messengers\Exceptions\MessengerExceptions.cs" />
     <Compile Include="Messengers\HookManager.Callback.cs" />
     <Compile Include="Messengers\HookManager.cs" />
     <Compile Include="Messengers\HookManager.Windows.cs" />
@@ -89,7 +94,7 @@
     <Compile Include="WinApi.cs" />
     <Compile Include="Messengers\MessengerBase.cs" />
     <Compile Include="Window Messages\GlobalHookTraper.cs" />
-    <Compile Include="Window Messages\WindowsMessagesTrapper.cs">
+    <Compile Include="WindowsMessagesTrapper.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Window Messages\MessageMonitors.cs" />
@@ -100,12 +105,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Messengers\Hooks\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\DEMO\uiautomationverify\UIAVerify\UIAComWrapper\UIAComWrapper\UIAComWrapper.csproj">
-      <Project>{1dd63894-dbb9-40ef-bff2-55624cb285af}</Project>
-      <Name>UIAComWrapper</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

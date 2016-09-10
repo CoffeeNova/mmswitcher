@@ -14,10 +14,17 @@ namespace mmswitcherAPI.winmsg
     /// </summary>
     public class WindowLifeCycle : MsgMonitor
     {
-        //конструктор для wpf приложения
+        /// <summary>
+        /// Конструктор для WPF приложения
+        /// </summary>
+        /// <param name="window"></param>
+        /// <remarks>Должен выполняться в основном потоке графического интерфейса.</remarks>
         public WindowLifeCycle(Window window)
             : base(window, "SHELLHOOK") { }
-        //общий конструктор
+        /// <summary>
+        /// Общий конструктор.
+        /// </summary>
+        /// <remarks>Предполагает использование класса <see cref="WindowsMessagesTrapper"/></remarks>
         public WindowLifeCycle()
             : base("SHELLHOOK") { }
 
@@ -33,6 +40,7 @@ namespace mmswitcherAPI.winmsg
             }
             return false;
         }
+
     }
 
     public class WM_PAINT_Monitor1 : GlobalHookTrapper

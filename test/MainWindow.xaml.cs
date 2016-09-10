@@ -19,6 +19,7 @@ using System.Windows.Automation;
 using mmswitcherAPI.Messengers;
 using mmswitcherAPI.Messengers.Web;
 using mmswitcherAPI.Messengers.Desktop;
+using System.Threading;
 
 namespace test
 {
@@ -79,26 +80,44 @@ namespace test
             base.OnSourceInitialized(e);
             //_wmm = new WindowLifeCycle();
             //_wmm.onMessageTraced += _wmm_onMessageTraced;
-            aws = ActiveWindowStack.Instance(this);
-            aws.onActiveWindowStackChanged += aws_onActiveWindowStackChanged;
-            aws.Start();
 
+            object win = this;
+            Thread thread = new Thread((state) =>
+            {
+                //Thread.Sleep(1000);
+                //aws.Suspend();
+                //aws.Dispose();
+                //Thread.Sleep(50000);
+                //-------------------------------
+            //   var inst = WindowsMessagesTrapper.Instance;
+            //    var key = new KeyValuePair<System.Windows.Forms.Keys, GlobalBindController.KeyModifierStuck>(System.Windows.Forms.Keys.A, GlobalBindController.KeyModifierStuck.Alt);
+            //    var list = new List<KeyValuePair<GlobalBindController.KeyModifierStuck, Action>>();
+            //    list.Add(new KeyValuePair<GlobalBindController.KeyModifierStuck, Action>(key.Value, new Action(() => { Console.WriteLine("LOL"); })));
+
+            //GlobalBindController gbc = new GlobalBindController(key.Key, GlobalBindController.BindMethod.RegisterHotKey, GlobalBindController.HookBehaviour.Replacement, list);
+            //gbc.Execute = true;
+
+            //gbc.Dispose();
+            });
+            thread.Name = "Test Thread";
+            thread.Start();
+            
         }
 
         void aws_onActiveWindowStackChanged(StackAction action, IntPtr hWnd)
         {
-            //int length = Interop.GetWindowTextLength(hWnd);
-            //StringBuilder builder = new StringBuilder(length);
-            //Interop.GetWindowText(hWnd, builder, length + 1);
-            //Console.WriteLine(builder.ToString() + " " + action.ToString());
-            //Console.WriteLine("----------------------------------------------");
-            //foreach (IntPtr handle in aws.WindowStack)
-            //{
-            //    int len = WinApi.GetWindowTextLength(handle);
-            //    StringBuilder buid = new StringBuilder(len);
-            //    WinApi.GetWindowText(handle, buid, len + 1);
-            //    Console.WriteLine(buid.ToString());
-            //}
+            int length = WinApi.GetWindowTextLength(hWnd);
+            StringBuilder builder = new StringBuilder(length);
+            WinApi.GetWindowText(hWnd, builder, length + 1);
+            Console.WriteLine(builder.ToString() + " " + action.ToString());
+            Console.WriteLine("----------------------------------------------");
+            foreach (IntPtr handle in aws.WindowStack)
+            {
+                int len = WinApi.GetWindowTextLength(handle);
+                StringBuilder buid = new StringBuilder(len);
+                WinApi.GetWindowText(handle, buid, len + 1);
+                Console.WriteLine(buid.ToString());
+            }
         }
 
 
@@ -130,14 +149,16 @@ namespace test
         {
 
         }
+        private MessengerController mC;
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            MessengerController mC = MessengerController.Instance(aws);
+            aws = ActiveWindowStack.GetInstance();
+            aws.Start();
+            mC = MessengerController.GetInstance(aws);
             var key = new KeyValuePair<System.Windows.Forms.Keys, GlobalBindController.KeyModifierStuck>(System.Windows.Forms.Keys.A, GlobalBindController.KeyModifierStuck.Alt);
-            mC.SubScribe(MessengerController.SwitchBy.Recent, key);
-            
-            
+            //mC.SubScribe(MessengerController.SwitchBy.Queue, key);
+
             var chromeProcesses = System.Diagnostics.Process.GetProcessesByName("chrome");
 
             System.Diagnostics.Process process = null;
@@ -152,13 +173,13 @@ namespace test
 
             if (process == null)
                 return;
-            ws = (WebSkype)MessengerBase.Create(typeof(WebSkype), process);
+            ws = MessengerBase.Create<WebSkype>(process);
             ws.GotFocus += ws_GotFocus;
             ws.LostFocus += ws_LostFocus;
             ws.GotNewMessage += ws_GotNewMessage;
             ws.MessageGone += ws_MessagesGone;
 
-            
+
 
             var telegramProcesses = System.Diagnostics.Process.GetProcessesByName("telegram");
             if (telegramProcesses.Count() > 0)
@@ -168,11 +189,11 @@ namespace test
 
 
 
-            //telegram.SetForeground();
+            telegram.SetForeground();
 
-            //var skypeProcesses = System.Diagnostics.Process.GetProcessesByName("skype");
-            //if (skypeProcesses.Count() > 0)
-            //    skype = Skype.Instance(skypeProcesses.First());
+            var skypeProcesses = System.Diagnostics.Process.GetProcessesByName("skype");
+            if (skypeProcesses.Count() > 0)
+                skype = Skype.Instance(skypeProcesses.First());
         }
     }
 }

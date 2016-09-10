@@ -9,7 +9,7 @@ using mmswitcherAPI.AltTabSimulator;
 
 namespace mmswitcherAPI.AltTabSimulator
 {
-    internal partial class HookManager
+    internal partial class AltTabHookManager
     {
         private int s_ForegroundChangedHookHandle;
         private WinApi.WinEventHookProc s_ForegroundChangedDelegate;
@@ -27,7 +27,12 @@ namespace mmswitcherAPI.AltTabSimulator
             { Console.WriteLine(ex.Message); }
         }
 
-        private void EnsureSubscribedToForegroundChangedEvent()
+        private void TrySubscribeToForegroundChangedEvent()
+        {
+            WindowsMessagesTrapper.Dispatcher.Invoke(() => { EnsureSubscribeToForegroundChangedEvent(); });
+        }
+
+        private void EnsureSubscribeToForegroundChangedEvent()
         {
             if (s_ForegroundChangedHookHandle == 0)
             {
@@ -36,7 +41,7 @@ namespace mmswitcherAPI.AltTabSimulator
 
                 if (s_ForegroundChangedHookHandle == 0)
                 {
-                  int errorCode = Marshal.GetLastWin32Error();
+                    int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
             }
@@ -44,8 +49,10 @@ namespace mmswitcherAPI.AltTabSimulator
         }
         private void TryUnsubscribeFromForegroundChangedEvent()
         {
+            if (WindowsMessagesTrapper.Dispatcher == null)
+                return;
             if (s_ForegroundChanged == null)
-                ForceUnsunscribeFromForegroundChangedEvent();
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromForegroundChangedEvent(); });
             else
                 throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }

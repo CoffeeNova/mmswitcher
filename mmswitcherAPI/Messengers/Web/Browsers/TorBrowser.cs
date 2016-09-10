@@ -18,7 +18,7 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
         {
             if (parent == null)
                 return null;
-            return null; //todo
+            throw new NotImplementedException(); ; //todo
         }
 
         public override AutomationElement BrowserTabControlWindowAutomationElement(IntPtr hWnd)
@@ -66,7 +66,7 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
 
         protected override AutomationElement SkypeTab(IntPtr hWnd)
         {
-            return null; //todo
+            throw new NotImplementedException(); //todo
         }
 
         public override AutomationElement BrowserMainWindowAutomationElement(IntPtr hWnd)
@@ -81,15 +81,21 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
 
         public AutomationElement SkypeFocusAutomationElement(IntPtr hWnd)
         {
-            return null; //todo
+            throw new NotImplementedException(); //todo
         }
         #endregion
         #region WhatsApp
         protected override AutomationElement WhatsAppTab(IntPtr hWnd)
         {
-            return null; //todo
+            throw new NotImplementedException(); //todo
         }
         #endregion
 
+        #region Telegram
+        protected override AutomationElement TelegramTab(IntPtr hWnd)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

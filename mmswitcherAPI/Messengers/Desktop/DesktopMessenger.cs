@@ -30,7 +30,6 @@ namespace mmswitcherAPI.Messengers.Desktop
             var isVisible = WinApi.ShowWindow(base._windowHandle, ShowWindowEnum.Show);
             if (!isVisible)
                 RestoreFromTray();
-            //  Thread.Sleep(100);
             else
                 FocusableAE.SetFocus();
         }
@@ -65,13 +64,15 @@ namespace mmswitcherAPI.Messengers.Desktop
             }
             else
                 Tools.SimulateClickUIAutomation(trayButton, UserPromotedNotificationArea, (IntPtr)UserPromotedNotificationArea.Current.NativeWindowHandle);
+            Thread.Sleep(100);
             return true;
         }
 
         private AutomationElement TrayButton()
         {
-            var trayButtons = UserPromotedNotificationArea.FindAll(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Button));
-            var trayButton = trayButtons.Cast<AutomationElement>().First(x => x.Current.Name.Contains(TrayButtonName));
+            var trayButtons = UserPromotedNotificationArea.FindAll(TreeScope.Subtree, Condition.TrueCondition);
+
+            var trayButton = trayButtons.Cast<AutomationElement>().FirstOrDefault(x => x.Current.Name.Contains(TrayButtonName));
             if (trayButton == null)
                 throw new Exception(string.Format("Cannot find {0} in a user promoted notification area. Messenger notify icon should be shown in a notification area.", TrayButtonName));
             return trayButton;
@@ -86,10 +87,7 @@ namespace mmswitcherAPI.Messengers.Desktop
             {
                 var isVisible = WinApi.ShowWindow(hWnd, ShowWindowEnum.Show);
                 if (!isVisible)
-                {
                     RestoreFromTray();
-                    Thread.Sleep(100);
-                }
                 hWnd = process.MainWindowHandle;
                 if (hWnd == IntPtr.Zero)
                     throw new Exception(string.Format("Cannot get main window handle of {0} process.", process.ProcessName));

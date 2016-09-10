@@ -28,6 +28,12 @@ namespace mmswitcherAPI.Messengers.Web
             }
         }
 
+        private void TrySubscribeToTabNameChangeEvent()
+        {
+            if (WindowsMessagesTrapper.Dispatcher != null)
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { EnsureSubscribedToTabNameChangeEvent(); });
+        }
+
         private void EnsureSubscribedToTabNameChangeEvent()
         {
             if (_tabNameChangeHookHandle == IntPtr.Zero)
@@ -37,7 +43,7 @@ namespace mmswitcherAPI.Messengers.Web
                 WinApi.GetWindowThreadProcessId(HWnd, out processId);
                 _tabNameChangeHookHandle = WinApi.SetWinEventHook(EventConstants.EVENT_OBJECT_NAMECHANGE, EventConstants.EVENT_OBJECT_NAMECHANGE, IntPtr.Zero, _tabNameChangeDelegate, processId, 0, WINEVENT_OUTOFCONTEXT);
                 if (_tabNameChangeHookHandle == IntPtr.Zero)
-                { 
+                {
                     int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
@@ -47,8 +53,10 @@ namespace mmswitcherAPI.Messengers.Web
         }
         private void TryUnsubscribeFromTabNameChangeEvent()
         {
+            if (WindowsMessagesTrapper.Dispatcher == null)
+                return;
             if (_tabNameChanged == null)
-                ForceUnsunscribeFromTabNameChangeEvent();
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromTabNameChangeEvent(); });
             else
                 throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
@@ -62,7 +70,7 @@ namespace mmswitcherAPI.Messengers.Web
                 _tabNameChangeDelegate = null;
                 if (result == false)
                 {
-                  int errorCode = Marshal.GetLastWin32Error();
+                    int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
             }
@@ -78,6 +86,12 @@ namespace mmswitcherAPI.Messengers.Web
                 return;
             var e = new EventArgs();
             _tabSelected.Invoke(hWnd, e);
+        }
+
+        private void TrySubscribeToTabSelectedEvent()
+        {
+            if (WindowsMessagesTrapper.Dispatcher != null)
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromTabNameChangeEvent(); });
         }
 
         private void EnsureSubscribedToTabSelectedEvent()
@@ -100,8 +114,10 @@ namespace mmswitcherAPI.Messengers.Web
         }
         private void TryUnsubscribeFromTabSelectedEvent()
         {
+            if (WindowsMessagesTrapper.Dispatcher == null)
+                return;
             if (_tabSelected == null)
-                ForceUnsunscribeFromTabSelectedEvent();
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromTabSelectedEvent(); });
             else
                 throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
@@ -135,6 +151,12 @@ namespace mmswitcherAPI.Messengers.Web
             _tabSelectionCountChanged.Invoke(hWnd, e);
         }
 
+        private void TrySubscribeToTabSelectionCountChangedEvent()
+        {
+            if (WindowsMessagesTrapper.Dispatcher != null)
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { EnsureSubscribedToTabSelectionCountChangedEvent(); });
+        }
+
         private void EnsureSubscribedToTabSelectionCountChangedEvent()
         {
             if (_tabSelectionCountChangedHookHandle == IntPtr.Zero)
@@ -149,15 +171,17 @@ namespace mmswitcherAPI.Messengers.Web
                     int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
-                if (_tabSelectionCountChangedHookHandle == (IntPtr)(- 1))
+                if (_tabSelectionCountChangedHookHandle == (IntPtr)(-1))
                     _tabSelectionCountChangedHookHandle = IntPtr.Zero;
             }
 
         }
         private void TryUnsubscribeFromTabSelectionCountChangedEvent()
         {
+            if (WindowsMessagesTrapper.Dispatcher == null)
+                return;
             if (_tabSelectionCountChanged == null)
-                ForceUnsunscribeFromTabSelectionCountChangedEvent();
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromTabSelectionCountChangedEvent(); });
             else
                 throw new InvalidOperationException("Cant unsubscribe from hook. Event still have subscribers.");
         }
@@ -186,10 +210,16 @@ namespace mmswitcherAPI.Messengers.Web
 
         private void ClosedHookProc(IntPtr hWinEventHook, int iEvent, IntPtr hWnd, int idObject, int idChild, int dwEventThread, int dwmsEventTime)
         {
-           if (hWnd == IntPtr.Zero || hWnd != HWnd)
+            if (hWnd == IntPtr.Zero || hWnd != HWnd)
                 return;
             var e = new EventArgs();
             _tabClosed.Invoke(hWnd, e);
+        }
+
+        private void TrySubscribeToTabClosedEvent()
+        {
+            if (WindowsMessagesTrapper.Dispatcher != null)
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { EnsureSubscribedToTabClosedEvent(); });
         }
 
         private void EnsureSubscribedToTabClosedEvent()
@@ -205,15 +235,17 @@ namespace mmswitcherAPI.Messengers.Web
                     int errorCode = Marshal.GetLastWin32Error();
                     throw new Win32Exception(errorCode);
                 }
-                if (_closedHookHandle == (IntPtr)(- 1))
+                if (_closedHookHandle == (IntPtr)(-1))
                     _closedHookHandle = IntPtr.Zero;
             }
 
         }
         private void TryUnsubscribeFromTabClosedEvent()
         {
+            if (WindowsMessagesTrapper.Dispatcher == null)
+                return;
             if (_tabClosed == null)
-                ForceUnsunscribeFromTabCLosedEvent();
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromTabCLosedEvent(); });
         }
 
         private void ForceUnsunscribeFromTabCLosedEvent()

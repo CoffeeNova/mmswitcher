@@ -15,13 +15,14 @@ namespace mmswitcherAPI.Messengers
     /// </summary>
     internal partial class MessengerHookManager : IDisposable
     {
-        
+
         //private event EventHandler _messangerTabFocusChanged;
         public IntPtr HWnd { get { return _hWnd; } }
         private IntPtr _hWnd;
 
         public MessengerHookManager(IntPtr hWnd)
         {
+            WindowsMessagesTrapper.Start();
             _hWnd = hWnd;
         }
         #region FocusChanged
@@ -34,7 +35,7 @@ namespace mmswitcherAPI.Messengers
         {
             add
             {
-                EnsureSubscribedToFocusChangedEvent();
+                TrySubscribeToFocusChangedEvent();
                 _focusChanged += value;
             }
             remove
@@ -53,13 +54,12 @@ namespace mmswitcherAPI.Messengers
         {
             add
             {
-                EnsureSubscribedToEventsListener();
+                TrySubscribeToEventsListener();
                 _eventsListener += value;
             }
             remove
             {
                 _eventsListener -= value;
-                TryUnsubscribeFromEventsListener();
                 TryUnsubscribeFromEventsListener();
             }
         }
@@ -69,14 +69,20 @@ namespace mmswitcherAPI.Messengers
 
         protected virtual void Dispose(bool disposing)
         {
-            if(_disposed)
+            if (_disposed)
                 return;
 
-            if(disposing)
+            if (disposing)
             {
                 _hWnd = IntPtr.Zero;
+                try
+                {
+                    TryUnsubscribeFromFocusChangedEvent();
+                    TryUnsubscribeFromEventsListener();
+                }
+                catch (InvalidOperationException) { }
             }
-            TryUnsubscribeFromFocusChangedEvent();
+
             _disposed = true;
         }
 
@@ -88,6 +94,8 @@ namespace mmswitcherAPI.Messengers
 
         ~MessengerHookManager()
         {
+            _focusChanged = null;
+            _eventsListener = null;
             Dispose(false);
         }
     }

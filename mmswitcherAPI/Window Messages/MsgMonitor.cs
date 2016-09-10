@@ -12,31 +12,19 @@ namespace mmswitcherAPI.winmsg
     /// <summary>
     /// Предоставляет интерфейс для мониторинга сообщений Windows
     /// </summary>
-    public abstract class MsgMonitor
+    public abstract class MsgMonitor : IDisposable
     {
-        public object MessagesTrapper;
-        public readonly uint[] MsgNotify;
-        private bool _disposed = false;
-        private HwndSource _hwndWindow;
-        private WindowsMessagesTrapper _msgReceiver;
-
-        private bool _isWpfSpecial = false;
-        private bool shellHookWindowRegistered = false;
-
-        public delegate void MsgEventHandler(object sender, IntPtr hWnd, ShellEvents shell);
-
-        //Происходит при обнаружении нужного сообщения
-        public event MsgEventHandler onMessageTraced;
-
         /// <summary>
         /// Конструктор для общих сообщений.
         /// </summary>
         /// <param name="window">Окно WPF.</param>
         /// <param name="msgNotify">Значения сообщений. См. http://wiki.winehq.org/List_Of_Windows_Messages </param>
+        /// <exception cref="InvalidOperationException">Вызывающий поток не является потоком графического интерфейса окна <paramref name="window"/>.</example>
         public MsgMonitor(Window window, params WindowMessage[] msgNotify)
         {
+            UIThreadException(window);
             _isWpfSpecial = true;
-            MessagesTrapper = window;
+            _messagesTrapper = window;
             MsgNotify = msgNotify.Cast<uint>().ToArray(); ;
             _hwndWindow = PresentationSource.FromVisual(MessagesTrapper as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
@@ -64,7 +52,7 @@ namespace mmswitcherAPI.winmsg
         public MsgMonitor(params WindowMessage[] msgNotify)
             : this()
         {
-            MessagesTrapper = _msgReceiver;
+            _messagesTrapper = _msgReceiver;
             MsgNotify = msgNotify.Cast<uint>().ToArray();
             WindowsMessagesTrapper.onWndProc += MessageTrace;
         }
@@ -88,7 +76,8 @@ namespace mmswitcherAPI.winmsg
         /// Конструктор для пользовательских сообщений.
         /// </summary>
         /// <param name="CustomMessage"></param>
-        public MsgMonitor(params string[] CustomMessage) : this()
+        public MsgMonitor(params string[] CustomMessage)
+            : this()
         {
             var registredHandles = CustomMessage.Select<string, uint>((s, i) => { return WinApi.RegisterWindowMessage(s); });
             MsgNotify = registredHandles.ToArray();
@@ -102,10 +91,12 @@ namespace mmswitcherAPI.winmsg
         /// </summary>
         /// <param name="CustomMessage"></param>
         /// <param name="window">Окно Wpf.</param>
+        /// <exception cref="InvalidOperationException">Вызывающий поток не является потоком графического интерфейса окна <paramref name="window"/>.</example>
         public MsgMonitor(Window window, params string[] CustomMessage)
         {
+            UIThreadException(window);
             _isWpfSpecial = true;
-            MessagesTrapper = window;
+            _messagesTrapper = window;
             var registredHandles = CustomMessage.Select<string, uint>((s, i) => { return WinApi.RegisterWindowMessage(s); });
             MsgNotify = registredHandles.ToArray();
             if (CustomMessage.Any((s) => s.Equals("SHELLHOOK")))
@@ -116,9 +107,18 @@ namespace mmswitcherAPI.winmsg
 
         private MsgMonitor()
         {
-            WindowsMessagesTrapper.Start();
             _msgReceiver = WindowsMessagesTrapper.Instance;
-            MessagesTrapper = _msgReceiver;
+            _messagesTrapper = _msgReceiver;
+        }
+
+        private void UIThreadException(Window window)
+        {
+            try { var handle = window.WindowState; }
+            catch (InvalidOperationException ex)
+            {
+                if (string.Equals(ex.Message, "The calling thread cannot access this object because a different thread owns it."))
+                    throw new InvalidOperationException("Should use this constructor only in UI thread.", ex);
+            }
         }
 
         private void RegisterShellHookWindow()
@@ -130,7 +130,7 @@ namespace mmswitcherAPI.winmsg
             WinApi.RegisterShellHookWindow(handle);
             shellHookWindowRegistered = true;
         }
-        
+
         private void UnregisterShellHookWindow()
         {
             if (!shellHookWindowRegistered)
@@ -168,24 +168,26 @@ namespace mmswitcherAPI.winmsg
         {
             if (!_disposed)
             {
+
                 if (disposing)
                 {
-                    MessagesTrapper = null;
+                    try
+                    {
+                        if (!_isWpfSpecial)
+                            UnregisterShellHookWindow();
+                    }
+                    catch { }
+                    _messagesTrapper = null;
                     if (_isWpfSpecial)
                         _hwndWindow.RemoveHook(new HwndSourceHook(MessageTrace));
                     WindowsMessagesTrapper.onWndProc -= MessageTrace;
-                    WindowsMessagesTrapper.Stop();
-                    _hwndWindow.Dispose();
+                    
+                    if (_hwndWindow != null)
+                        _hwndWindow.Dispose();
                     _msgReceiver.Dispose();
                     onMessageTraced = null;
                 }
 
-                try
-                {
-                    if (!_isWpfSpecial)
-                        UnregisterShellHookWindow();
-                }
-                catch { }
                 _disposed = true;
             }
         }
@@ -200,6 +202,24 @@ namespace mmswitcherAPI.winmsg
         {
             Dispose(false);
         }
+
+        /// <summary>
+        /// Объект формы, которая перехватывает сообщения Windows.
+        /// <remarks>Может быть представлена классом <see cref="mmswitcherAPI.winmsg.WindowsMessagesTrapper"/>, либо <see cref="System.Windows.Window"/>, в зависимости от конструктора.</remarks>
+        /// </summary>
+        public object MessagesTrapper { get { return _messagesTrapper; } }
+
+        public readonly uint[] MsgNotify;
+        private bool _disposed = false;
+        private HwndSource _hwndWindow;
+        private WindowsMessagesTrapper _msgReceiver;
+        private bool _isWpfSpecial = false;
+        private bool shellHookWindowRegistered = false;
+        private object _messagesTrapper;
+        public delegate void MsgEventHandler(object sender, IntPtr hWnd, ShellEvents shell);
+
+        //Происходит при обнаружении нужного сообщения
+        public event MsgEventHandler onMessageTraced;
     }
 
 }

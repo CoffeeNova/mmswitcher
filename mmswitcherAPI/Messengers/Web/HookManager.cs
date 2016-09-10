@@ -15,7 +15,11 @@ namespace mmswitcherAPI.Messengers.Web
     /// </summary>
     internal partial class WebMessengerHookManager : IDisposable
     {
-        
+        public WebMessengerHookManager()
+        {
+            WindowsMessagesTrapper.Start();
+        }
+
         //private event EventHandler _messangerTabFocusChanged;
         public IntPtr HWnd { get { return _hWnd; } }
         public BrowserSet _browserSet;
@@ -37,7 +41,7 @@ namespace mmswitcherAPI.Messengers.Web
         {
             add
             {
-                EnsureSubscribedToTabNameChangeEvent();
+                TrySubscribeToTabNameChangeEvent();
                 _tabNameChanged += value;
             }
             remove
@@ -53,7 +57,7 @@ namespace mmswitcherAPI.Messengers.Web
         {
             add
             {
-                EnsureSubscribedToTabSelectedEvent();
+                TrySubscribeToTabSelectedEvent();
                 _tabSelected += value;
             }
             remove
@@ -69,7 +73,7 @@ namespace mmswitcherAPI.Messengers.Web
         {
             add
             {
-                EnsureSubscribedToTabSelectionCountChangedEvent();
+                TrySubscribeToTabSelectionCountChangedEvent();
                 _tabSelectionCountChanged += value;
             }
             remove
@@ -84,7 +88,7 @@ namespace mmswitcherAPI.Messengers.Web
         {
             add
             {
-                EnsureSubscribedToTabClosedEvent();
+                TrySubscribeToTabClosedEvent();
                 _tabClosed += value;
             }
             remove
@@ -101,18 +105,24 @@ namespace mmswitcherAPI.Messengers.Web
 
         protected virtual void Dispose(bool disposing)
         {
-            if(_disposed)
+            if (_disposed)
                 return;
 
-            if(disposing)
+            if (disposing)
             {
                 _browserSet = null;
                 _hWnd = IntPtr.Zero;
+
+                try
+                {
+                    TryUnsubscribeFromTabNameChangeEvent();
+                    TryUnsubscribeFromTabSelectedEvent();
+                    TryUnsubscribeFromTabSelectionCountChangedEvent();
+                    TryUnsubscribeFromTabClosedEvent();
+                }
+                catch (InvalidOperationException) { }
             }
-            TryUnsubscribeFromTabNameChangeEvent();
-            TryUnsubscribeFromTabSelectedEvent();
-            TryUnsubscribeFromTabSelectionCountChangedEvent();
-            TryUnsubscribeFromTabClosedEvent();
+
             _disposed = true;
         }
 
@@ -124,6 +134,10 @@ namespace mmswitcherAPI.Messengers.Web
 
         ~WebMessengerHookManager()
         {
+            _tabNameChanged = null;
+            _tabSelected = null;
+            _tabSelectionCountChanged = null;
+            _tabClosed = null;
             Dispose(false);
         }
     }

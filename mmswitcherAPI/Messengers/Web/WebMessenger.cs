@@ -102,8 +102,6 @@ namespace mmswitcherAPI.Messengers.Web
                 return;
             InitBrowserSet(base._process);
 
-            CacheAutomationElementProperties(base._windowHandle, ref _incomeMessageAE, (s) => GetIncomeMessageAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
-
             CacheAutomationElementProperties(base._windowHandle, ref _browserWindowAE, (s) => _browserSet.BrowserMainWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
 
             _tabControl = _browserSet.BrowserTabControl(_browserWindowAE);
@@ -312,7 +310,7 @@ namespace mmswitcherAPI.Messengers.Web
             {
                 if (_hManager != null)
                 {
-                    _incomeMessageAE = null;
+                    //_incomeMessageAE = null;
                     _hManager.TabSelected -= _hManager_TabSelected;
                     //_hManager.TabSelectionCountChanged -= _hManager_TabSelectionCountChanged;
                     _hManager.Dispose();
@@ -328,17 +326,6 @@ namespace mmswitcherAPI.Messengers.Web
         /// Посоеднее время переключения вкладки браузера.
         /// </summary>
         public DateTime TabSelectedTime { get; private set; }
-
-        protected AutomationElement IncomeMessageAE
-        {
-            get
-            {
-                if (_incomeMessageAE.IsAlive())
-                    return _incomeMessageAE;
-                else
-                { Dispose(true); return null; }
-            }
-        }
 
         protected override int IncomeMessages { get; set; }
 
@@ -372,7 +359,6 @@ namespace mmswitcherAPI.Messengers.Web
         private AutomationElement _selectedTab;
         private AutomationElement _previousSelectedTab;
         private bool _browserComponentsInitialized = false;
-        private AutomationElement _incomeMessageAE;
         private bool _disposed = false;
         private AutomationPropertyChangedEventHandler propertyHandler = null;
         private bool _onMessageProcesseongSubsribed = false;

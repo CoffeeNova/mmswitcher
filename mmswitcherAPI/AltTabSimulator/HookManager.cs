@@ -6,8 +6,12 @@ using System.Threading.Tasks;
 
 namespace mmswitcherAPI.AltTabSimulator
 {
-    internal partial class HookManager
+    internal partial class AltTabHookManager : IDisposable
     {
+        public AltTabHookManager()
+        {
+            WindowsMessagesTrapper.Start();
+        }
         private event EventHandler s_ForegroundChanged;
         /// <summary>
         /// 
@@ -16,7 +20,7 @@ namespace mmswitcherAPI.AltTabSimulator
         {
             add
             {
-                EnsureSubscribedToForegroundChangedEvent();
+                TrySubscribeToForegroundChangedEvent();
                 s_ForegroundChanged += value;
             }
             remove
@@ -24,6 +28,34 @@ namespace mmswitcherAPI.AltTabSimulator
                 s_ForegroundChanged -= value;
                 TryUnsubscribeFromForegroundChangedEvent();
             }
+        }
+
+        private bool _disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                try { TryUnsubscribeFromForegroundChangedEvent(); }
+                catch (InvalidOperationException) { }
+            }
+
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~AltTabHookManager()
+        {
+            s_ForegroundChanged = null;
+            Dispose(false);
         }
     }
 }
