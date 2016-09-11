@@ -35,8 +35,7 @@ namespace mmswitcherAPI.Messengers.Web
 
             _selectedTab = _tabArray[0];
             _previousSelectedTab = _tabArray[1];
-            // _hManager = new WebMessengerHookManager(base.WindowHandle, _browserSet);
-            // _hManager.TabClosed += _hManager_TabClosed;
+            IncomeMessages = GetMessagesCount(base.IncomeMessageAE);
         }
 
 
@@ -153,7 +152,7 @@ namespace mmswitcherAPI.Messengers.Web
             {
                 mesTab = _browserSet.MessengerTab(widgetHandle);
             }
-            catch (ElementNotAvailableException ex)
+            catch (ElementNotAvailableException)
             {
                 return null;
             }

@@ -53,7 +53,7 @@ namespace Click_
             this.desctopToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
             this.webVersionToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
             this.bindsToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
-
+            this.notifyIcon1.Text = Constants.NOTIFY_ICON_TEXT;
         }
 
 

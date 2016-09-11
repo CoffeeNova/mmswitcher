@@ -148,7 +148,7 @@ namespace mmswitcherAPI.Messengers.Desktop
         protected override void OnMessageProcessingSubscribe()
         {
             if (_messageProcessingTimer == null)
-                _messageProcessingTimer = new Timer(MessagesProcessingTimerCallback, null, 3000, 1000);
+                _messageProcessingTimer = new Timer(MessagesProcessingTimerCallback, null, 50, 1000);
         }
 
         protected override void OnMessageProcessingUnSubscribe()

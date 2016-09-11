@@ -124,7 +124,7 @@ namespace mmswitcherAPI.Messengers
                 var focusedMessenger = MessengerBase.Activity.FirstOrDefault((x) => x.Focused);
                 if (focusedMessenger == null)
                 {
-                    Recent();
+                    MessengerBase.Activity.First().SetForeground();
                     return;
                 }
                 var nextMessengerIndex = MessengerBase.Activity.IndexOf(focusedMessenger) + 1;
