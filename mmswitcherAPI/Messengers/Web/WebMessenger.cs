@@ -196,7 +196,7 @@ namespace mmswitcherAPI.Messengers.Web
 
         public void ReturnPreviousSelectedTab()
         {
-            if (_previousSelectedTab != null && _previousSelectedTab.Current.BoundingRectangle != System.Windows.Rect.Empty)
+            if (_previousSelectedTab != null && !_previousSelectedTab.Current.BoundingRectangle.Equals(System.Windows.Rect.Empty))
                     _browserSet.FocusBrowserTab(_windowHandle, _previousSelectedTab);
         }
 

@@ -26,10 +26,8 @@ namespace Click_
 
         internal const string _SKYPE_PROCESSNAME = "skype";
         internal const string _TELEGRAM_PROCESSNAME = "telegram";
-        internal const string _WEBSKYPE_PROCESSNAME = "skype";
-        //internal const string _SKYPE_PROCESSNAME = "skype";
-        //internal const string _SKYPE_PROCESSNAME = "skype";
-
+        internal  static readonly string[] _BROWSERS_PROCESSNAME = new string[4] { "chrome", "opera", "firefox", "iexplore" };
+        
         internal struct MessengerCaption
         {
             public const string Skype = "Skype";

@@ -46,12 +46,12 @@ namespace mmswitcherAPI.Messengers
         /// <summary>
         /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/>.
         /// </summary>
-        public static Collection<MessengerBase> MessengersCollection { get { return _messengersCollection; } }
+        public static List<MessengerBase> MessengersCollection { get { return _messengersCollection; } }
 
         /// <summary>
         /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/> (те, которые имеют непрочитанные сообщения), отсортированных по колличеству полученных сообщений.
         /// </summary>
-        public static Collection<MessengerBase> Activity { get { return _activity; } }
+        public static List<MessengerBase> Activity { get { return _activity; } }
 
         private static AutomationElement _previousNonMessenger;
         /// <summary>
@@ -196,8 +196,8 @@ namespace mmswitcherAPI.Messengers
         private static MessengerBase _lastAlerted = null;
         private static MessengerBase _lastActive = null;
         private WindowLifeCycle _wmmon;
-        private static Collection<MessengerBase> _messengersCollection = new Collection<MessengerBase>();
-        private static Collection<MessengerBase> _activity = new Collection<MessengerBase>();
+        private static List<MessengerBase> _messengersCollection = new List<MessengerBase>();
+        private static List<MessengerBase> _activity = new List<MessengerBase>();
         private MessengerHookManager _hManager;
         #endregion
 

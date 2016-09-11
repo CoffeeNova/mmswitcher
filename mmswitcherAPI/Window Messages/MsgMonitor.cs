@@ -126,8 +126,7 @@ namespace mmswitcherAPI.winmsg
             if (shellHookWindowRegistered)
                 return;
             var disp = WindowsMessagesTrapper.Dispatcher;
-            var handle = (IntPtr)disp.Invoke(new Func<IntPtr>(() => { return _msgReceiver.Handle; }));
-            WinApi.RegisterShellHookWindow(handle);
+            disp.Invoke(new Action(() => { WinApi.RegisterShellHookWindow(_msgReceiver.Handle);}));
             shellHookWindowRegistered = true;
         }
 
@@ -136,8 +135,8 @@ namespace mmswitcherAPI.winmsg
             if (!shellHookWindowRegistered)
                 return;
             var disp = WindowsMessagesTrapper.Dispatcher;
-            var handle = (IntPtr)disp.Invoke(new Func<IntPtr>(() => { return _msgReceiver.Handle; }));
-            WinApi.DeregisterShellHookWindow(handle);
+            disp.Invoke(new Action(() => { WinApi.DeregisterShellHookWindow(_msgReceiver.Handle); }));
+            shellHookWindowRegistered = false;
         }
 
         //Callback функция хука
@@ -168,7 +167,6 @@ namespace mmswitcherAPI.winmsg
         {
             if (!_disposed)
             {
-
                 if (disposing)
                 {
                     try
@@ -181,10 +179,10 @@ namespace mmswitcherAPI.winmsg
                     if (_isWpfSpecial)
                         _hwndWindow.RemoveHook(new HwndSourceHook(MessageTrace));
                     WindowsMessagesTrapper.onWndProc -= MessageTrace;
-                    
+
                     if (_hwndWindow != null)
                         _hwndWindow.Dispose();
-                    _msgReceiver.Dispose();
+                    _msgReceiver = null;
                     onMessageTraced = null;
                 }
 

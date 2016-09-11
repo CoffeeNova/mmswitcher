@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 using NWTweak;
 using System.Windows.Forms;
 using mmswitcherAPI;
+using System.Diagnostics;
+using mmswitcherAPI.Messengers;
+using mmswitcherAPI.Messengers.Desktop;
+using mmswitcherAPI.Messengers.Web;
+
 
 namespace Click_
 {
@@ -67,8 +72,15 @@ namespace Click_
         /// <param name="keyDefaultValue"></param>
         internal static void CheckRegistrySettings(ref string keyValue, string valueName, string keyLocation, string keyDefaultValue)
         {
-            if (RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName) != null)
-                keyValue = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
+            string getkey = null;
+            try
+            {
+                getkey = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
+            }
+            catch (System.IO.IOException) { }
+
+            if (getkey != null)
+                keyValue = getkey;
             else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue))
                 keyValue = keyDefaultValue;
             else
@@ -83,8 +95,15 @@ namespace Click_
         /// <param name="keyDefaultValue"></param>
         internal static void CheckRegistrySettings(ref bool keyValue, string valueName, string keyLocation, bool keyDefaultValue)
         {
-            if (RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName) != null)
-                keyValue = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName) == "true" ? true : false;
+            string getkey = null;
+            try
+            {
+                getkey = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
+            }
+            catch (System.IO.IOException) { }
+
+            if (getkey != null)
+                keyValue = getkey == "true" ? true : false;
             else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue == true ? "true" : "false"))
                 keyValue = keyDefaultValue;
             else
@@ -102,8 +121,14 @@ namespace Click_
         internal static bool CheckRegistrySettings(string valueName, string keyLocation, bool keyDefaultValue)
         {
             bool keyValue;
-            if (RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName) != null)
-                keyValue = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName) == "true" ? true : false;
+            string getkey = null;
+            try
+            {
+                getkey = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
+            }
+            catch (System.IO.IOException) { }
+            if (getkey != null)
+                keyValue = getkey == "true" ? true : false;
             else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue == true ? "true" : "false"))
                 keyValue = keyDefaultValue;
             else
@@ -120,37 +145,45 @@ namespace Click_
         /// <param name="keyDefaultValue"></param>
         internal static void CheckRegistrySettings(ref Keys keyValue, string valueName, string keyLocation, Keys keyDefaultValue)
         {
+            string getkey = null;
             try
             {
-                if (RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName) != null)
-                    keyValue = ConvertFromString(RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName));
-                else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString()))
-                    keyValue = keyDefaultValue;
-                else
-                    throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+                getkey = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
             }
-            catch
-            {
-                throw new InvalidOperationException("WRONG VALUE AT HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
-            }
+            catch (System.IO.IOException) { }
+
+            if (getkey != null)
+                try
+                {
+                    keyValue = ConvertFromString(getkey);
+                }
+                catch { keyValue = keyDefaultValue; }
+            else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString()))
+                keyValue = keyDefaultValue;
+            else
+                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
         }
 
         internal static Keys CheckRegistrySettings(string valueName, string keyLocation, Keys keyDefaultValue)
         {
             Keys keyValue;
+            string getkey = null;
             try
             {
-                if (RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName) != null)
-                    keyValue = ConvertFromString(RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName));
-                else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString()))
-                    keyValue = keyDefaultValue;
-                else
-                    throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+                getkey = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
             }
-            catch
-            {
-                throw new InvalidOperationException("WRONG VALUE AT HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
-            }
+            catch (System.IO.IOException) { }
+
+            if (getkey != null)
+                try
+                {
+                    keyValue = ConvertFromString(getkey);
+                }
+                catch { keyValue = keyDefaultValue; }
+            else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString()))
+                keyValue = keyDefaultValue;
+            else
+                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
             return keyValue;
         }
 
@@ -170,9 +203,16 @@ namespace Click_
                 return test;
             };
 
-            if (RegistryWorker.GetKeyValue<string[]>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName) != null)
+            string[] getkey = null;
+            try
             {
-                string[] keyValueReg = RegistryWorker.GetKeyValue<string[]>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
+                getkey = RegistryWorker.GetKeyValue<string[]>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
+            }
+            catch (System.IO.IOException) { }
+
+            if (getkey != null)
+            {
+                string[] keyValueReg = getkey;
                 Func<string, Gbc.KeyModifierStuck> func = (value) =>
                 {
                     Gbc.KeyModifierStuck mod;
@@ -242,5 +282,17 @@ namespace Click_
         {
             return gbc.ToString();
         }
+
+        internal static string DefineProcessName(IntPtr hWnd)
+        {
+            if (hWnd == IntPtr.Zero)
+                throw new ArgumentNullException("hWnd cannot be IntPtr.Zero.");
+            int processId;
+            WinApi.GetWindowThreadProcessId(hWnd, out processId);
+            var process = Process.GetProcessById(processId);
+            return process.ProcessName;
+        }
+
+
     }
 }

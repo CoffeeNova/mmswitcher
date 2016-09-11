@@ -121,7 +121,7 @@ namespace mmswitcherAPI.Messengers
                 return;
             if (MessengerBase.Activity.First().NewMessagesCount == 0)
             {
-                var focusedMessenger = MessengerBase.Activity.First((x) => x.Focused);
+                var focusedMessenger = MessengerBase.Activity.FirstOrDefault((x) => x.Focused);
                 if (focusedMessenger == null)
                 {
                     Recent();
@@ -143,7 +143,7 @@ namespace mmswitcherAPI.Messengers
             if (messengersCount == 0)
                 return;
 
-            var focusedMessenger = MessengerBase.MessengersCollection.First((x) => x.Focused);
+            var focusedMessenger = MessengerBase.MessengersCollection.FirstOrDefault((x) => x.Focused);
             if (focusedMessenger == null)
             {
                 Recent();

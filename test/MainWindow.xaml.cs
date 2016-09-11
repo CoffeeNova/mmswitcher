@@ -89,19 +89,19 @@ namespace test
                 //aws.Dispose();
                 //Thread.Sleep(50000);
                 //-------------------------------
-            //   var inst = WindowsMessagesTrapper.Instance;
-            //    var key = new KeyValuePair<System.Windows.Forms.Keys, GlobalBindController.KeyModifierStuck>(System.Windows.Forms.Keys.A, GlobalBindController.KeyModifierStuck.Alt);
-            //    var list = new List<KeyValuePair<GlobalBindController.KeyModifierStuck, Action>>();
-            //    list.Add(new KeyValuePair<GlobalBindController.KeyModifierStuck, Action>(key.Value, new Action(() => { Console.WriteLine("LOL"); })));
+                //   var inst = WindowsMessagesTrapper.Instance;
+                //    var key = new KeyValuePair<System.Windows.Forms.Keys, GlobalBindController.KeyModifierStuck>(System.Windows.Forms.Keys.A, GlobalBindController.KeyModifierStuck.Alt);
+                //    var list = new List<KeyValuePair<GlobalBindController.KeyModifierStuck, Action>>();
+                //    list.Add(new KeyValuePair<GlobalBindController.KeyModifierStuck, Action>(key.Value, new Action(() => { Console.WriteLine("LOL"); })));
 
-            //GlobalBindController gbc = new GlobalBindController(key.Key, GlobalBindController.BindMethod.RegisterHotKey, GlobalBindController.HookBehaviour.Replacement, list);
-            //gbc.Execute = true;
+                //GlobalBindController gbc = new GlobalBindController(key.Key, GlobalBindController.BindMethod.RegisterHotKey, GlobalBindController.HookBehaviour.Replacement, list);
+                //gbc.Execute = true;
 
-            //gbc.Dispose();
+                //gbc.Dispose();
             });
             thread.Name = "Test Thread";
             thread.Start();
-            
+
         }
 
         void aws_onActiveWindowStackChanged(StackAction action, IntPtr hWnd)
@@ -181,19 +181,20 @@ namespace test
 
 
 
-            var telegramProcesses = System.Diagnostics.Process.GetProcessesByName("telegram");
-            if (telegramProcesses.Count() > 0)
-                telegram = Telegram.Instance(telegramProcesses.First());
-            telegram.GotFocus += ws_GotFocus;
-            telegram.LostFocus += ws_LostFocus;
+            //    var telegramProcesses = System.Diagnostics.Process.GetProcessesByName("telegram");
+            //    if (telegramProcesses.Count() > 0)
+            //        telegram = Telegram.Instance(telegramProcesses.First());
+            //    telegram.GotFocus += ws_GotFocus;
+            //    telegram.LostFocus += ws_LostFocus;
 
 
 
-            telegram.SetForeground();
+            //    telegram.SetForeground();
 
-            var skypeProcesses = System.Diagnostics.Process.GetProcessesByName("skype");
-            if (skypeProcesses.Count() > 0)
-                skype = Skype.Instance(skypeProcesses.First());
+            //    var skypeProcesses = System.Diagnostics.Process.GetProcessesByName("skype");
+            //    if (skypeProcesses.Count() > 0)
+            //        skype = Skype.Instance(skypeProcesses.First());
+            //}
         }
     }
 }
