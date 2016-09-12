@@ -59,6 +59,7 @@
     <Compile Include="Controls\BindControl.Designer.cs">
       <DependentUpon>BindControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Extensions\Text.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -26,7 +26,7 @@ namespace mmswitcherAPI.AltTabSimulator
         public delegate void StackActionDelegate(StackAction action, IntPtr hWnd);
 
         /// <summary>
-        /// Вызывается при изменении свойства <see cref="ActiveWindowStack"/>.
+        /// Вызывается при изменении свойства <see cref="ActiveWindowStack.WindowStack"/>.
         /// </summary>
         public event StackActionDelegate onActiveWindowStackChanged;
 

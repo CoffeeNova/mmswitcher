@@ -11,20 +11,24 @@ namespace mmswitcherAPI.Messengers.Desktop
 {
     public class Skype : DesktopMessenger
     {
-        private Skype(Process process) : base(process) { }
-
-        public static Skype Instance(Process process)
+        public Skype(Process process)
+            : base(process)
         {
-            if (_instance == null)
-            {
-                lock (_locker)
-                {
-                    if (_instance == null)
-                        _instance = new Skype(process);
-                }
-            }
-            return _instance;
+            if (process == null)
+                throw new ArgumentException();
         }
+        //public static Skype Instance(Process process)
+        //{
+        //    if (_instance == null)
+        //    {
+        //        lock (_locker)
+        //        {
+        //            if (_instance == null)
+        //                _instance = new Skype(process);
+        //        }
+        //    }
+        //    return _instance;
+        //}
 
         private AutomationElement GetChatEditControlManually(IntPtr hWnd)
         {
@@ -43,7 +47,7 @@ namespace mmswitcherAPI.Messengers.Desktop
         {
             var data = new VariableData();
             var mainModuleAddress = base._process.MainModule.BaseAddress;
-            
+
             var pointer = new IntPtr(Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER);
             var handle = WinApi.OpenProcess(ProcessSecurityAndAccessRights.PROCESS_VM_READ, false, base._process.Id);
 
@@ -68,15 +72,15 @@ namespace mmswitcherAPI.Messengers.Desktop
                 return;
             if (disposing)
             {
-                _locker = null;
-                _instance = null;
+               // _locker = null;
+               // _instance = null;
             }
             _disposed = true;
             base.Dispose(disposing);
         }
 
-        public static Skype _instance;
-        private static object _locker = new object();
+        //public static Skype _instance;
+        //private static object _locker = new object();
         private string _trayButtonName = Constants.SKYPE_TRAY_BUTTON_NAME;
         private bool _disposed = false;
     }

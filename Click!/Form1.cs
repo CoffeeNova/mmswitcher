@@ -53,7 +53,7 @@ namespace Click_
             this.desctopToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
             this.webVersionToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
             this.bindsToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
-
+            this.notifyIcon1.Text = Constants.NOTIFY_ICON_TEXT;
         }
 
 
@@ -174,16 +174,16 @@ namespace Click_
                 MessengerStart<Telegram>(Constants._TELEGRAM_PROCESSNAME, Constants.MessengerCaption.Telegram);
             if (DetectMessenger.WebSkype)
                 MessengerStart<WebSkype>(Constants.MessengerCaption.WebSkype);
-            //if (DetectMessenger.WebTelegram)
-            //    MessengerStart<WebTelegram>(Constants._WEBTELEGRAM_PROCESSNAME, Constants.MessengerCaption.WebTelegram);
-            //if (DetectMessenger.WebWhatsApp)
-            //    MessengerStart<WebWhatsApp>(Constants._WEBWHATSAPP_PROCESSNAME, Constants.MessengerCaption.WebWhatsApp);
+            if (DetectMessenger.WebTelegram)
+                MessengerStart<WebTelegram>(Constants.MessengerCaption.WebTelegram);
+            if (DetectMessenger.WebWhatsApp)
+                MessengerStart<WebWhatsApp>(Constants.MessengerCaption.WebWhatsApp);
         }
 
-        //
+        //for web messengers version
         private void MessengerStart<T>(string caption) where T : WebMessenger
         {
-            var processNameList = new List<string>() { "chrome", "opera", "firefox", "iexplore" };
+            var processNameList = Constants._BROWSERS_PROCESSNAME;
 
             foreach (var processName in processNameList)
                 MessengerStart<T>(processName, caption + " - " + processName);
@@ -218,19 +218,22 @@ namespace Click_
 
         void messenger_MessageGone(MessengerBase wss)
         {
+            var icon = (System.Drawing.Icon)(_resources.GetObject("winlogo_blue2.Icon"));
+            if (this.notifyIcon1.Icon.Equals(icon))
+                return;
+
             if (!MessengerBase.MessengersCollection.Any((p) => p.NewMessagesCount > 0))
-                this.notifyIcon1.Icon = ((System.Drawing.Icon)(_resources.GetObject("winlogo_blue2.Icon")));
+                this.notifyIcon1.Icon = icon;
         }
 
         void messenger_GotNewMessage(MessengerBase wss)
         {
-            if (MessengerBase.MessengersCollection.Any((p) => p.NewMessagesCount > 0))
-                this.notifyIcon1.Icon = ((System.Drawing.Icon)(_resources.GetObject("winlogo_with_message.Icon")));
-        }
+            var icon = (System.Drawing.Icon)(_resources.GetObject("winlogo_with_message.Icon"));
+            if (this.notifyIcon1.Icon.Equals(icon))
+                return;
 
-        private void MessangerStop(MessengerBase messenger)
-        {
-            messenger.Dispose();
+            if (MessengerBase.MessengersCollection.Any((p) => p.NewMessagesCount > 0))
+                this.notifyIcon1.Icon = icon;
         }
 
         private void ToolStripMenuItemsConditionChanger(ToolStripMenuItem menuItem, string itemText1, string itemText2, Action<bool> func1, Action<bool> func2)
@@ -330,6 +333,51 @@ namespace Click_
             else
                 ControllerUnsubscribe(switchBy);
         }
+
+        private void SubscribeFunctionForDesktopMessenger<T>(bool isSubscribe, Messenger messenger, string messengerCaption, string processName) where T : DesktopMessenger
+        {
+            if (isSubscribe)
+            {
+                MessengerStart<T>(messengerCaption, processName);
+                _windows.onActiveWindowStackChanged += (action, hWnd) => _windows_onActiveWindowStackChanged(action, hWnd, messenger);
+            }
+            else
+            {
+                MessengerBase.MessengersCollection.RemoveAll((x) =>
+                {
+                    if (x.GetType() == typeof(T))
+                    {
+                        x.Dispose();
+                        return true;
+                    }
+                    return false;
+                });
+                _windows.onActiveWindowStackChanged -= (action, hWnd) => _windows_onActiveWindowStackChanged(action, hWnd, messenger);
+            }
+        }
+
+        private void SubscribeFunctionForWebMessenger<T>(bool isSubscribe, Messenger messenger, string messengerCaption) where T : WebMessenger
+        {
+            if (isSubscribe)
+            {
+                MessengerStart<T>(messengerCaption);
+                _windows.onActiveWindowStackChanged += (action, hWnd) => _windows_onActiveWindowStackChanged(action, hWnd, messenger);
+            }
+            else
+            {
+                MessengerBase.MessengersCollection.RemoveAll((x) =>
+                {
+                    if (x.GetType() == typeof(T))
+                    {
+                        x.Dispose();
+                        return true;
+                    }
+                    return false;
+                });
+                _windows.onActiveWindowStackChanged -= (action, hWnd) => _windows_onActiveWindowStackChanged(action, hWnd, messenger);
+            }
+        }
+
         #region MOUSE CLICK MENUS CALLBACKS
 
         private void activityToolStripMenuItem_Click(object sender, EventArgs e)
@@ -337,7 +385,7 @@ namespace Click_
             ToolStripMenuStateOperator(lastUsedToolStripMenuItem, ref Control.LastUsed, Constants._LAST_USED_MENU_KEY, Constants.ControlCaption.LastUsed, Constants.ControlCaption.LastUsed);
             ControllerAction(SwitchBy.Recent, Control.LastUsed);
             ControlMenuRefresh(SwitchBy.Recent);
-            lastUsedToolStripMenuItem.DropDown.Refresh();
+            //lastUsedToolStripMenuItem.DropDown.Refresh();
         }
 
         private void lastActiveMessengerToolStripMenuItem_Click(object sender, EventArgs e)
@@ -359,31 +407,34 @@ namespace Click_
             System.Environment.Exit(0);
         }
 
-
         private void skypeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ToolStripMenuStateOperator(skypeToolStripMenuItem, ref DetectMessenger.Skype, Constants._SKYPE_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.Skype, Constants.MessengerCaption.Skype);
-
+            ToolStripMenuStateOperator(sender as ToolStripMenuItem, ref DetectMessenger.Skype, Constants._SKYPE_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.Skype, Constants.MessengerCaption.Skype);
+            SubscribeFunctionForDesktopMessenger<Skype>(DetectMessenger.Skype, Messenger.Skype, Constants.MessengerCaption.Skype, Constants._SKYPE_PROCESSNAME);
         }
 
         private void telegramToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(telegramToolStripMenuItem, ref DetectMessenger.Telegram, Constants._TELEGRAM_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.Telegram, Constants.MessengerCaption.Telegram);
+            SubscribeFunctionForDesktopMessenger<Telegram>(DetectMessenger.Telegram, Messenger.Telegram, Constants.MessengerCaption.Telegram, Constants._TELEGRAM_PROCESSNAME);
         }
 
         private void webSkypeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(webSkypeToolStripMenuItem, ref DetectMessenger.WebSkype, Constants._WEBSKYPE_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.WebSkype, Constants.MessengerCaption.WebSkype);
+            SubscribeFunctionForWebMessenger<WebSkype>(DetectMessenger.WebSkype, Messenger.WebSkype, Constants.MessengerCaption.WebSkype);
         }
 
         private void webWhatsAppToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(webWhatsAppToolStripMenuItem, ref DetectMessenger.WebWhatsApp, Constants._WEBWHATSAPP_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.WebWhatsApp, Constants.MessengerCaption.WebWhatsApp);
+            SubscribeFunctionForWebMessenger<WebWhatsApp>(DetectMessenger.WebWhatsApp, Messenger.WebWhatsApp, Constants.MessengerCaption.WebWhatsApp);
         }
 
         private void webTelegramToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(webTelegramToolStripMenuItem, ref DetectMessenger.WebTelegram, Constants._WEBTELEGRAM_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.WebTelegram, Constants.MessengerCaption.WebTelegram);
+            SubscribeFunctionForWebMessenger<WebTelegram>(DetectMessenger.WebTelegram, Messenger.WebTelegram, Constants.MessengerCaption.WebTelegram);
         }
 
         #endregion
@@ -563,12 +614,42 @@ namespace Click_
             mp.ModSetter(bindPair.Mods);
         }
 
+        void _windows_onActiveWindowStackChanged(StackAction action, IntPtr hWnd, Messenger messenger)
+        {
+            if (action != StackAction.Added)
+                return;
+
+            var processName = Internal.DefineProcessName(hWnd);
+            switch (messenger)
+            {
+                case (Messenger.Skype):
+                    if (processName.Equals(Constants._SKYPE_PROCESSNAME))
+                        MessengerStart<Skype>(processName, Constants.MessengerCaption.Skype);
+                    break;
+                case (Messenger.Telegram):
+                    if (processName.Equals(Constants._TELEGRAM_PROCESSNAME))
+                        MessengerStart<Telegram>(processName, Constants.MessengerCaption.Telegram);
+                    break;
+                case (Messenger.WebSkype):
+                    if (Constants._BROWSERS_PROCESSNAME.Any((p) => p.Equals(processName)))
+                        MessengerStart<WebSkype>(processName, Constants.MessengerCaption.WebSkype);
+                    break;
+                case (Messenger.WebTelegram):
+                    if (Constants._BROWSERS_PROCESSNAME.Any((p) => p.Equals(processName)))
+                        MessengerStart<WebTelegram>(processName, Constants.MessengerCaption.WebTelegram);
+                    break;
+                case (Messenger.WebWhatsApp):
+                    if (Constants._BROWSERS_PROCESSNAME.Any((p) => p.Equals(processName)))
+                        MessengerStart<WebWhatsApp>(processName, Constants.MessengerCaption.WebWhatsApp);
+                    break;
+            }
+
+        }
         #endregion
 
 
         #region private variables
         private static MessengerController _mControl;
-
         private ActiveWindowStack _windows;
         //private Skype _skype;
         //private Telegram _telegram;
@@ -580,7 +661,25 @@ namespace Click_
             new System.ComponentModel.ComponentResourceManager(typeof(Click));
         #endregion
 
+        #region private properties
+        #endregion
 
+        #region events
+        //private delegate void MessengerWaitingEventHandler(StackAction action, IntPtr hWnd, Messenger messenger);
+        //private event MessengerWaitingEventHandler MessengerWaitingEvent
+        //{
+        //    add
+        //    {
+        //        if (_messengerWaitingEventSubscribed)
+        //            _windows.onActiveWindowStackChanged += (action, hWnd) => value(action, hWnd, messenger);
+        //        _messengerWaitingEventSubscribed = true;
+        //    }
+        //    remove
+        //    {
+
+        //    }
+        //}
+        #endregion
 
     }
 
@@ -628,9 +727,9 @@ namespace Click_
         public static event BindEvent KeyChanged;
         public static event BindEvent ModsChanged;
 
-        private static BindPair _lastUsed = new BindPair(Keys.A, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
-        private static BindPair _mostNew = new BindPair(Keys.S, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
-        private static BindPair _order = new BindPair(Keys.D, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
+        private static BindPair _lastUsed = new BindPair(Keys.Z, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
+        private static BindPair _mostNew = new BindPair(Keys.X, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
+        private static BindPair _order = new BindPair(Keys.A, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
 
         public static BindPair LastUsed
         {

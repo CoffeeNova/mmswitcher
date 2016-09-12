@@ -58,7 +58,7 @@ namespace Click_
             this.bindsToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 92);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(137, 70);
             // 
             // messengersToolStripMenuItem
             // 
@@ -66,7 +66,7 @@ namespace Click_
             this.desctopToolStripMenuItem,
             this.webVersionToolStripMenuItem});
             this.messengersToolStripMenuItem.Name = "messengersToolStripMenuItem";
-            this.messengersToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.messengersToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.messengersToolStripMenuItem.Text = "Messengers";
             // 
             // desctopToolStripMenuItem
@@ -135,7 +135,7 @@ namespace Click_
             this.mostNewToolStripMenuItem,
             this.orderMessengersToolStripMenuItem});
             this.bindsToolStripMenuItem.Name = "bindsToolStripMenuItem";
-            this.bindsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.bindsToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.bindsToolStripMenuItem.Text = "Select by";
             // 
             // lastUsedToolStripMenuItem
@@ -165,12 +165,13 @@ namespace Click_
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // notifyIcon1
             // 
+            this.notifyIcon1.BalloonTipText = "Click!";
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
             this.notifyIcon1.Visible = true;

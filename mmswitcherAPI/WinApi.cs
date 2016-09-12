@@ -168,9 +168,6 @@ namespace mmswitcherAPI
         //http://stackoverflow.com/questions/3019066/get-all-window-handles-for-a-process
         public delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
 
-        //[DllImport("user32.dll")]
-        //public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
         [DllImport("user32.Dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool EnumChildWindows(IntPtr parentHandle, Win32Callback callback, IntPtr lParam);

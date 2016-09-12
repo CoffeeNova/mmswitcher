@@ -5,14 +5,14 @@ using mmswitcherAPI.Extensions;
 
 namespace mmswitcherAPI.Messengers.Web
 {
-    public sealed class WebSkype : WebMessenger, IDisposable
+    public sealed class WebTelegram : WebMessenger, IDisposable
     {
         public override Messenger Messenger
         {
-            get { return Messenger.WebSkype; }
+            get { return Messenger.WebTelegram; }
         }
 
-        public  WebSkype(Process browserProcess)
+        public WebTelegram(Process browserProcess)
             : base(browserProcess)
         {
             if (browserProcess == null)

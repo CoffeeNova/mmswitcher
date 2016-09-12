@@ -46,55 +46,12 @@ namespace mmswitcherAPI.Messengers
         /// <summary>
         /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/>.
         /// </summary>
-        public static Collection<MessengerBase> MessengersCollection { get { return _messengersCollection; } }
+        public static List<MessengerBase> MessengersCollection { get { return _messengersCollection; } }
 
         /// <summary>
         /// Коллекция созданных и активных объектов класса <see cref="MessengerBase"/> (те, которые имеют непрочитанные сообщения), отсортированных по колличеству полученных сообщений.
         /// </summary>
-        public static Collection<MessengerBase> Activity { get { return _activity; } }
-
-        private static AutomationElement _previousNonMessenger;
-        /// <summary>
-        /// Элемент модели автоматизации, которая служит индикатором получения фокуса для предыдущего активного окна, не являющимся мессенджером.
-        /// </summary>
-        //protected static AutomationElement PreviousNonMessenger
-        //{
-        //    get { return _previousNonMessenger; }
-        //    private set
-        //    {
-        //        if (MessengerBase.MessengersCollection.SingleOrDefault((m) => m._focusableAE == value) == null)
-        //            _previousNonMessenger = value;
-        //    }
-        //}
-        /// <summary>
-        /// 
-        /// </summary>
-        //protected bool IncomeMessages
-        //{
-        //    get { return _incomeMessages; }
-        //    set
-        //    {
-        //        if (value && !value.Equals(_incomeMessages))
-        //        {
-        //            _incomeMessages = value;
-        //            NewMessagesCount++;
-        //            PushToActivity(this);
-
-        //            if (GotNewMessage != null)
-        //                GotNewMessage(this);
-        //        }
-        //        if (!value && !value.Equals(_incomeMessages))
-        //        {
-        //            _incomeMessages = value;
-        //            NewMessagesCount = 0;
-        //            PullFromActivity(this);
-
-        //            if (MessagesGone != null)
-        //                MessagesGone(this);
-
-        //        }
-        //    }
-        //}
+        public static List<MessengerBase> Activity { get { return _activity; } }
 
         public int NewMessagesCount
         {
@@ -191,13 +148,12 @@ namespace mmswitcherAPI.Messengers
 
         #region private fields
         private bool _focused = false;
-        //private bool _incomeMessages = false;
         private int _newMessagesCount = 0;
         private static MessengerBase _lastAlerted = null;
         private static MessengerBase _lastActive = null;
         private WindowLifeCycle _wmmon;
-        private static Collection<MessengerBase> _messengersCollection = new Collection<MessengerBase>();
-        private static Collection<MessengerBase> _activity = new Collection<MessengerBase>();
+        private static List<MessengerBase> _messengersCollection = new List<MessengerBase>();
+        private static List<MessengerBase> _activity = new List<MessengerBase>();
         private MessengerHookManager _hManager;
         #endregion
 
@@ -364,40 +320,6 @@ namespace mmswitcherAPI.Messengers
                 element = getAutomationDel.Invoke(process, out hWnd);
             }
         }
-
-        //public static void SwitchToMostActive()
-        //{
-        //    if (_activity.Count > 0)
-        //    {
-        //        var messenger = _activity.First((m) => { return m.NewMessagesCount > 0; }); //
-        //        if (messenger != null)
-        //            messenger.SetForeground();
-        //        //else
-        //        //    LastAlerted.ReturnForeground();
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Выводит на передний план
-        ///// </summary>
-        //public static void SwitchToLastAlerted()
-        //{
-        //    if (LastAlerted == null)
-        //        return;
-        //    if (!LastAlerted.Focused)
-        //        LastAlerted.SetForeground();
-        //    else
-        //        LastAlerted.ReturnForeground();
-
-        //}
-
-        //public static void SwitchToLastActive()
-        //{
-        //    if (!LastAlerted.Focused)
-        //    LastActive.SetForeground();
-        //    else
-        //        LastActive.ReturnForeground();
-        //}
 
         public abstract void SetForeground();
 

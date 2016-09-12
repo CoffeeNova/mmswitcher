@@ -5,14 +5,14 @@ using mmswitcherAPI.Extensions;
 
 namespace mmswitcherAPI.Messengers.Web
 {
-    public sealed class WebSkype : WebMessenger, IDisposable
+    public sealed class WebWhatsApp : WebMessenger, IDisposable
     {
         public override Messenger Messenger
         {
-            get { return Messenger.WebSkype; }
+            get { return Messenger.WebWhatsApp; }
         }
 
-        public  WebSkype(Process browserProcess)
+        public WebWhatsApp(Process browserProcess)
             : base(browserProcess)
         {
             if (browserProcess == null)

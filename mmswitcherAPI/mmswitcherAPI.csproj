@@ -90,7 +90,9 @@
     <Compile Include="Messengers\Web\Browsers\Opera.cs" />
     <Compile Include="Messengers\Web\Skype.cs" />
     <Compile Include="Messengers\Web\Browsers\TorBrowser.cs" />
+    <Compile Include="Messengers\Web\Telegram.cs" />
     <Compile Include="Messengers\Web\WebMessenger.cs" />
+    <Compile Include="Messengers\Web\WhatsApp.cs" />
     <Compile Include="WinApi.cs" />
     <Compile Include="Messengers\MessengerBase.cs" />
     <Compile Include="Window Messages\GlobalHookTraper.cs" />
