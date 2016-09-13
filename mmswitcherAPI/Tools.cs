@@ -262,7 +262,7 @@ namespace mmswitcherAPI
         /// <param name="child"></param>
         /// <param name="parent"></param>
         /// <param name="handle"></param>
-        internal static void SimulateClickUIAutomation(AutomationElement child, AutomationElement parent, IntPtr handle)
+        internal static void SimulateClickUIAutomation(AutomationElement child, AutomationElement parent, IntPtr handle, bool isDoubleClick)
         {
             if (child == null) throw new ArgumentNullException("child");
             if (parent == null) throw new ArgumentNullException("parent");
@@ -278,10 +278,13 @@ namespace mmswitcherAPI
 
             //create lParam
             int point = (int)clickPoint.Y << 16 | (int)clickPoint.X;
-            //point = 10 << 16 | 110;
-
-            WinApi.PostMessage(handle, Constants.WM_LBUTTONDOWN, (IntPtr)Constants.MK_LBUTTON, (IntPtr)point);
-            WinApi.PostMessage(handle, Constants.WM_LBUTTONUP, IntPtr.Zero, (IntPtr)point);
+            if(isDoubleClick)
+                WinApi.PostMessage(handle, Constants.WM_LBUTTONDBLCLK, (IntPtr)Constants.MK_LBUTTON, (IntPtr)point);
+            else
+            {
+                WinApi.PostMessage(handle, Constants.WM_LBUTTONDOWN, (IntPtr)Constants.MK_LBUTTON, (IntPtr)point);
+                WinApi.PostMessage(handle, Constants.WM_LBUTTONUP, IntPtr.Zero, (IntPtr)point);
+            }
         }
 
         /// <summary>

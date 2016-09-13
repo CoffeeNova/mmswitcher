@@ -35,7 +35,7 @@ namespace mmswitcherAPI.Messengers.Web
 
             _selectedTab = _tabArray[0];
             _previousSelectedTab = _tabArray[1];
-            IncomeMessages = GetMessagesCount(base.IncomeMessageAE);
+            base.IncomeMessages = GetMessagesCount(base.IncomeMessageAE);
         }
 
 
@@ -164,12 +164,12 @@ namespace mmswitcherAPI.Messengers.Web
         /// </summary>
         /// <param name="hWnd">Хэндл окна браузера.</param>
         /// <returns></returns>
-        protected override AutomationElement GetFocusRecieverAutomationElement(IntPtr hWnd)
+        protected override List<AutomationElement> GetFocusRecieverAutomationElement(IntPtr hWnd)
         {
             if (_browserSet == null)
                 InitBrowserSet(base._process);
 
-            return _browserSet.MessengerFocusAutomationElement(hWnd);
+            return new List<AutomationElement>(){_browserSet.MessengerFocusAutomationElement(hWnd)};
         }
 
         /// <summary>
@@ -245,21 +245,25 @@ namespace mmswitcherAPI.Messengers.Web
         {
             var element = sender as AutomationElement;
             if (element == IncomeMessageAE)
-                IncomeMessages = GetMessagesCount(element);
+                base.IncomeMessages = GetMessagesCount(element);
         }
 
         protected abstract int GetMessagesCount(AutomationElement element);
 
+        /// <summary>
+        /// Регистрирует метод, который будет обрабатывать события изменения свойства <see cref="AutomationElement.NameProperty"/> 
+        /// </summary>
         protected override void OnMessageProcessingSubscribe()
         {
             propertyHandler = new AutomationPropertyChangedEventHandler(OnMessageProcessing);
             Automation.AddAutomationPropertyChangedEventHandler(IncomeMessageAE, TreeScope.Element, propertyHandler, AutomationElement.NameProperty);
-            _onMessageProcesseongSubsribed = true;
+            _onMessageProcessingSubsribed = true;
+            base.IncomeMessages = GetMessagesCount(IncomeMessageAE);
         }
 
         protected override void OnMessageProcessingUnSubscribe()
         {
-            if (propertyHandler != null && _onMessageProcesseongSubsribed)
+            if (propertyHandler != null && _onMessageProcessingSubsribed)
                 Automation.RemoveAutomationPropertyChangedEventHandler(IncomeMessageAE, propertyHandler);
         }
 
@@ -309,9 +313,7 @@ namespace mmswitcherAPI.Messengers.Web
             {
                 if (_hManager != null)
                 {
-                    //_incomeMessageAE = null;
                     _hManager.TabSelected -= _hManager_TabSelected;
-                    //_hManager.TabSelectionCountChanged -= _hManager_TabSelectionCountChanged;
                     _hManager.Dispose();
                 }
                 _browserSet = null;
@@ -325,8 +327,6 @@ namespace mmswitcherAPI.Messengers.Web
         /// Посоеднее время переключения вкладки браузера.
         /// </summary>
         public DateTime TabSelectedTime { get; private set; }
-
-        protected override int IncomeMessages { get; set; }
 
         /// <summary>
         /// <see cref="AutomationElement"/> окна, которое непосредственно отображает рабочие элементы веб мессенджера и создается/уничтожается при создании/закрытии вкладки.
@@ -360,7 +360,7 @@ namespace mmswitcherAPI.Messengers.Web
         private bool _browserComponentsInitialized = false;
         private bool _disposed = false;
         private AutomationPropertyChangedEventHandler propertyHandler = null;
-        private bool _onMessageProcesseongSubsribed = false;
+        private bool _onMessageProcessingSubsribed = false;
         #endregion
     }
 }

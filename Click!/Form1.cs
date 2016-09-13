@@ -53,7 +53,7 @@ namespace Click_
             this.desctopToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
             this.webVersionToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
             this.bindsToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
-            this.notifyIcon1.Text = Constants.NOTIFY_ICON_TEXT;
+            this.notifyIcon1.Text = Constants._NOTIFY_ICON_TEXT;
         }
 
 
@@ -169,15 +169,15 @@ namespace Click_
         private void MessengersInit()
         {
             if (DetectMessenger.Skype)
-                MessengerStart<Skype>(Constants._SKYPE_PROCESSNAME, Constants.MessengerCaption.Skype);
+                SubscribeFunctionForDesktopMessenger<Skype>(DetectMessenger.Skype, Messenger.Skype, Constants.MessengerCaption.Skype, Constants._SKYPE_PROCESSNAME);
             if (DetectMessenger.Telegram)
-                MessengerStart<Telegram>(Constants._TELEGRAM_PROCESSNAME, Constants.MessengerCaption.Telegram);
+                SubscribeFunctionForDesktopMessenger<Telegram>(DetectMessenger.Telegram, Messenger.Telegram, Constants.MessengerCaption.Telegram, Constants._TELEGRAM_PROCESSNAME);
             if (DetectMessenger.WebSkype)
-                MessengerStart<WebSkype>(Constants.MessengerCaption.WebSkype);
-            if (DetectMessenger.WebTelegram)
-                MessengerStart<WebTelegram>(Constants.MessengerCaption.WebTelegram);
+                SubscribeFunctionForWebMessenger<WebSkype>(DetectMessenger.WebSkype, Messenger.WebSkype, Constants.MessengerCaption.WebSkype);
             if (DetectMessenger.WebWhatsApp)
-                MessengerStart<WebWhatsApp>(Constants.MessengerCaption.WebWhatsApp);
+                SubscribeFunctionForWebMessenger<WebWhatsApp>(DetectMessenger.WebWhatsApp, Messenger.WebWhatsApp, Constants.MessengerCaption.WebWhatsApp);
+            if (DetectMessenger.WebTelegram)
+                SubscribeFunctionForWebMessenger<WebTelegram>(DetectMessenger.WebTelegram, Messenger.WebTelegram, Constants.MessengerCaption.WebTelegram);
         }
 
         //for web messengers version
@@ -192,6 +192,9 @@ namespace Click_
 
         private void MessengerStart<T>(string processName, string caption) where T : IMessenger
         {
+            var exist = MessengerBase.MessengersCollection.Any((p) => p.GetType() == typeof(T));
+            if (exist)
+                return;
             var processes = Process.GetProcessesByName(processName);
             if (processes.Count() == 0)
                 return;
@@ -202,37 +205,42 @@ namespace Click_
             if (typeof(T).BaseType == typeof(DesktopMessenger))
                 process = processes.FirstOrDefault();
             if (process == null)
+
                 return;
-
-            try
+            bool created = false;
+            while (!created)
             {
-                var messenger = MessengerBase.Create<T>(process);
-                messenger.Caption = caption;
+                try
+                {
+                    var messenger = MessengerBase.Create<T>(process);
+                    messenger.Caption = caption;
 
-                messenger.GotNewMessage += messenger_GotNewMessage;
-                messenger.MessageGone += messenger_MessageGone;
+                    messenger.GotNewMessage += messenger_GotNewMessage;
+                    messenger.MessageGone += messenger_MessageGone;
+                    created = true;
+                }
+                catch (MessengerBuildException) { System.Threading.Thread.Sleep(2000); }
             }
-            catch (MessengerBuildException) { }
 
         }
 
         void messenger_MessageGone(MessengerBase wss)
         {
-            var icon = (System.Drawing.Icon)(_resources.GetObject("winlogo_blue2.Icon"));
+            var icon = Properties.Resources.winlogo_blue2;
             if (this.notifyIcon1.Icon.Equals(icon))
                 return;
 
-            if (!MessengerBase.MessengersCollection.Any((p) => p.NewMessagesCount > 0))
+            if (!MessengerBase.MessengersCollection.Any((p) => p.IncomeMessages > 0))
                 this.notifyIcon1.Icon = icon;
         }
 
         void messenger_GotNewMessage(MessengerBase wss)
         {
-            var icon = (System.Drawing.Icon)(_resources.GetObject("winlogo_with_message.Icon"));
+            var icon = Properties.Resources.winlogo_with_message;
             if (this.notifyIcon1.Icon.Equals(icon))
                 return;
 
-            if (MessengerBase.MessengersCollection.Any((p) => p.NewMessagesCount > 0))
+            if (MessengerBase.MessengersCollection.Any((p) => p.IncomeMessages > 0))
                 this.notifyIcon1.Icon = icon;
         }
 

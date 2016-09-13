@@ -119,7 +119,7 @@ namespace mmswitcherAPI.Messengers
             var messengersCount = MessengerBase.MessengersCollection.Count;
             if (messengersCount == 0)
                 return;
-            if (MessengerBase.Activity.First().NewMessagesCount == 0)
+            if (MessengerBase.Activity.First().IncomeMessages == 0)
             {
                 var focusedMessenger = MessengerBase.Activity.FirstOrDefault((x) => x.Focused);
                 if (focusedMessenger == null)

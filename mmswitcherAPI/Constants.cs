@@ -45,8 +45,9 @@ namespace mmswitcherAPI
         internal const int CTRL_F = 0xA20046; //ctrl+F 
 
         internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_SIZE = 4;
-        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_BASE_ADDRESS = 0x02C4F570;
-        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_OFFSET = 0;
+        //internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER = 0x034238B8;
+        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_BASE_ADDRESS = 0x0327C69F;
+        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_OFFSET = 48304;
 
         internal const int SKYPE_NEWMESSAGESCOUNT_MEMORY_SIZE = 4;
         internal const int SKYPE_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER = 0x00B7344C;
@@ -74,5 +75,7 @@ namespace mmswitcherAPI
 
         internal const string TELEGRAM_TRAY_BUTTON_NAME = "Telegram Desktop";
         internal const string SKYPE_TRAY_BUTTON_NAME = "Skype";
+
+        internal const string SKYPE_MAINWINDOW_CLASSNAME = "tSkMainForm";
     }
 }

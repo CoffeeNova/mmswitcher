@@ -13,8 +13,8 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
         AutomationElement BrowserTabControlWindowAutomationElement(IntPtr hWnd);
         AutomationElement BrowserTabControl(AutomationElement windowAe);
         AutomationElement MessengerTab(IntPtr hWnd);
-        AutomationElement MessengerFocusAutomationElement(IntPtr hWnd);
         AutomationElement MessengerIncomeMessageAutomationElement(IntPtr hWnd);
+        AutomationElement MessengerFocusAutomationElement(IntPtr hWnd);
     }
 
     public abstract class BrowserSet : IBrowserSet
@@ -152,7 +152,7 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
                 throw new ElementNotAvailableException("Messenger tab is not available in a browser.", ex);
             }
             //simulate mouse click
-            Tools.SimulateClickUIAutomation(messengerTab, windowAE, hWnd);
+            Tools.SimulateClickUIAutomation(messengerTab, windowAE, hWnd, false);
             return true;
         }
 
@@ -167,7 +167,7 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
             var windowAE = BrowserMainWindowAutomationElement(hWnd);
             if (windowAE == null)
                 return false;
-            Tools.SimulateClickUIAutomation(tab, windowAE, hWnd);
+            Tools.SimulateClickUIAutomation(tab, windowAE, hWnd, false);
             return true;
         }
 

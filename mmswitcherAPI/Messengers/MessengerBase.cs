@@ -53,24 +53,31 @@ namespace mmswitcherAPI.Messengers
         /// </summary>
         public static List<MessengerBase> Activity { get { return _activity; } }
 
-        public int NewMessagesCount
+        /// <summary>
+        /// Колличество непрочитанных сообщений в представляемом мессенджере.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        /// <remarks>Обычно в мессенджерах изменяется графический интерфейс иконки при получении нового сообщения, или название, тулбар или переменная в памяти.</remarks>
+        public int IncomeMessages
         {
-            get { return _newMessagesCount; }
+            get { return _incomeMessages; }
             set
             {
-                if (value > _newMessagesCount)
+                if (value > _incomeMessages)
                 {
+                    _incomeMessages = value;
                     PushToActivity(this);
                     if (GotNewMessage != null)
                         GotNewMessage(this);
                 }
-                if (value < _newMessagesCount)
+                else if (value < _incomeMessages)
                 {
+                    _incomeMessages = value;
                     PullFromActivity(this);
                     if (MessageGone != null)
                         MessageGone(this);
                 }
-                _newMessagesCount = value;
             }
         }
 
@@ -121,9 +128,9 @@ namespace mmswitcherAPI.Messengers
             }
         }
 
-        private AutomationElement _focusableAE;
+        private List<AutomationElement> _focusableAE;
 
-        protected AutomationElement FocusableAE
+        protected List<AutomationElement> FocusableAE
         {
             get
             {
@@ -148,13 +155,14 @@ namespace mmswitcherAPI.Messengers
 
         #region private fields
         private bool _focused = false;
-        private int _newMessagesCount = 0;
+        private int _incomeMessages = 0;
         private static MessengerBase _lastAlerted = null;
         private static MessengerBase _lastActive = null;
         private WindowLifeCycle _wmmon;
         private static List<MessengerBase> _messengersCollection = new List<MessengerBase>();
         private static List<MessengerBase> _activity = new List<MessengerBase>();
         private MessengerHookManager _hManager;
+        protected AutomationElement _lastFocusedElement;
         #endregion
 
         internal protected MessengerBase(Process msgProcess)
@@ -171,7 +179,6 @@ namespace mmswitcherAPI.Messengers
                 CacheAutomationElementProperties(msgProcess, out hWnd, ref _messengerAE, aEdel, AutomationElement.NativeWindowHandleProperty);
                 CacheAutomationElementProperties(hWnd, ref _incomeMessageAE, (s) => GetIncomeMessageAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
                 CacheAutomationElementProperties(hWnd, ref _focusableAE, (s) => GetFocusRecieverAutomationElement(s), AutomationElement.ClassNameProperty, AutomationElement.NativeWindowHandleProperty);
-
             }
             catch
             {
@@ -179,29 +186,20 @@ namespace mmswitcherAPI.Messengers
             }
 
             _windowHandle = hWnd;
-            
+
             GotNewMessage += MessengerBase_GotNewMessage;
-            NewMessagesCount = IncomeMessages;
             _wmmon = new WindowLifeCycle();
             _wmmon.onMessageTraced += OnMessageTraced;
             _hManager = new MessengerHookManager(_windowHandle);
 
             _messengersCollection.Add(this);
             _activity.Add(this);
-
             SetForeground();
-             OnFocusChangedSubscribe();
-            OnMessageProcessingSubscribe();
-        }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="derivedType">Тип класса.</param>
-        /// <param name="process"></param>
-        /// <returns></returns>
-        
-        /// 
+            OnFocusChangedSubscribe();
+            OnMessageProcessingSubscribe();
+            System.Threading.Thread.Sleep(2000);
+        }
 
         /// <summary>
         /// Создает новый экземпляр класса типа <typeparamref name="T"/>
@@ -212,8 +210,13 @@ namespace mmswitcherAPI.Messengers
         /// <remarks>Пример создания экземпляра класса: Skype derivedClass = BaseClass.Create&lt;Skype&gt;(process);</remarks>
         public static T Create<T>(Process process) where T : IMessenger
         {
-            var newMessenger = (T)Activator.CreateInstance(typeof(T), process);
-            return newMessenger;
+            try
+            {
+                var newMessenger = (T)Activator.CreateInstance(typeof(T), process);
+                return newMessenger;
+            }
+            catch (TargetInvocationException)
+            { throw new MessengerBuildException("Cannot build a messenger"); }
         }
 
         /// <summary>
@@ -226,7 +229,7 @@ namespace mmswitcherAPI.Messengers
         }
 
         /// <summary>
-        /// Callback метод события <see cref="WindowLifeCycle.onMessageTraced"/>, который вызывает освобождение ресурсов при перехвате сообщения windows о закрытии окна мессенджера или других элементов, помогающих в отслеживании состояния или управления мессенджеромю.
+        /// Callback метод события <see cref="WindowLifeCycle.onMessageTraced"/>, который вызывает освобождение ресурсов при перехвате сообщения windows о закрытии окна мессенджера.
         /// </summary>
         /// <param name="sender">Объект, вызвавший событие.</param>
         /// <param name="hWnd">Дескриптор элемента.</param>
@@ -235,14 +238,22 @@ namespace mmswitcherAPI.Messengers
         {
             if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
                 return;
-            if (hWnd == _windowHandle || hWnd == (IntPtr)_messengerAE.Cached.NativeWindowHandle || hWnd == (IntPtr)_focusableAE.Cached.NativeWindowHandle)
+            if (hWnd == _windowHandle || hWnd == (IntPtr)_messengerAE.Cached.NativeWindowHandle)
                 Dispose(true);
         }
 
-
         protected virtual void OnFocusChanged(object sender, EventArgs e)
         {
-            if ((IntPtr)sender == (IntPtr)FocusableAE.Cached.NativeWindowHandle)
+            var focusResult = (FocusableAE.Any((p) =>
+            {
+                if ((IntPtr)sender == (IntPtr)p.Cached.NativeWindowHandle)
+                {
+                    _lastFocusedElement = p;
+                    return true;
+                }
+                else return false;
+            }));
+            if (focusResult)
                 Focused = true;
             else
                 Focused = false;
@@ -256,20 +267,19 @@ namespace mmswitcherAPI.Messengers
         private static void PullFromActivity(MessengerBase messengerBase)
         {
             if (_activity.Count > 0)
-                _activity.OrderByDescending((messenger) => { return messenger.NewMessagesCount; });
+                _activity.OrderByDescending(messenger => { return messenger.IncomeMessages; }).ToList(); ;
         }
 
         private static void PushToActivity(MessengerBase messengerBase)
         {
-            //_activity.Add(messengerBase);
             if (_activity.Count > 0)
-                _activity.OrderByDescending((messenger) => { return messenger.NewMessagesCount; });
+                _activity = _activity.OrderByDescending(messenger => { return messenger.IncomeMessages; }).ToList();
         }
 
         protected delegate AutomationElement GetAutomationDel(IntPtr hWnd);
 
         /// <summary>
-        /// Кэширует заданные свойства или паттерны <paramref name="cacheData"/> при поиске <see cref="AutomationElement"/> методом, представленным делегатом <paramref name="getAutomationDel"/> по дескриптору окна <paramref name="hWnd"/>.
+        /// Кэширует заданные свойства или паттерны <paramref name="cacheData"/> при создании <paramref name="element"/> методом, представленным делегатом <paramref name="getAutomationDel"/> по дескриптору окна <paramref name="hWnd"/>.
         /// </summary>
         /// <param name="hWnd"></param>
         /// <param name="element"></param>
@@ -298,16 +308,46 @@ namespace mmswitcherAPI.Messengers
             }
         }
 
+        protected delegate List<AutomationElement> GetFocusedAEDel(IntPtr hWnd);
+
+        /// <summary>
+        /// Кэширует заданные свойства или паттерны <paramref name="cacheData"/> при создании <paramref name="element"/> методом, представленным делегатом <paramref name="getFocusedAEDel"/> по дескриптору окна <paramref name="hWnd"/>.
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="element"></param>
+        /// <param name="getFocusedAEDel"></param>
+        /// <param name="cacheData"></param>
+        protected void CacheAutomationElementProperties(IntPtr hWnd, ref List<AutomationElement> element, GetFocusedAEDel getFocusedAEDel, params AutomationIdentifier[] cacheData)
+        {
+
+            var cacheRequest = new CacheRequest();
+            foreach (var ai in cacheData)
+            {
+                var aPropType = typeof(AutomationProperty);
+                var aPattType = typeof(AutomationPattern);
+                if (ai.GetType() == aPropType)
+                    cacheRequest.Add((AutomationProperty)ai);
+                else if ((ai.GetType() == aPattType))
+                    cacheRequest.Add((AutomationPattern)ai);
+                else
+                    throw new ArgumentException(string.Format("CacheData has a wrong type."));
+            }
+            using (cacheRequest.Activate())
+            {
+                element = getFocusedAEDel.Invoke(hWnd);
+            }
+        }
+
         private delegate AutomationElement GetMessengerAEDel(Process process, out IntPtr hWnd);
 
         /// <summary>
-        /// Кэширует заданные свойства <paramref name="properties"/> при поиске <see cref="AutomationElement"/> методом, представленным делегатом <paramref name="getAutomationDel"/> по процессу окна <paramref name="process"/>.
+        /// Кэширует заданные свойства <paramref name="properties"/> при создании <paramref name="element"/> методом, представленным делегатом <paramref name="getMessengerAEDel"/> по процессу окна <paramref name="process"/>.
         /// </summary>
         /// <param name="process"></param>
         /// <param name="element"></param>
         /// <param name="getAutomationDel"></param>
         /// <param name="properties"></param>
-        private void CacheAutomationElementProperties(Process process, out IntPtr hWnd, ref AutomationElement element, GetMessengerAEDel getAutomationDel, params AutomationProperty[] properties)
+        private void CacheAutomationElementProperties(Process process, out IntPtr hWnd, ref AutomationElement element, GetMessengerAEDel getMessengerAEDel, params AutomationProperty[] properties)
         {
             var cacheRequest = new CacheRequest();
             foreach (var property in properties)
@@ -317,7 +357,7 @@ namespace mmswitcherAPI.Messengers
 
             using (cacheRequest.Activate())
             {
-                element = getAutomationDel.Invoke(process, out hWnd);
+                element = getMessengerAEDel.Invoke(process, out hWnd);
             }
         }
 
@@ -332,22 +372,14 @@ namespace mmswitcherAPI.Messengers
         protected abstract AutomationElement GetMainAutomationElement(Process process, out IntPtr hWnd);
 
         /// <summary>
-        /// Колличество непрочитанных сообщений в представляемом мессенджере.
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        /// <remarks>Обычно в мессенджерах изменяется графический интерфейс иконки при получении нового сообщения, или название, тулбар или переменная в памяти.</remarks>
-        protected abstract int IncomeMessages { get; set; }
-
-        /// <summary>
         /// Определяет <see cref="AutomationElement"/> для <see cref="MessengerBase.FocusableAE"/>, который получает фокус при переключении на окно мессенджера.
         /// </summary>
         /// <param name="hWnd">Хэндл окна мессенджера.</param>
         /// <returns></returns>
         /// <remarks>По-умолчанию <see cref="AutomationElement"/> главного окна мессенджера служит получателем фокуса при переключении на него. </remarks>
-        protected virtual AutomationElement GetFocusRecieverAutomationElement(IntPtr hWnd)
+        protected virtual List<AutomationElement> GetFocusRecieverAutomationElement(IntPtr hWnd)
         {
-            return MessengerAE;
+            return new List<AutomationElement>() { MessengerAE };
         }
 
         /// <summary>
@@ -370,7 +402,7 @@ namespace mmswitcherAPI.Messengers
         }
 
         /// <summary>
-        /// Регистрирует метод, который будет обрабатывать события изменения свойства <see cref="AutomationElement.NameProperty"/> 
+        /// Должен реализовать функцию отслеживания изменения колличества новых сообщений.
         /// </summary>
         /// <remarks>Можно реализовать вручную, например через winapi SetWinEventHook.</remarks>
         protected abstract void OnMessageProcessingSubscribe();

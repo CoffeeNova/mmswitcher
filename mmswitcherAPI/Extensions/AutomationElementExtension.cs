@@ -15,7 +15,22 @@ namespace mmswitcherAPI.Extensions
             {
                 var name = element.Current.Name;
             }
-            catch(ElementNotAvailableException)
+            catch (ElementNotAvailableException)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public static bool IsAlive(this List<AutomationElement> element)
+        {
+            try
+            {
+                string name;
+                foreach (var e in element)
+                    name = e.Current.Name;
+            }
+            catch (ElementNotAvailableException)
             {
                 return false;
             }

@@ -26,7 +26,7 @@ namespace mmswitcherAPI.Messengers
         /// </summary>
         bool Focused { get; }
 
-        int NewMessagesCount { get; set; }
+        int IncomeMessages { get; set; }
 
         /// <summary>
         /// 

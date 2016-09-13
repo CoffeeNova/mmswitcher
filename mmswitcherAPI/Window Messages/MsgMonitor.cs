@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Interop;
 using System.Windows;
 using System.Windows.Threading;
+using System.Diagnostics;
 
 namespace mmswitcherAPI.winmsg
 {
@@ -28,22 +29,8 @@ namespace mmswitcherAPI.winmsg
             MsgNotify = msgNotify.Cast<uint>().ToArray(); ;
             _hwndWindow = PresentationSource.FromVisual(MessagesTrapper as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
+            _instanceList.Add(this);
         }
-
-        ///// <summary>
-        ///// Конструктор для shell сообщений. 
-        ///// </summary>
-        ///// <param name="window">Окно WPF.</param>
-        ///// <remarks>Рекомендуется использовать этот конструктор при разработке WPF приложения.</remarks>
-        //public MsgMonitor(Window window)
-        //{
-        //    _isWpfSpecial = true;
-        //    _control = window;
-        //    _msgNotify = new int[1] { WinApi.`("SHELLHOOK") };
-        //    WinApi.RegisterShellHookWindow(new WindowInteropHelper(window).Handle);
-        //    _hwndWindow = PresentationSource.FromVisual(_control as Window) as HwndSource;
-        //    _hwndWindow.AddHook(MessageTrace);
-        //}
 
         /// <summary>
         /// Конструктор для общих сообщений.
@@ -55,22 +42,8 @@ namespace mmswitcherAPI.winmsg
             _messagesTrapper = _msgReceiver;
             MsgNotify = msgNotify.Cast<uint>().ToArray();
             WindowsMessagesTrapper.onWndProc += MessageTrace;
+            _instanceList.Add(this);
         }
-
-        /// <summary>
-        /// Конструктор для shell сообщений.
-        /// </summary>
-        //public MsgMonitor()
-        //{
-        //    WindowsMessagesHandler.Start();
-        //    _msgReceiver = WindowsMessagesHandler.Instance;
-        //    var disp = WindowsMessagesHandler.Dispatcher;
-        //    _control = _msgReceiver;
-        //    _msgNotify = new int[1] { WinApi.RegisterWindowMessage("SHELLHOOK") };
-        //    var handle = (IntPtr)disp.Invoke(new Func<IntPtr>(() => { return _msgReceiver.Handle; }));
-        //    WinApi.RegisterShellHookWindow(handle);
-        //    WindowsMessagesHandler.onWndProc += MessageTrace;
-        //}
 
         /// <summary>
         /// Конструктор для пользовательских сообщений.
@@ -84,6 +57,7 @@ namespace mmswitcherAPI.winmsg
             if (CustomMessage.Any((s) => s.Equals("SHELLHOOK")))
                 RegisterShellHookWindow();
             WindowsMessagesTrapper.onWndProc += MessageTrace;
+            _instanceList.Add(this);
         }
 
         /// <summary>
@@ -103,6 +77,7 @@ namespace mmswitcherAPI.winmsg
                 WinApi.RegisterShellHookWindow(new WindowInteropHelper(window).Handle);
             _hwndWindow = PresentationSource.FromVisual(MessagesTrapper as Window) as HwndSource;
             _hwndWindow.AddHook(MessageTrace);
+            _instanceList.Add(this);
         }
 
         private MsgMonitor()
@@ -126,14 +101,15 @@ namespace mmswitcherAPI.winmsg
             if (shellHookWindowRegistered)
                 return;
             var disp = WindowsMessagesTrapper.Dispatcher;
-            disp.Invoke(new Action(() => { WinApi.RegisterShellHookWindow(_msgReceiver.Handle);}));
+            disp.Invoke(new Action(() => {WinApi.RegisterShellHookWindow(_msgReceiver.Handle);}));
             shellHookWindowRegistered = true;
         }
 
         private void UnregisterShellHookWindow()
         {
-            if (!shellHookWindowRegistered)
+            if (!shellHookWindowRegistered || _instanceList.Any((p) => !p._isWpfSpecial))
                 return;
+
             var disp = WindowsMessagesTrapper.Dispatcher;
             disp.Invoke(new Action(() => { WinApi.DeregisterShellHookWindow(_msgReceiver.Handle); }));
             shellHookWindowRegistered = false;
@@ -169,6 +145,7 @@ namespace mmswitcherAPI.winmsg
             {
                 if (disposing)
                 {
+                    _instanceList.Remove(this);
                     try
                     {
                         if (!_isWpfSpecial)
@@ -176,7 +153,7 @@ namespace mmswitcherAPI.winmsg
                     }
                     catch { }
                     _messagesTrapper = null;
-                    if (_isWpfSpecial)
+                    if (_isWpfSpecial) //instanceList.Any((p) => p._isWpfSpecial)
                         _hwndWindow.RemoveHook(new HwndSourceHook(MessageTrace));
                     WindowsMessagesTrapper.onWndProc -= MessageTrace;
 
@@ -214,6 +191,7 @@ namespace mmswitcherAPI.winmsg
         private bool _isWpfSpecial = false;
         private bool shellHookWindowRegistered = false;
         private object _messagesTrapper;
+        private static List<MsgMonitor> _instanceList = new List<MsgMonitor>();
         public delegate void MsgEventHandler(object sender, IntPtr hWnd, ShellEvents shell);
 
         //Происходит при обнаружении нужного сообщения

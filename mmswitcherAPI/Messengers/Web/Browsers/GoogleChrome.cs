@@ -77,8 +77,6 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
                     System.Threading.Thread.Sleep(50);
                     var windowAE = BrowserMainWindowAutomationElement(hWnd);
                     var focusAE = DefineFocusHandlerChildren(windowAE);
-                    //if (setFore)
-                    //    ReturnPreviusWindowPositions(hWnd, initForeHwnd, minimWind);
                     return focusAE;
                 }
                 catch { return null; }

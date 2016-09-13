@@ -20,7 +20,11 @@ namespace mmswitcherAPI.Messengers
         {
             if (hWnd == IntPtr.Zero)
                 return;
-            _focusChanged.Invoke(hWnd, new EventArgs());
+            try
+            {
+                _focusChanged.Invoke(hWnd, new EventArgs());
+            }
+            catch { }
         }
 
         private void TrySubscribeToFocusChangedEvent()

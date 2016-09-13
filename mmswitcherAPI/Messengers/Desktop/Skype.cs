@@ -43,9 +43,9 @@ namespace mmswitcherAPI.Messengers.Desktop
             catch { throw new Exception("Cannot find chat edit control."); }
         }
 
-        protected override VariableData GetMessagesCounterData()
+        protected override MemoryVariableData GetMessagesCounterData()
         {
-            var data = new VariableData();
+            var data = new MemoryVariableData();
             var mainModuleAddress = base._process.MainModule.BaseAddress;
 
             var pointer = new IntPtr(Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER);
@@ -58,6 +58,7 @@ namespace mmswitcherAPI.Messengers.Desktop
             data.Address = (IntPtr)BitConverter.ToInt32(buffer, 0);
             data.Size = Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_SIZE;
             data.Offset = Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_OFFSET;
+            data.Divider = 0;
             return data;
         }
 
@@ -66,21 +67,51 @@ namespace mmswitcherAPI.Messengers.Desktop
             get { return _trayButtonName; }
         }
 
+        protected override List<AutomationElement> GetFocusRecieverAutomationElement(IntPtr hWnd)
+        {
+            var allSkypeElements = base.MessengerAE.FindAll(TreeScope.Subtree, Condition.TrueCondition);
+            var elementsAsList = new AutomationElement[allSkypeElements.Count];
+            allSkypeElements.CopyTo(elementsAsList, 0);
+            return elementsAsList.ToList();
+        }
+
+        protected override IntPtr GetMainWindowHandle(Process process)
+        {
+            var handle = process.MainWindowHandle;
+            var windowContent = Tools.GetClassName(handle);
+            if (windowContent == Constants.SKYPE_MAINWINDOW_CLASSNAME)
+                return handle;
+            else
+                return IntPtr.Zero;
+        }
+
+        protected override bool RestoreFromTray()
+        {
+            var trayButton = TrayButton();
+            Tools.SimulateClickUIAutomation(trayButton, UserPromotedNotificationArea, (IntPtr)UserPromotedNotificationArea.Current.NativeWindowHandle, true);
+            Thread.Sleep(100);
+            return true;
+        }
+
         protected override void Dispose(bool disposing)
         {
-            if (_disposed)
-                return;
-            if (disposing)
+            lock (_locker)
             {
-               // _locker = null;
-               // _instance = null;
+                if (_disposed)
+                    return;
+                if (disposing)
+                {
+                    // _locker = null;
+                    // _instance = null;
+                }
+                _disposed = true;
             }
-            _disposed = true;
+
             base.Dispose(disposing);
         }
 
         //public static Skype _instance;
-        //private static object _locker = new object();
+        private static object _locker = new object();
         private string _trayButtonName = Constants.SKYPE_TRAY_BUTTON_NAME;
         private bool _disposed = false;
     }
