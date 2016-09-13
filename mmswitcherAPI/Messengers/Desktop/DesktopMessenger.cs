@@ -31,7 +31,10 @@ namespace mmswitcherAPI.Messengers.Desktop
             if (!isVisible)
                 RestoreFromTray();
             else
+            {
+                Tools.RestoreWindow(base._windowHandle);
                 WinApi.SetForegroundWindow(base._windowHandle);
+            }
         }
 
         protected override AutomationElement GetMainAutomationElement(Process process, out IntPtr hWnd)
@@ -59,6 +62,7 @@ namespace mmswitcherAPI.Messengers.Desktop
 
         private IntPtr TryGetMainWindowHandle(Process process)
         {
+            process.Refresh();
             var hWnd = GetMainWindowHandle(process);
 
             //probably hided in a tray, should restore a window from it first
@@ -165,7 +169,6 @@ namespace mmswitcherAPI.Messengers.Desktop
             if (disposing)
             {
                 _messagesCounter = null;
-                _userPromotedNotificationArea = null;
                 MessagesProcessingTimerTick -= DesktopMessenger_MessagesProcessingTimerTick;
                 _instanceList.Remove(this);
             }

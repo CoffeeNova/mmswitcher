@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Click_.Controls;
 using System.Diagnostics;
+using System.Threading;
 using mmswitcherAPI;
 using mmswitcherAPI.Messengers;
 using mmswitcherAPI.Messengers.Desktop;
@@ -207,21 +208,23 @@ namespace Click_
             if (process == null)
 
                 return;
-            bool created = false;
-            while (!created)
+            ThreadPool.QueueUserWorkItem((state) => 
             {
-                try
+                bool created = false;
+                while (!created)
                 {
-                    var messenger = MessengerBase.Create<T>(process);
-                    messenger.Caption = caption;
+                    try
+                    {
+                        var messenger = MessengerBase.Create<T>(process);
+                        messenger.Caption = caption;
 
-                    messenger.GotNewMessage += messenger_GotNewMessage;
-                    messenger.MessageGone += messenger_MessageGone;
-                    created = true;
+                        messenger.GotNewMessage += messenger_GotNewMessage;
+                        messenger.MessageGone += messenger_MessageGone;
+                        created = true;
+                    }
+                    catch (MessengerBuildException) { System.Threading.Thread.Sleep(2000); }
                 }
-                catch (MessengerBuildException) { System.Threading.Thread.Sleep(2000); }
-            }
-
+            });
         }
 
         void messenger_MessageGone(MessengerBase wss)
