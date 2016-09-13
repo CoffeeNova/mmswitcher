@@ -124,4 +124,10 @@
   <data name="winlogo_with_message" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\pictures\winlogo_with_message.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="winlogo_yellow" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\pictures\winlogo_yellow.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="winlogo_yellow_with_message" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\pictures\winlogo_yellow_with_message.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

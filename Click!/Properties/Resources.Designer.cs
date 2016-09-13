@@ -79,5 +79,25 @@ namespace Click_.Properties {
                 return ((System.Drawing.Icon)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon winlogo_yellow {
+            get {
+                object obj = ResourceManager.GetObject("winlogo_yellow", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon winlogo_yellow_with_message {
+            get {
+                object obj = ResourceManager.GetObject("winlogo_yellow_with_message", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
     }
 }

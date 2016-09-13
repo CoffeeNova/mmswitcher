@@ -24,7 +24,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -109,6 +109,8 @@
     <Content Include="pictures\winlogo_red2.png" />
     <Content Include="pictures\winlogo_with_message.ico" />
     <Content Include="pictures\winlogo_with_message.png" />
+    <None Include="pictures\winlogo_yellow_with_message.ico" />
+    <None Include="pictures\winlogo_yellow.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\mmswitcherAPI\mmswitcherAPI.csproj">

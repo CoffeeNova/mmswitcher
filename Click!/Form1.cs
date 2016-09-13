@@ -226,7 +226,7 @@ namespace Click_
 
         void messenger_MessageGone(MessengerBase wss)
         {
-            var icon = Properties.Resources.winlogo_blue2;
+            var icon = Properties.Resources.winlogo_yellow;
             if (this.notifyIcon1.Icon.Equals(icon))
                 return;
 
@@ -236,7 +236,7 @@ namespace Click_
 
         void messenger_GotNewMessage(MessengerBase wss)
         {
-            var icon = Properties.Resources.winlogo_with_message;
+            var icon = Properties.Resources.winlogo_yellow_with_message;
             if (this.notifyIcon1.Icon.Equals(icon))
                 return;
 
