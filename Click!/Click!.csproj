@@ -136,9 +136,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="pictures\winlogo_blue.ico" />
     <Content Include="pictures\winlogo_blue.png" />
     <Content Include="pictures\winlogo_blue2.ico" />
@@ -188,7 +185,7 @@
   -->
   <Import Project="$(MSBuildExtensionsPath)\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets" />
   <Target Name="BeforeBuild">
-    <Version VersionFile="Properties\version.txt" Major="1" Minor="0" BuildType="Automatic" StartDate="12/31/2009" RevisionType="BuildIncrement">
+    <Version VersionFile="Properties\version.txt" Major="1" Minor="0" BuildType="Automatic" StartDate="09/14/2016" RevisionType="BuildIncrement">
       <Output TaskParameter="Major" PropertyName="Major" />
       <Output TaskParameter="Minor" PropertyName="Minor" />
       <Output TaskParameter="Build" PropertyName="Build" />
