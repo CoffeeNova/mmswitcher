@@ -12,6 +12,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using mmswitcherAPI.Messengers;
+using mmswitcherAPI.Extensions;
 
 namespace mmswitcherAPI
 {
@@ -297,8 +298,8 @@ namespace mmswitcherAPI
         {
             if (child == null || parent == null)
                 return new System.Windows.Rect();
-            System.Windows.Rect parentRect = parent.Current.BoundingRectangle;
-            System.Windows.Rect childRect = child.Current.BoundingRectangle;
+            System.Windows.Rect parentRect = parent.Current.BoundingRectangle.ConvertToRect();
+            System.Windows.Rect childRect = child.Current.BoundingRectangle.ConvertToRect();
             System.Windows.Point relativePoint = new System.Windows.Point(childRect.X - parentRect.X, childRect.Y - parentRect.Y);
             return new System.Windows.Rect(relativePoint, childRect.Size);
         }

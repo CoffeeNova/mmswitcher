@@ -415,7 +415,8 @@ namespace Click_
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            System.Environment.Exit(0);
+            //System.Environment.Exit(0);
+            Application.Exit();
         }
 
         private void skypeToolStripMenuItem_Click(object sender, EventArgs e)

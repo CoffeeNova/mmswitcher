@@ -9,15 +9,16 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>mmswitcherAPI</RootNamespace>
     <AssemblyName>mmswitcherAPI</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;E:\Visual Studio Projects\mmswitcher\mmswitcherAPI\VersionInfo.cs</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>
@@ -33,6 +34,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\mmswitcherAPI.XML</DocumentationFile>
+    <PlatformTarget>x64</PlatformTarget>
+    <RegisterForComInterop>true</RegisterForComInterop>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>coffeejelly.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Accessibility" />
@@ -69,6 +78,7 @@
     <Compile Include="AltTabSimulator\WindowContainer.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Extensions\AutomationElementExtension.cs" />
+    <Compile Include="Extensions\DrawingExtension.cs" />
     <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="GlobalBindController.cs" />
     <Compile Include="Messengers\Desktop\DesktopMessenger.cs" />
@@ -93,6 +103,7 @@
     <Compile Include="Messengers\Web\Telegram.cs" />
     <Compile Include="Messengers\Web\WebMessenger.cs" />
     <Compile Include="Messengers\Web\WhatsApp.cs" />
+    <Compile Include="Properties\VersionInfo.cs" />
     <Compile Include="WinApi.cs" />
     <Compile Include="Messengers\MessengerBase.cs" />
     <Compile Include="Window Messages\GlobalHookTraper.cs" />
@@ -108,6 +119,12 @@
   <ItemGroup>
     <Folder Include="Messengers\Hooks\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Properties\version.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="coffeejelly.pfx" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -116,4 +133,19 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Import Project="$(MSBuildExtensionsPath)\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets" />
+  <Target Name="BeforeBuild">
+    <Version VersionFile="Properties\version.txt" Major="1" Minor="0" BuildType="Automatic" StartDate="09/14/2016" RevisionType="BuildIncrement">
+      <Output TaskParameter="Major" PropertyName="Major" />
+      <Output TaskParameter="Minor" PropertyName="Minor" />
+      <Output TaskParameter="Build" PropertyName="Build" />
+      <Output TaskParameter="Revision" PropertyName="Revision" />
+    </Version>
+    <AssemblyInfo CodeLanguage="CS" OutputFile="Properties\VersionInfo.cs" AssemblyVersion="$(Major).$(Minor)" AssemblyFileVersion="$(Major).$(Minor).$(Build).$(Revision)" />
+  </Target>
+  <PropertyGroup>
+    <PreBuildEvent>"$(FrameworkDir)\$(FrameworkVersion)ilasm" "$(SolutionDir)packages\Interop.UIAutomationClient.il" /dll /output="$(TargetDir)Interop.UIAutomationClient.dll"
+"$(FrameworkDir)\$(FrameworkVersion)ilasm" "$(SolutionDir)packages\UIAComWrapper.il" /dll /output="$(TargetDir)UIAComWrapper.dll"
+"$(FrameworkDir)\$(FrameworkVersion)ilasm" "$(SolutionDir)packages\MwLib.il" /dll /output="$(TargetDir)MwLib.dll"</PreBuildEvent>
+  </PropertyGroup>
 </Project>
