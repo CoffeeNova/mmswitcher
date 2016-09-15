@@ -11,21 +11,34 @@ using mmswitcherAPI.Messengers;
 using mmswitcherAPI.Messengers.Desktop;
 using mmswitcherAPI.Messengers.Web;
 
-
 namespace Click_
 {
     using Gbc = GlobalBindController;
 
     internal class Internal
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lastValue"></param>
+        /// <param name="valueName"></param>
+        /// <param name="keyLocation"></param>
+        /// <param name="saveValue"></param>
+        /// <exception cref="InvalidOperationException">Ошибка записи в реестр. Подробности во внутреннем исключении.</exception>
         internal static void SaveRegistrySettings(ref bool lastValue, string valueName, string keyLocation, bool saveValue)
         {
             if (lastValue == saveValue)
                 return;
-            if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, saveValue == true ? "true" : "false"))
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, saveValue == true ? "true" : "false");
                 lastValue = saveValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
+            lastValue = saveValue;
         }
 
         /// <summary>
@@ -35,14 +48,20 @@ namespace Click_
         /// <param name="valueName"></param>
         /// <param name="keyLocation"></param>
         /// <param name="saveValue"></param>
+        /// <exception cref="InvalidOperationException">Ошибка записи в реестр. Подробности во внутреннем исключении.</exception>
         internal static void SaveRegistrySettings(ref Keys lastValue, string valueName, string keyLocation, Keys saveValue)
         {
             if (lastValue == saveValue)
                 return;
-            if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, saveValue.ToString()))
-                lastValue = saveValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, saveValue.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
+            lastValue = saveValue;
         }
 
         /// <summary>
@@ -51,15 +70,21 @@ namespace Click_
         /// <param name="lastValue"></param>
         /// <param name="keyName"></param>
         /// <param name="keyLocation"></param>
-        /// <param name="saveValue"></param>
+        /// <param name="saveValue"></param>       
+        /// <exception cref="InvalidOperationException">Ошибка записи в реестр. Подробности во внутреннем исключении.</exception>
         internal static void SaveRegistrySettings(ref List<Gbc.KeyModifierStuck> lastValue, string valueName, string keyLocation, List<Gbc.KeyModifierStuck> saveValue)
         {
             if (lastValue == saveValue)
                 return;
-            if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.MultiString, valueName, saveValue.Select(x => { return x.ToString(); }).ToArray()))
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.MultiString, valueName, saveValue.Select(x => { return x.ToString(); }).ToArray());
                 lastValue = saveValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
         }
 
 
@@ -79,13 +104,19 @@ namespace Click_
             }
             catch (System.IO.IOException) { }
 
-            if (getkey != null)
-                keyValue = getkey;
-            else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue))
+            if (getkey != null) { keyValue = getkey; return; }
+
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue);
                 keyValue = keyDefaultValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -102,12 +133,17 @@ namespace Click_
             }
             catch (System.IO.IOException) { }
 
-            if (getkey != null)
-                keyValue = getkey == "true" ? true : false;
-            else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue == true ? "true" : "false"))
+            if (getkey != null) { keyValue = getkey == "true" ? true : false; return; }
+
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue == true ? "true" : "false");
                 keyValue = keyDefaultValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
         }
 
         /// <summary>
@@ -127,12 +163,19 @@ namespace Click_
                 getkey = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
             }
             catch (System.IO.IOException) { }
+
             if (getkey != null)
-                keyValue = getkey == "true" ? true : false;
-            else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue == true ? "true" : "false"))
+                return keyValue = getkey == "true" ? true : false;
+
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue == true ? "true" : "false");
                 keyValue = keyDefaultValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
             return keyValue;
         }
 
@@ -153,17 +196,33 @@ namespace Click_
             catch (System.IO.IOException) { }
 
             if (getkey != null)
+            {
                 try
                 {
                     keyValue = ConvertFromString(getkey);
                 }
                 catch { keyValue = keyDefaultValue; }
-            else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString()))
+                return;
+            }
+
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString());
                 keyValue = keyDefaultValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="valueName"></param>
+        /// <param name="keyLocation"></param>
+        /// <param name="keyDefaultValue"></param>
+        /// <returns></returns>
         internal static Keys CheckRegistrySettings(string valueName, string keyLocation, Keys keyDefaultValue)
         {
             Keys keyValue;
@@ -174,16 +233,23 @@ namespace Click_
             }
             catch (System.IO.IOException) { }
 
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString());
+                keyValue = keyDefaultValue;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
+
             if (getkey != null)
                 try
                 {
                     keyValue = ConvertFromString(getkey);
                 }
                 catch { keyValue = keyDefaultValue; }
-            else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString()))
-                keyValue = keyDefaultValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+
             return keyValue;
         }
 
@@ -257,11 +323,18 @@ namespace Click_
                 keyValue.Clear();
                 foreach (string keyV in keyValueReg)
                     keyValue.Add(func(keyV));
+                return;
             }
-            else if (RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.MultiString, valueName, fu(keyDefaultValue)))
+
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.MultiString, valueName, fu(keyDefaultValue));
                 keyValue = keyDefaultValue;
-            else
-                throw new InvalidOperationException("UNABLE TO USE REGKEY HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
         }
 
         /// <summary>

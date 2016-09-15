@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using mmswitcherAPI.Messengers;
 using System.Diagnostics;
 using System.Windows.Automation;
-using mmswitcherAPI.Extensions;
 using System.Threading;
-using mmswitcherAPI.winmsg;
-using System.Runtime.InteropServices;
+
+using mmswitcherAPI.Extensions;
+using mmswitcherAPI.Messengers.Exceptions;
+
 
 namespace mmswitcherAPI.Messengers.Desktop
 {
@@ -25,9 +23,13 @@ namespace mmswitcherAPI.Messengers.Desktop
             MessagesProcessingTimerTick += DesktopMessenger_MessagesProcessingTimerTick;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="TrayButtonException">Происходит, когда не может найти кнопку мессенджера в трее.</exception>
         public override void SetForeground()
         {
-            var isVisible = WinApi.ShowWindow(base._windowHandle, ShowWindowEnum.Show);
+            var isVisible = WinApi.IsWindowVisible(base._windowHandle);
             if (!isVisible)
                 RestoreFromTray();
             else
@@ -37,6 +39,15 @@ namespace mmswitcherAPI.Messengers.Desktop
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="hWnd"></param>
+        /// <returns></returns>
+        /// <exception cref="ElementNotAvailableException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="TrayButtonException"></exception>
         protected override AutomationElement GetMainAutomationElement(Process process, out IntPtr hWnd)
         {
             hWnd = TryGetMainWindowHandle(process);
@@ -44,7 +55,7 @@ namespace mmswitcherAPI.Messengers.Desktop
             bool isRestored = Tools.RestoreWindow(hWnd);
             AutomationElement messengerElement = null;
             try { messengerElement = AutomationElement.FromHandle(hWnd); }
-            catch (Exception ex) { throw new Exception("Cannot get main window automation element.", ex); }
+            catch (Exception ex) { throw new ElementNotAvailableException("Cannot get main window automation element.", ex); }
             finally { if (messengerElement == null) Dispose(true); }
 
             return messengerElement;
@@ -56,7 +67,7 @@ namespace mmswitcherAPI.Messengers.Desktop
 
             var trayButton = trayButtons.Cast<AutomationElement>().FirstOrDefault(x => x.Current.Name.Contains(TrayButtonName));
             if (trayButton == null)
-                throw new Exception(string.Format("Cannot find {0} in a user promoted notification area. Messenger notify icon should be shown in a notification area.", TrayButtonName));
+                throw new TrayButtonException(string.Format("Cannot find {0} in a user promoted notification area. Messenger notify icon should be shown in a notification area.", TrayButtonName));
             return trayButton;
         }
 
@@ -71,7 +82,7 @@ namespace mmswitcherAPI.Messengers.Desktop
                 RestoreFromTray();
                 hWnd = GetMainWindowHandle(process);
                 if (hWnd == IntPtr.Zero)
-                    throw new Exception(string.Format("Cannot get main window handle of {0} process.", process.ProcessName));
+                    throw new InvalidOperationException(string.Format("Cannot get main window handle of {0} process.", process.ProcessName));
             }
             return hWnd;
         }
@@ -122,7 +133,7 @@ namespace mmswitcherAPI.Messengers.Desktop
             }
             catch (Exception ex)
             {
-                throw new Exception("Can't find user promoted notification area. Seems like all icons in notification area are disabled. Or explorer.exe is deactivated. Or it is not a Windows.", ex);
+                throw new UserPromotedNotificationAreaException("Can't find user promoted notification area. Seems like all icons in notification area are disabled. Or explorer.exe is deactivated. Or it is not a Windows.", ex);
             }
         }
 
@@ -148,7 +159,7 @@ namespace mmswitcherAPI.Messengers.Desktop
 
         protected override void OnMessageProcessingUnSubscribe()
         {
-            if (_instanceList.Count > 0)
+            if (_instanceList.Count > 0 || _messageProcessingTimer == null)
                 return;
             _messageProcessingTimer.Dispose();
             _messageProcessingTimer = null;

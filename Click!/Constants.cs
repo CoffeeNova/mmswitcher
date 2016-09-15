@@ -23,7 +23,9 @@ namespace Click_
         internal const string _LAST_USED_MENU_KEY = "lastused";
         internal const string _MOST_NEW_MENU_KEY = "mostnew";
         internal const string _ORDER_MENU_KEY = "order";
-        internal const string _NOTIFY_ICON_TEXT = "Click!";
+        internal const string _APPLICATION_NAME = "Click!";
+        internal const string _NOTIFY_ICON_TEXT = _APPLICATION_NAME;
+
 
         internal const string _SKYPE_PROCESSNAME = "Skype";
         internal const string _TELEGRAM_PROCESSNAME = "Telegram";

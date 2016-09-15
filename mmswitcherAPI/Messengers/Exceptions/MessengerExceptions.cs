@@ -16,4 +16,22 @@ namespace mmswitcherAPI.Messengers.Exceptions
 
         public MessengerBuildException(string message, Exception innerException) : base(message, innerException) { }
     }
+
+    public class UserPromotedNotificationAreaException : Exception
+    {
+        public UserPromotedNotificationAreaException(string message) : base(message) { }
+
+        public UserPromotedNotificationAreaException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    public class TrayButtonException : Exception
+    {
+        public TrayButtonException(string message) : base(message) { }
+
+        public TrayButtonException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+
+
+
 }

@@ -163,6 +163,8 @@ namespace mmswitcherAPI.Messengers
         private static List<MessengerBase> _activity = new List<MessengerBase>();
         private MessengerHookManager _hManager;
         protected AutomationElement _lastFocusedElement;
+        private static Exception _innerBuildException;
+        private static object _locker = new object();
         #endregion
 
         internal protected MessengerBase(Process msgProcess)
@@ -180,9 +182,10 @@ namespace mmswitcherAPI.Messengers
                 CacheAutomationElementProperties(hWnd, ref _incomeMessageAE, (s) => GetIncomeMessageAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
                 CacheAutomationElementProperties(hWnd, ref _focusableAE, (s) => GetFocusRecieverAutomationElement(s), AutomationElement.ClassNameProperty, AutomationElement.NativeWindowHandleProperty);
             }
-            catch
+            catch (Exception ex)
             {
-                throw new MessengerBuildException(String.Format("Cannot build a messenger for this process {0}", msgProcess.ProcessName));
+                _innerBuildException = ex;
+                throw new MessengerBuildException(String.Format("Cannot build a messenger for this process {0}", msgProcess.ProcessName), ex);
             }
 
             _windowHandle = hWnd;
@@ -207,16 +210,24 @@ namespace mmswitcherAPI.Messengers
         /// <typeparam name="T">Тип создаваемого клаcса (должен наследовать интерфейс <see cref="IMessenger"/>).</typeparam>
         /// <param name="process">Процесс программы мессенджера.</param>
         /// <returns>Возвращает экземляр созданного класса типа <typeparamref name="T"/>.</returns>
+        /// <exception cref="MessengerBuildException">Исключение вызванное ошибкой создания экземпляра класса. Подробности во внутреннем исключении.</exception>
         /// <remarks>Пример создания экземпляра класса: Skype derivedClass = BaseClass.Create&lt;Skype&gt;(process);</remarks>
         public static T Create<T>(Process process) where T : IMessenger
         {
+            System.Threading.Monitor.Enter(_locker);
             try
             {
-                var newMessenger = (T)Activator.CreateInstance(typeof(T), process);
-                return newMessenger;
+                    var newMessenger = (T)Activator.CreateInstance(typeof(T), process);
+                    return newMessenger;
             }
             catch (TargetInvocationException)
-            { throw new MessengerBuildException("Cannot build a messenger"); }
+            { 
+                throw new MessengerBuildException("Cannot build a messenger", _innerBuildException); 
+            }
+            finally
+            {
+                System.Threading.Monitor.Exit(_locker);
+            }
         }
 
         /// <summary>

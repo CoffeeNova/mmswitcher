@@ -84,7 +84,7 @@ namespace mmswitcherAPI.Messengers
                 throw new InvalidOperationException("Subscribed allready");
 
             var list = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
-            foreach(var keyModStuck in key.Value)
+            foreach (var keyModStuck in key.Value)
                 list.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(keyModStuck, action));
 
             gbc = new Gbc(key.Key, Gbc.BindMethod.RegisterHotKey, Gbc.HookBehaviour.Replacement, list);
@@ -106,12 +106,16 @@ namespace mmswitcherAPI.Messengers
                 throw new InvalidOperationException("Cannot do method MessengerController.Recent() properly while _activeWindowStack.Suspended is true.");
             if (MessengerBase.MessengersCollection.Count == 0)
                 return;
+            try
+            {
+                var recentMessenger = MessengerBase.LastActive;
+                if (recentMessenger.Focused)
+                    ReturnPreviousForeground(recentMessenger);
+                else
+                    MessengerBase.LastActive.SetForeground();
+            }
+            catch { }
 
-            var recentMessenger = MessengerBase.LastActive;
-            if (recentMessenger.Focused)
-                ReturnPreviousForeground(recentMessenger);
-            else
-                MessengerBase.LastActive.SetForeground();
         }
 
         private void Activity()
@@ -119,22 +123,27 @@ namespace mmswitcherAPI.Messengers
             var messengersCount = MessengerBase.MessengersCollection.Count;
             if (messengersCount == 0)
                 return;
-            if (MessengerBase.Activity.First().IncomeMessages == 0)
+            try
             {
-                var focusedMessenger = MessengerBase.Activity.FirstOrDefault((x) => x.Focused);
-                if (focusedMessenger == null)
+                if (MessengerBase.Activity.First().IncomeMessages == 0)
                 {
-                    MessengerBase.Activity.First().SetForeground();
-                    return;
+                    var focusedMessenger = MessengerBase.Activity.FirstOrDefault((x) => x.Focused);
+                    if (focusedMessenger == null)
+                    {
+                        MessengerBase.Activity.First().SetForeground();
+                        return;
+                    }
+                    var nextMessengerIndex = MessengerBase.Activity.IndexOf(focusedMessenger) + 1;
+                    if (nextMessengerIndex < messengersCount)
+                        MessengerBase.Activity[nextMessengerIndex].SetForeground();
+
+                    else
+                        MessengerBase.Activity.First().SetForeground();
                 }
-                var nextMessengerIndex = MessengerBase.Activity.IndexOf(focusedMessenger) + 1;
-                if (nextMessengerIndex < messengersCount)
-                    MessengerBase.Activity[nextMessengerIndex].SetForeground();
                 else
                     MessengerBase.Activity.First().SetForeground();
             }
-            else
-                MessengerBase.Activity.First().SetForeground();
+            catch { }
         }
 
         private void Queue()
@@ -142,18 +151,22 @@ namespace mmswitcherAPI.Messengers
             var messengersCount = MessengerBase.MessengersCollection.Count;
             if (messengersCount == 0)
                 return;
-
-            var focusedMessenger = MessengerBase.MessengersCollection.FirstOrDefault((x) => x.Focused);
-            if (focusedMessenger == null)
+            try
             {
-                Recent();
-                return;
+
+                var focusedMessenger = MessengerBase.MessengersCollection.FirstOrDefault((x) => x.Focused);
+                if (focusedMessenger == null)
+                {
+                    Recent();
+                    return;
+                }
+                var nextMessengerIndex = MessengerBase.MessengersCollection.IndexOf(focusedMessenger) + 1;
+                if (nextMessengerIndex < messengersCount)
+                    MessengerBase.MessengersCollection[nextMessengerIndex].SetForeground();
+                else
+                    MessengerBase.MessengersCollection.First().SetForeground();
             }
-            var nextMessengerIndex = MessengerBase.MessengersCollection.IndexOf(focusedMessenger) + 1;
-            if (nextMessengerIndex < messengersCount)
-                MessengerBase.MessengersCollection[nextMessengerIndex].SetForeground();
-            else
-                MessengerBase.MessengersCollection.First().SetForeground();
+            catch { }
         }
 
         private void ReturnPreviousForeground(MessengerBase messenger)

@@ -7,17 +7,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Click_.Controls;
 using System.Diagnostics;
 using System.Threading;
+using NLog;
+using Click_.Controls;
+
 using mmswitcherAPI;
 using mmswitcherAPI.Messengers;
 using mmswitcherAPI.Messengers.Desktop;
 using mmswitcherAPI.Messengers.Web;
 using mmswitcherAPI.Messengers.Exceptions;
 using mmswitcherAPI.AltTabSimulator;
-
-
 
 namespace Click_
 {
@@ -44,7 +44,7 @@ namespace Click_
             InitMenusCondition();
 
             MessengersInit();
-
+            _log.Info(string.Format("{0} is started successfully.", Constants._APPLICATION_NAME));
         }
 
         private void ManualInitializing()
@@ -61,29 +61,37 @@ namespace Click_
 
         private void Settings()
         {
-            #region checked menu items
-            Internal.CheckRegistrySettings(ref DetectMessenger.Skype, Constants._SKYPE_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
-            Internal.CheckRegistrySettings(ref DetectMessenger.Telegram, Constants._TELEGRAM_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
-            Internal.CheckRegistrySettings(ref DetectMessenger.WebSkype, Constants._WEBSKYPE_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
-            Internal.CheckRegistrySettings(ref DetectMessenger.WebTelegram, Constants._WEBTELEGRAM_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
-            Internal.CheckRegistrySettings(ref DetectMessenger.WebWhatsApp, Constants._WEBWHATSAPP_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
-            #endregion
+            try
+            {
 
-            #region binds
-            Internal.CheckRegistrySettings(ref Bind.LastUsed.Key, Constants._LAST_USED_KEY, Constants._SETTINGS_LOCATION, Bind.LastUsed.Key);
-            Internal.CheckRegistrySettings(ref Bind.LastUsed.Mods, Constants._LAST_USED_MOD, Constants._SETTINGS_LOCATION, Bind.LastUsed.Mods);
-            Internal.CheckRegistrySettings(ref Bind.MostNew.Key, Constants._MOST_NEW_KEY, Constants._SETTINGS_LOCATION, Bind.MostNew.Key);
-            Internal.CheckRegistrySettings(ref Bind.MostNew.Mods, Constants._MOST_NEW_MOD, Constants._SETTINGS_LOCATION, Bind.MostNew.Mods);
-            Internal.CheckRegistrySettings(ref Bind.Order.Key, Constants._ORDER_KEY, Constants._SETTINGS_LOCATION, Bind.Order.Key);
-            Internal.CheckRegistrySettings(ref Bind.Order.Mods, Constants._ORDER_MOD, Constants._SETTINGS_LOCATION, Bind.Order.Mods);
-            #endregion
+                #region checked menu items
+                Internal.CheckRegistrySettings(ref DetectMessenger.Skype, Constants._SKYPE_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
+                Internal.CheckRegistrySettings(ref DetectMessenger.Telegram, Constants._TELEGRAM_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
+                Internal.CheckRegistrySettings(ref DetectMessenger.WebSkype, Constants._WEBSKYPE_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
+                Internal.CheckRegistrySettings(ref DetectMessenger.WebTelegram, Constants._WEBTELEGRAM_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
+                Internal.CheckRegistrySettings(ref DetectMessenger.WebWhatsApp, Constants._WEBWHATSAPP_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
+                #endregion
 
-            #region control menu
-            Internal.CheckRegistrySettings(ref Control.LastUsed, Constants._LAST_USED_MENU_KEY, Constants._SETTINGS_LOCATION, false);
-            Internal.CheckRegistrySettings(ref Control.MostNew, Constants._MOST_NEW_MENU_KEY, Constants._SETTINGS_LOCATION, false);
-            Internal.CheckRegistrySettings(ref Control.Order, Constants._ORDER_MENU_KEY, Constants._SETTINGS_LOCATION, false);
-            #endregion
+                #region binds
+                Internal.CheckRegistrySettings(ref Bind.LastUsed.Key, Constants._LAST_USED_KEY, Constants._SETTINGS_LOCATION, Bind.LastUsed.Key);
+                Internal.CheckRegistrySettings(ref Bind.LastUsed.Mods, Constants._LAST_USED_MOD, Constants._SETTINGS_LOCATION, Bind.LastUsed.Mods);
+                Internal.CheckRegistrySettings(ref Bind.MostNew.Key, Constants._MOST_NEW_KEY, Constants._SETTINGS_LOCATION, Bind.MostNew.Key);
+                Internal.CheckRegistrySettings(ref Bind.MostNew.Mods, Constants._MOST_NEW_MOD, Constants._SETTINGS_LOCATION, Bind.MostNew.Mods);
+                Internal.CheckRegistrySettings(ref Bind.Order.Key, Constants._ORDER_KEY, Constants._SETTINGS_LOCATION, Bind.Order.Key);
+                Internal.CheckRegistrySettings(ref Bind.Order.Mods, Constants._ORDER_MOD, Constants._SETTINGS_LOCATION, Bind.Order.Mods);
+                #endregion
 
+                #region control menu
+                Internal.CheckRegistrySettings(ref Control.LastUsed, Constants._LAST_USED_MENU_KEY, Constants._SETTINGS_LOCATION, false);
+                Internal.CheckRegistrySettings(ref Control.MostNew, Constants._MOST_NEW_MENU_KEY, Constants._SETTINGS_LOCATION, false);
+                Internal.CheckRegistrySettings(ref Control.Order, Constants._ORDER_MENU_KEY, Constants._SETTINGS_LOCATION, false);
+                #endregion
+
+            }
+            catch (InvalidOperationException ex)
+            {
+                ExceptionHandler.Handle(ex, ex.InnerException, true);
+            }
         }
 
         private void InitAdditionalMenus()
@@ -107,8 +115,6 @@ namespace Click_
             _orderBindControl.SelectedBindChanged += (sender, e) => bindControl_SelectedBindChanged(sender, e, SwitchBy.Queue, Constants._ORDER_KEY, Constants._SETTINGS_LOCATION);
             _orderBindControl.SelectedModifierChanged += (sender, e) => bindControl_SelectedModifierChanged(sender, e, SwitchBy.Queue, Constants._ORDER_MOD, Constants._SETTINGS_LOCATION);
         }
-
-
 
         private void InitMenusCondition()
         {
@@ -158,13 +164,19 @@ namespace Click_
         {
             var task = new KeyValuePair<System.Windows.Forms.Keys, List<Gbc.KeyModifierStuck>>(key, mod);
             try { _mControl.SubScribe(switchBy, task); }
-            catch (InvalidOperationException) { }
+            catch (InvalidOperationException ex)
+            {
+                ExceptionHandler.Handle(ex, true);
+            }
         }
 
         private void ControllerUnsubscribe(SwitchBy switchBy)
         {
             try { _mControl.UnSubscribe(switchBy); }
-            catch (InvalidOperationException) { }
+            catch (InvalidOperationException ex)
+            {
+                ExceptionHandler.Handle(ex, true);
+            }
         }
 
         private void MessengersInit()
@@ -208,7 +220,7 @@ namespace Click_
             if (process == null)
 
                 return;
-            ThreadPool.QueueUserWorkItem((state) => 
+            ThreadPool.QueueUserWorkItem((state) =>
             {
                 bool created = false;
                 while (!created)
@@ -217,12 +229,15 @@ namespace Click_
                     {
                         var messenger = MessengerBase.Create<T>(process);
                         messenger.Caption = caption;
-
                         messenger.GotNewMessage += messenger_GotNewMessage;
                         messenger.MessageGone += messenger_MessageGone;
                         created = true;
                     }
-                    catch (MessengerBuildException) { System.Threading.Thread.Sleep(2000); }
+                    catch (MessengerBuildException ex)
+                    {
+                        ExceptionHandler.Handle(ex, typeof(T).ToString(), false);
+                        System.Threading.Thread.Sleep(2000);
+                    }
                 }
             });
         }
@@ -260,7 +275,6 @@ namespace Click_
                 func2(true);
             }
         }
-
 
         private void AttachBindControlToToolStripMenuItem(BindControl bControl, ToolStripMenuItem menuItem)
         {
@@ -415,7 +429,7 @@ namespace Click_
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //System.Environment.Exit(0);
+            _log.Info(string.Format("{0} is closed.", Constants._APPLICATION_NAME));
             Application.Exit();
         }
 
@@ -462,8 +476,7 @@ namespace Click_
             }
             catch (InvalidOperationException ex)
             {
-                MessageBox.Show(ex.Message);
-                System.Environment.Exit(0);
+                ExceptionHandler.Handle(ex, true);
             }
             savedValue = tempSavedValue;
         }
@@ -580,8 +593,7 @@ namespace Click_
             }
             catch (InvalidOperationException ex)
             {
-                MessageBox.Show(ex.Message);
-                System.Environment.Exit(0);
+                ExceptionHandler.Handle(ex, true);
             }
         }
 
@@ -599,8 +611,7 @@ namespace Click_
             }
             catch (InvalidOperationException ex)
             {
-                MessageBox.Show(ex.Message);
-                System.Environment.Exit(0);
+                ExceptionHandler.Handle(ex, true);
             }
         }
 
@@ -659,38 +670,21 @@ namespace Click_
         }
         #endregion
 
-
         #region private variables
         private static MessengerController _mControl;
         private ActiveWindowStack _windows;
-        //private Skype _skype;
-        //private Telegram _telegram;
-        //private WebSkype _webSkype;
         private BindControl _lastUsedBindControl = new BindControl();
         private BindControl _mostNewBindControl = new BindControl();
         private BindControl _orderBindControl = new BindControl();
         private System.ComponentModel.ComponentResourceManager _resources =
             new System.ComponentModel.ComponentResourceManager(typeof(Click));
+        private static Logger _log = LogManager.GetCurrentClassLogger();
         #endregion
 
         #region private properties
         #endregion
 
         #region events
-        //private delegate void MessengerWaitingEventHandler(StackAction action, IntPtr hWnd, Messenger messenger);
-        //private event MessengerWaitingEventHandler MessengerWaitingEvent
-        //{
-        //    add
-        //    {
-        //        if (_messengerWaitingEventSubscribed)
-        //            _windows.onActiveWindowStackChanged += (action, hWnd) => value(action, hWnd, messenger);
-        //        _messengerWaitingEventSubscribed = true;
-        //    }
-        //    remove
-        //    {
-
-        //    }
-        //}
         #endregion
 
     }
@@ -710,13 +704,6 @@ namespace Click_
         public static bool MostNew = false;
         public static bool Order = false;
     }
-
-    //internal enum ControlEnum
-    //{
-    //    LastUsed,
-    //    MostNew,
-    //    Order
-    //}
 
     internal struct Bind
     {
