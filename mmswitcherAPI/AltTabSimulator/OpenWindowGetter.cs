@@ -31,11 +31,11 @@ namespace mmswitcherAPI.AltTabSimulator
 
                 windows[hWnd] = builder.ToString();
                 return true;
-
             }, 0);
 
             return windows;
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -76,6 +76,7 @@ namespace mmswitcherAPI.AltTabSimulator
 
             return new KeyValuePair<IntPtr, string>(hWnd, builder.ToString());
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -88,11 +89,6 @@ namespace mmswitcherAPI.AltTabSimulator
 
             if (!IsWindowThreadAlive(window))
                 return false;
-            //uint processId = 0;
-            //Interop.GetWindowThreadProcessId(window, out processId);
-            //System.Diagnostics.Process process = System.Diagnostics.Process.GetProcessById((int)processId);
-            //if (process.MainModule.FileName.EndsWith("ShellExperienceHost.exe"))
-            //    return false;
 
             //http://stackoverflow.com/questions/210504/enumerate-windows-like-alt-tab-does
             //http://blogs.msdn.com/oldnewthing/archive/2007/10/08/5351207.aspx
@@ -100,11 +96,9 @@ namespace mmswitcherAPI.AltTabSimulator
             //2. Then walk back down the visible last active popup chain until you find a visible window.
             //3. If you're back to where you're started, (look for exceptions) then put the window in the Alt+Tab list.
             IntPtr root = WinApi.GetAncestor(window, WinApi.GaFlags.GA_ROOTOWNER);
-            IntPtr temp = (IntPtr)6227102;
             if (GetLastVisibleActivePopUpOfWindow(root) == window)
             {
-                Me.Catx.Native.WindowInfo wi = new Me.Catx.Native.WindowInfo(window);
-
+                var wi = new Me.Catx.Native.WindowInfo(window);
                 if (wi.ClassName == "Shell_TrayWnd" ||                          //Windows taskbar
                     wi.ClassName == "DV2ControlHost" ||                         //Windows startmenu, if open
                     (wi.ClassName == "Button" && wi.WindowText == "Start") ||   //Windows startmenu-button.
@@ -113,11 +107,11 @@ namespace mmswitcherAPI.AltTabSimulator
                     wi.ClassName.StartsWith("WMP9MediaBarFlyout") ||            //WMP's "now playing" taskbar-toolbar
                     wi.ClassName == "ApplicationFrameWindow")                   //win10 applications like calendar, xbox frame and other
                     return false;
-
                 return true;
             }
             return false;
         }
+
         /// <summary>
         /// http://stackoverflow.com/questions/210504/enumerate-windows-like-alt-tab-does
         /// </summary>
@@ -135,29 +129,10 @@ namespace mmswitcherAPI.AltTabSimulator
                 return GetLastVisibleActivePopUpOfWindow(lastPopUp);
         }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="hWnd"></param>
-        ///// <returns></returns>
-        //private static bool IsWindowThreadAlive(IntPtr hWnd)
-        //{
-        //    uint threadProcessId = WinApi.GetWindowThreadProcessId(hWnd, IntPtr.Zero);
-        //    IntPtr threadHandle = WinApi.OpenThread(WinApi.ThreadAccess.QUERY_INFORMATION, false, threadProcessId);
-        //    uint exitCode;
-        //    IntPtr threadId = WinApi.GetThreadId(hWnd);
-        //    bool result = WinApi.GetExitCodeThread(threadHandle, out exitCode);
-        //    WinApi.CloseHandle(threadHandle);
-        //    if (exitCode != 259)
-        //        return false;
-        //    return true;
-        //}
-
-        //Определяет имеет ли процесс статус "Suspended"
+        //Defines if process status is "Suspended"
         private static bool IsWindowThreadAlive(IntPtr hWnd)
         {
             int processId;
-            IntPtr temp = (IntPtr)6227102;
             uint threadProcessId = WinApi.GetWindowThreadProcessId(hWnd, out processId);
             try
             {

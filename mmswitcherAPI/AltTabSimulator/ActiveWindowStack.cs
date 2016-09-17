@@ -12,59 +12,11 @@ using System.Windows.Forms;
 namespace mmswitcherAPI.AltTabSimulator
 {
     /// <summary>
-    /// Реализует перечень активных окон Windows, аналогично перечню Alt+Tab :>
+    /// It provides a list of active windows for Windows, similar to Alt + Tab list.
     ///<remarks>Singleton</remarks>
     /// </summary>
     public sealed class ActiveWindowStack
     {
-        public static ActiveWindowStack Instance { get; private set; }
-
-        private WindowLifeCycle _winMesMon;
-        private static readonly object _locker = new object();
-        private AltTabHookManager _hManager;
-        private bool _disposed = false;
-        public delegate void StackActionDelegate(StackAction action, IntPtr hWnd);
-
-        /// <summary>
-        /// Вызывается при изменении свойства <see cref="ActiveWindowStack.WindowStack"/>.
-        /// </summary>
-        public event StackActionDelegate onActiveWindowStackChanged;
-
-        private static List<IntPtr> _windowStack;
-        /// <summary>
-        /// Возвращает стэк активных окон.
-        /// </summary>
-        public List<IntPtr> WindowStack
-        {
-            get { return _windowStack; }
-        }
-
-        private bool _started = false;
-
-        /// <summary>
-        /// Возвращает состояние <see cref="ActiveWindowStack"/> запущен.
-        /// </summary>
-        public bool Started
-        {
-            get { return _started; }
-        }
-
-        private bool _suspended = true;
-        /// <summary>
-        /// Возвращает состояние <see cref="ActiveWindowStack"/> приостановлен.
-        /// </summary>
-        public bool Suspended
-        {
-            get { return _suspended; }
-        }
-
-        ////конструктор для wpf приложения
-        //private ActiveWindowStack(Window window)
-        //{
-        //    _winMesMon = new WindowLifeCycle(window);
-        //    _hManager = new AltTabHookManager();
-        //}
-
         private ActiveWindowStack()
         {
             _winMesMon = new WindowLifeCycle();
@@ -72,9 +24,9 @@ namespace mmswitcherAPI.AltTabSimulator
         }
 
         /// <summary>
-        /// Инициализирует <see cref="ActiveWindowStack"/>..
+        /// Initialize new instance of <see cref="ActiveWindowStack"/>.
         /// </summary>
-        /// <returns>Экземпляр класса.</returns>
+        /// <returns><see cref="ActiveWindowStack.Instance"/>.</returns>
         public static ActiveWindowStack GetInstance()
         {
             if (Instance == null)
@@ -87,27 +39,9 @@ namespace mmswitcherAPI.AltTabSimulator
             }
             return Instance;
         }
-        ///// <summary>
-        ///// Инициализирует <see cref="ActiveWindowStack"/> для приложения wpf.
-        ///// </summary>
-        ///// <param name="window">Окно <see cref="System.Windows.Window"/>.</param>
-        ///// <returns>Экземпляр класса.</returns>
-        ///// <remarks>Должен быть выполняться в потоке графического интерфейса окна <paramref name="window"/>.</remarks>
-        //public static ActiveWindowStack GetInstance(Window window)
-        //{
-        //    if (Instance == null)
-        //    {
-        //        lock (_locker)
-        //        {
-        //            if (Instance == null)
-        //                Instance = new ActiveWindowStack(window);
-        //        }
-        //    }
-        //    return Instance;
-        //}
 
         /// <summary>
-        /// Запускает <see cref="ActiveWindowStack"/>.
+        /// Starts <see cref="ActiveWindowStack"/>.
         /// </summary>
         public void Start()
         {
@@ -122,7 +56,7 @@ namespace mmswitcherAPI.AltTabSimulator
         }
 
         /// <summary>
-        /// Приостанавливает <see cref="ActiveWindowStack"/>.
+        /// Suspends <see cref="ActiveWindowStack"/>.
         /// </summary>
         public void Suspend()
         {
@@ -135,8 +69,9 @@ namespace mmswitcherAPI.AltTabSimulator
                 _started = false;
             }
         }
+
         /// <summary>
-        ///Обновляет список видимых окон, как в списке альт таба (почти как, еще добавлет закрытые окна, окторые в вин10 почему-то остаются висеть в процессах, типа calc.exe)
+        ///Refreshes the list of visible windows, similar to the alt+tab list.
         /// </summary>
         private void RefreshStack()
         {
@@ -153,39 +88,26 @@ namespace mmswitcherAPI.AltTabSimulator
             _windowStack.Clear();
         }
 
-        //Callback функция хука, который отслеживает изменение активного окна Windows
+        //Callback hook function which monitors change of the active window.
         private void HookManager_ForegroundChanged(object sender, EventArgs e)
         {
             bool newWindow = true;
             IntPtr fore = (IntPtr)sender;
 
-            try
+            // try to find new foreground window in alt tab list
+            newWindow = !_windowStack.Any(w => w == fore);
+            if (newWindow)
+                return;
+
+            IntPtr hWnd = _windowStack.Find(w => w == fore);
+            if (hWnd != IntPtr.Zero)
             {
-                // try to find new foreground window in alt tab list
-                foreach (IntPtr hWnd in _windowStack)
-                    if (hWnd == fore)
-                    {
-                        newWindow = false;
-                        break;
-                    }
-                if (!newWindow)
-                {
-                    IntPtr hWnd = _windowStack.Find(x => x == fore);
-                    if (hWnd != IntPtr.Zero)
-                    {
-                        _windowStack.Remove(hWnd);
-                        _windowStack.Insert(0, hWnd);
-                        onActiveWindowStackChanged(StackAction.MovedToFore, hWnd);
-                    }
-                }
-                //check if window exists, remove from list if not
-
+                _windowStack.Remove(hWnd);
+                _windowStack.Insert(0, hWnd);
+                onActiveWindowStackChanged(StackAction.MovedToFore, hWnd);
             }
-            catch { }
-
         }
 
-        //Вызывается при создании или закрытии любого окна Windows
         void _winMesMon_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
         {
             if (shell == ShellEvents.HSHELL_WINDOWDESTROYED)
@@ -229,6 +151,49 @@ namespace mmswitcherAPI.AltTabSimulator
         ~ActiveWindowStack()
         {
             Dispose(false);
+        }
+
+        private WindowLifeCycle _winMesMon;
+        private static readonly object _locker = new object();
+        private AltTabHookManager _hManager;
+        private bool _disposed = false;
+        private static List<IntPtr> _windowStack;
+        private bool _started = false;
+        private bool _suspended = true;
+        public delegate void StackActionDelegate(StackAction action, IntPtr hWnd);
+
+        /// <summary>
+        /// The instance of a class.
+        /// </summary>
+        public static ActiveWindowStack Instance { get; private set; }
+
+        /// <summary>
+        /// Fired when a property <see cref="ActiveWindowStack.WindowStack"/> changes.
+        /// </summary>
+        public event StackActionDelegate onActiveWindowStackChanged;
+
+        /// <summary>
+        /// Returns the stack of active windows.
+        /// </summary>
+        public List<IntPtr> WindowStack
+        {
+            get { return _windowStack; }
+        }
+
+        /// <summary>
+        /// Returns if  <see cref="ActiveWindowStack"/> has started condition.
+        /// </summary>
+        public bool Started
+        {
+            get { return _started; }
+        }
+
+        /// <summary>
+        /// Returns if  <see cref="ActiveWindowStack"/> has suspended condition.
+        /// </summary>
+        public bool Suspended
+        {
+            get { return _suspended; }
         }
     }
 

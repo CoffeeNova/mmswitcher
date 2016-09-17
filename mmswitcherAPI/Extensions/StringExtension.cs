@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace mmswitcherAPI.Extensions
 {
-    public static class StringExtension
+    internal static class StringExtension
     {
         public static int ParseNumber(this string str)
         {

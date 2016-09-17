@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace mmswitcherAPI.Extensions
 {
-    public static class DrawingExtension
+    internal static class DrawingExtension
     {
         public static System.Windows.Rect ConvertToRect(this System.Drawing.Rectangle value)
         {
