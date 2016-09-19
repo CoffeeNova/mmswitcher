@@ -84,8 +84,6 @@ namespace mmswitcherAPI.Messengers
         {
             if (hWnd == IntPtr.Zero)
                 return;
-            //iEvent != 32782 && iEvent != 30050 && iEvent != 32779 && iEvent != 32778
-            Debug.WriteLineIf(true, iEvent);
             _eventsListener.Invoke(hWnd, new EventArgs());
         }
 

@@ -49,7 +49,7 @@ namespace mmswitcherAPI.Messengers.Web
         {
             if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
                 return;
-            if (hWnd == (IntPtr)_renderTabWidgetAE.Cached.NativeWindowHandle)
+            if (hWnd == (IntPtr)RenderTabWidgetAE.Cached.NativeWindowHandle)
                 Dispose(true);
             base.OnMessageTraced(sender, hWnd, shell);
         }
@@ -169,7 +169,7 @@ namespace mmswitcherAPI.Messengers.Web
             if (_browserSet == null)
                 InitBrowserSet(base._process);
 
-            return new List<AutomationElement>(){_browserSet.MessengerFocusAutomationElement(hWnd)};
+            return new List<AutomationElement>() { _browserSet.MessengerFocusAutomationElement(hWnd) };
         }
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace mmswitcherAPI.Messengers.Web
         public void ReturnPreviousSelectedTab()
         {
             if (_previousSelectedTab != null && !_previousSelectedTab.Current.BoundingRectangle.Equals(System.Windows.Rect.Empty))
-                    _browserSet.FocusBrowserTab(_windowHandle, _previousSelectedTab);
+                _browserSet.FocusBrowserTab(_windowHandle, _previousSelectedTab);
         }
 
         private delegate AutomationElementCollection GetAutomationCollectionDel(AutomationElement hWnd);
@@ -283,11 +283,9 @@ namespace mmswitcherAPI.Messengers.Web
                 _tabCollection = CacheAutomationElementProperties(_tabControl, (s) => _browserSet.TabItems(s), SelectionItemPattern.Pattern);
                 _tabArray[0] = _browserSet.SelectedTab(_tabCollection); ;
 
-                if (_tabArray[0]!=null)
-                Debug.WriteLine(String.Format("current: {0}", _tabArray[0].Current.BoundingRectangle));
-                if (_tabArray[1] != null)
-                    Debug.WriteLine(String.Format("prev: {0}", _tabArray[1].Current.BoundingRectangle));
-
+                _selectedTab = _tabArray[0];
+                _previousSelectedTab = _tabArray[1];
+                DebugLog.WriteTabSelected(_tabArray, _browserSet);
                 TabSelectedTime = DateTime.Now;
             }
             catch { Dispose(true); }

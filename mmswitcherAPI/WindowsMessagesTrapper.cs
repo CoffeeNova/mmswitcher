@@ -103,10 +103,8 @@ namespace mmswitcherAPI
             base.OnActivated(e);
         }
 
-
         protected override void WndProc(ref Message m)
         {
-            //Debug.WriteLine(m.Msg);
             var handler = onWndProc;
             bool handled = false;
             if (handler != null)

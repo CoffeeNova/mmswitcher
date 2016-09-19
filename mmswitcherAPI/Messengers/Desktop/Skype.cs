@@ -17,18 +17,6 @@ namespace mmswitcherAPI.Messengers.Desktop
             if (process == null)
                 throw new ArgumentException();
         }
-        //public static Skype Instance(Process process)
-        //{
-        //    if (_instance == null)
-        //    {
-        //        lock (_locker)
-        //        {
-        //            if (_instance == null)
-        //                _instance = new Skype(process);
-        //        }
-        //    }
-        //    return _instance;
-        //}
 
         private AutomationElement GetChatEditControlManually(IntPtr hWnd)
         {
@@ -41,25 +29,6 @@ namespace mmswitcherAPI.Messengers.Desktop
                 return editControl;
             }
             catch { throw new Exception("Cannot find chat edit control."); }
-        }
-
-        protected override MemoryVariableData GetMessagesCounterData()
-        {
-            var data = new MemoryVariableData();
-            var mainModuleAddress = base._process.MainModule.BaseAddress;
-
-            var pointer = new IntPtr(Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER);
-            var handle = WinApi.OpenProcess(ProcessSecurityAndAccessRights.PROCESS_VM_READ, false, base._process.Id);
-
-            IntPtr bytesRead;
-            var buffer = new byte[4];
-            WinApi.ReadProcessMemory(handle, pointer, buffer, buffer.Length, out bytesRead);
-            WinApi.CloseHandle(handle);
-            data.Address = (IntPtr)BitConverter.ToInt32(buffer, 0);
-            data.Size = Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_SIZE;
-            data.Offset = Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_OFFSET;
-            data.Divider = 0;
-            return data;
         }
 
         protected override string TrayButtonName
@@ -110,9 +79,20 @@ namespace mmswitcherAPI.Messengers.Desktop
             base.Dispose(disposing);
         }
 
+        protected override MessagesVariableLocation MessagesData
+        {
+            get { return _messagesData; }
+        }
+
         //public static Skype _instance;
         private static object _locker = new object();
         private string _trayButtonName = Constants.SKYPE_TRAY_BUTTON_NAME;
         private bool _disposed = false;
+        private MessagesVariableLocation _messagesData = new MessagesVariableLocation()
+        {
+            MaxPointerLevel = Constants.MEMORY_BASE_POINTERS_LEVEL,
+            Offsets = Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_OFFSETS,
+            Size = Constants.SKYPE_NEWMESSAGESCOUNT_MEMORY_SIZE
+        };
     }
 }

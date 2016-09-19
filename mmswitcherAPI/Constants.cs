@@ -44,14 +44,13 @@ namespace mmswitcherAPI
         internal const int BM_CLICK = 0x00F5;
         internal const int CTRL_F = 0xA20046; //ctrl+F 
 
+        internal const int MEMORY_BASE_POINTERS_LEVEL = 6;
         internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_SIZE = 4;
-        //internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER = 0x034238B8;
-        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_BASE_ADDRESS = 0x0327C69F;
-        internal const int TELEGRAM_NEWMESSAGESCOUNT_MEMORY_OFFSET = 48304;
+        //internal static readonly int?[] TELEGRAM_NEWMESSAGESCOUNT_MEMORY_OFFSETS = new int?[MEMORY_BASE_POINTERS_LEVEL] { 0x0010D1F0, 0, null, null, null, null };
+        internal static readonly int?[] TELEGRAM_NEWMESSAGESCOUNT_MEMORY_OFFSETS = new int?[MEMORY_BASE_POINTERS_LEVEL] { 0x0216D218, 0x110, 0, 0x4, 0x7cc, 0x10 };
 
         internal const int SKYPE_NEWMESSAGESCOUNT_MEMORY_SIZE = 4;
-        internal const int SKYPE_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER = 0x00B7344C;
-        internal const int SKYPE_NEWMESSAGESCOUNT_MEMORY_OFFSET = 292;
+        internal static readonly int?[] SKYPE_NEWMESSAGESCOUNT_MEMORY_OFFSETS = new int?[MEMORY_BASE_POINTERS_LEVEL] { 0x007AB338, 0x2dc, null, null, null, null };
 
         internal const string CHROME_PROCESS_NAME = "chrome";
         internal const string OPERA_PROCESS_NAME = "opera";

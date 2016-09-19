@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Windows.Automation;
-using mmswitcherAPI;
 using System.ComponentModel;
 using System.Reflection;
-using mmswitcherAPI.winmsg;
 using System.Collections.ObjectModel;
+using mmswitcherAPI;
+using mmswitcherAPI.winmsg;
 using mmswitcherAPI.Extensions;
 using mmswitcherAPI.Messengers.Exceptions;
 
@@ -66,6 +66,7 @@ namespace mmswitcherAPI.Messengers
             {
                 if (value > _incomeMessages)
                 {
+                    DebugLog.WriteNewMessages(Caption, value);
                     _incomeMessages = value;
                     PushToActivity(this);
                     if (GotNewMessage != null)
@@ -73,6 +74,7 @@ namespace mmswitcherAPI.Messengers
                 }
                 else if (value < _incomeMessages)
                 {
+                    DebugLog.WriteNewMessages(Caption, value);
                     _incomeMessages = value;
                     PullFromActivity(this);
                     if (MessageGone != null)

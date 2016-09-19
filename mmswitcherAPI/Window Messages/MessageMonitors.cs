@@ -43,18 +43,6 @@ namespace mmswitcherAPI.winmsg
 
     }
 
-    public class WM_PAINT_Monitor1 : GlobalHookTrapper
-    {
-
-        public WM_PAINT_Monitor1(GlobalHookTypes Type, IntPtr hMod, uint dThreadId) : base(Type, hMod, dThreadId) { }
-
-        protected override bool Handle(IntPtr wparam, IntPtr lparam)
-        {
-            System.Diagnostics.Debug.WriteLine(string.Format("wparam: {0} , lparam: {1}", wparam, lparam));
-            return true;
-        }
-
-    }
     /// <summary>
     /// Класс перехвата сообщения Windows WM_PAINT
     /// </summary>

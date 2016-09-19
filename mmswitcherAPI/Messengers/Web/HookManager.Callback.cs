@@ -91,7 +91,7 @@ namespace mmswitcherAPI.Messengers.Web
         private void TrySubscribeToTabSelectedEvent()
         {
             if (WindowsMessagesTrapper.Dispatcher != null)
-                WindowsMessagesTrapper.Dispatcher.Invoke(() => { ForceUnsunscribeFromTabNameChangeEvent(); });
+                WindowsMessagesTrapper.Dispatcher.Invoke(() => { EnsureSubscribedToTabSelectedEvent(); });
         }
 
         private void EnsureSubscribedToTabSelectedEvent()

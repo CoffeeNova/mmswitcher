@@ -205,4 +205,9 @@
     <PreBuildEvent>"$(FrameworkDir)\$(FrameworkVersion)\ilasm" "$(SolutionDir)\packages\twpRegwrk.il" /dll /output="$(TargetDir)\twpRegwrk.dll"
 "$(FrameworkDir)\$(FrameworkVersion)\ilasm" "$(SolutionDir)\packages\NLog.il" /dll /output="$(TargetDir)\NLog.dll"</PreBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>mkdir "$(TargetDir)\Click!"
+copy "$(TargetDir)\*.dll" "$(TargetDir)\Click!"
+copy "$(TargetDir)\Click!.exe" "$(TargetDir)\Click!"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

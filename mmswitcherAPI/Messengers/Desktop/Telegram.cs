@@ -18,45 +18,7 @@ namespace mmswitcherAPI.Messengers.Desktop
                 throw new ArgumentException();
         }
 
-        //public static Telegram Instance(Process process)
-        //{
-        //    if (_instance == null)
-        //    {
-        //        lock (_locker)
-        //        {
-        //            if (_instance == null)
-        //                _instance = new Telegram(process);
-        //        }
-        //    }
-        //    return _instance;
-        //}
-
         protected override void OnMessageTraced(object sender, IntPtr hWnd, ShellEvents shell) { }
-
-        protected override MemoryVariableData GetMessagesCounterData()
-        {
-            var data = new MemoryVariableData();
-            data.Address = (IntPtr)Constants.TELEGRAM_NEWMESSAGESCOUNT_MEMORY_BASE_ADDRESS;
-            data.Size = Constants.TELEGRAM_NEWMESSAGESCOUNT_MEMORY_SIZE;
-            data.Offset = 0;
-            data.Divider = 256;
-            return data;
-
-            //var data = new VariableData();
-            //var mainModuleAddress = base._process.MainModule.BaseAddress;
-
-            //var pointer = new IntPtr(Constants.TELEGRAM_NEWMESSAGESCOUNT_MEMORY_BASE_POINTER);
-            //var handle = WinApi.OpenProcess(ProcessSecurityAndAccessRights.PROCESS_VM_READ, false, base._process.Id);
-
-            //IntPtr bytesRead;
-            //var buffer = new byte[4];
-            //WinApi.ReadProcessMemory(handle, pointer, buffer, buffer.Length, out bytesRead);
-            //WinApi.CloseHandle(handle);
-            //data.Address = (IntPtr)BitConverter.ToInt32(buffer, 0);
-            //data.Size = Constants.TELEGRAM_NEWMESSAGESCOUNT_MEMORY_SIZE;
-            //data.Offset = Constants.TELEGRAM_NEWMESSAGESCOUNT_MEMORY_OFFSET;
-            //return data;
-        }
 
         protected override string TrayButtonName
         {
@@ -96,11 +58,21 @@ namespace mmswitcherAPI.Messengers.Desktop
             base.Dispose(disposing);
         }
 
-
+        protected override MessagesVariableLocation MessagesData
+        {
+            get { return _messagesData; }
+        }
 
         // public static Telegram _instance;
         //private static object _locker = new object();
         private string _trayButtonName = Constants.TELEGRAM_TRAY_BUTTON_NAME;
         private bool _disposed = false;
+
+        private MessagesVariableLocation _messagesData = new MessagesVariableLocation()
+        {
+            MaxPointerLevel = Constants.MEMORY_BASE_POINTERS_LEVEL,
+            Offsets = Constants.TELEGRAM_NEWMESSAGESCOUNT_MEMORY_OFFSETS,
+            Size = Constants.TELEGRAM_NEWMESSAGESCOUNT_MEMORY_SIZE
+        };
     }
 }

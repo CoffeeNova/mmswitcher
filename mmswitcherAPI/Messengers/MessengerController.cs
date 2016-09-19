@@ -174,7 +174,7 @@ namespace mmswitcherAPI.Messengers
             if (messenger is WebMessenger)
             {
                 var webMess = messenger as WebMessenger;
-                if (webMess.TabSelectedTime > _foregroundChangedTime)
+                if (webMess.TabSelectedTime > _foregroundChangedTime + new TimeSpan(0,0,0,0,500))
                     webMess.ReturnPreviousSelectedTab();
                 else
                     ReturnPreviousWindow();
@@ -194,7 +194,7 @@ namespace mmswitcherAPI.Messengers
         private Gbc _switchByActGBC;
         private Gbc _switchByRecGBC;
         private Gbc _switchByQueGBC;
-        private DateTime _foregroundChangedTime = DateTime.Now;
+        private DateTime _foregroundChangedTime;
 
         public static MessengerController Instance { get; private set; }
 

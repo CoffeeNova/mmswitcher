@@ -107,15 +107,9 @@ namespace mmswitcherAPI.Messengers.Desktop
             var address = IntPtr.Add(_messagesCounter.Address, _messagesCounter.Offset);
             WinApi.ReadProcessMemory(handle, address, buffer, buffer.Length, out bytesRead);
             var intValue = BitConverter.ToInt32(buffer, 0);
-            if (_messagesCounter.Divider == 0)
-                base.IncomeMessages = intValue;
-            else
-                base.IncomeMessages = intValue / _messagesCounter.Divider;
-
+            base.IncomeMessages = intValue;
             WinApi.CloseHandle(handle);
-#if DEBUG
-            Debug.WriteLine(string.Format("Process name: {0}, new messages: {1}", base._process.ProcessName, base.IncomeMessages));
-#endif
+//            Debug.WriteLine(string.Format("Process name: {0}, new messages: {1}", base._process.ProcessName, base.IncomeMessages));
         }
 
         private static AutomationElement GetNotificationArea()
@@ -164,9 +158,38 @@ namespace mmswitcherAPI.Messengers.Desktop
             _messageProcessingTimer.Dispose();
             _messageProcessingTimer = null;
         }
+
+        protected virtual MemoryVariableData GetMessagesCounterData()
+        {
+            var data = new MemoryVariableData();
+            var mainModuleAddress = base._process.MainModule.BaseAddress;
+            var offsetsList = MessagesData.Offsets.TakeWhile(p => p != null).Select(p => Convert.ToInt32(p)).ToList();
+
+            var baseAddress= _process.MainModule.BaseAddress;
+            var address = baseAddress;
+
+            for (int i = 0; i < offsetsList.Count - 1; i++)
+                address = GetMemoryAddress(address, offsetsList[i]);
+           
+            data.Address = address;
+            data.Offset = offsetsList.Last();
+            data.Size = MessagesData.Size;
+            return data;
+        }
+
+        private IntPtr GetMemoryAddress(IntPtr pointer, int offset)
+        {
+            var handle = WinApi.OpenProcess(ProcessSecurityAndAccessRights.PROCESS_VM_READ, false, base._process.Id);
+            IntPtr bytesRead;
+            var buffer = new byte[4];
+            pointer = IntPtr.Add(pointer, offset);
+            WinApi.ReadProcessMemory(handle, pointer, buffer, buffer.Length, out bytesRead);
+            WinApi.CloseHandle(handle);
+            return (IntPtr)BitConverter.ToInt32(buffer, 0);
+        }
         #region abstract methods
         //protected abstract void _wm_paintMonitor_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell);
-        protected abstract MemoryVariableData GetMessagesCounterData();
+        //protected abstract MemoryVariableData GetMessagesCounterData();
 
         protected abstract IntPtr GetMainWindowHandle(Process process);
 
@@ -210,6 +233,7 @@ namespace mmswitcherAPI.Messengers.Desktop
         #region protected properties
         protected abstract string TrayButtonName { get; }
 
+        protected abstract MessagesVariableLocation MessagesData { get; }
         /// <summary>
         /// Счетчик сообщений в памяти процесса мессенджера.
         /// </summary>
@@ -233,6 +257,13 @@ namespace mmswitcherAPI.Messengers.Desktop
         public int Size { get; set; }
         public IntPtr Address { get; set; }
         public int Offset { get; set; }
-        public int Divider { get; set; }
+    }
+
+    public struct MessagesVariableLocation
+    {
+        public int MaxPointerLevel;
+        public int PointerOffset;
+        public int?[] Offsets;
+        public int Size;
     }
 }
