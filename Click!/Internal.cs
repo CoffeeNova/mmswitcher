@@ -68,6 +68,26 @@ namespace Click_
         /// 
         /// </summary>
         /// <param name="lastValue"></param>
+        /// <param name="valueName"></param>
+        /// <param name="keyLocation"></param>
+        /// <param name="saveValue"></param>
+        /// <exception cref="InvalidOperationException">Ошибка записи в реестр. Подробности во внутреннем исключении.</exception>
+        internal static Keys SaveRegistrySettings( string valueName, string keyLocation, Keys saveValue)
+        {
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, saveValue.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
+            return saveValue;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lastValue"></param>
         /// <param name="keyName"></param>
         /// <param name="keyLocation"></param>
         /// <param name="saveValue"></param>       
@@ -87,6 +107,28 @@ namespace Click_
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lastValue"></param>
+        /// <param name="keyName"></param>
+        /// <param name="keyLocation"></param>
+        /// <param name="saveValue"></param>       
+        /// <exception cref="InvalidOperationException">Ошибка записи в реестр. Подробности во внутреннем исключении.</exception>
+        internal static List<Gbc.KeyModifierStuck> SaveRegistrySettings(string valueName, string keyLocation, List<Gbc.KeyModifierStuck> saveValue)
+        {
+            var returnValue = new List<Gbc.KeyModifierStuck>();
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.MultiString, valueName, saveValue.Select(x => { return x.ToString(); }).ToArray());
+                returnValue = saveValue;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
+            return returnValue;
+        }
 
         /// <summary>
         /// 
@@ -219,37 +261,38 @@ namespace Click_
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="keyValue"></param>
         /// <param name="valueName"></param>
         /// <param name="keyLocation"></param>
         /// <param name="keyDefaultValue"></param>
-        /// <returns></returns>
         internal static Keys CheckRegistrySettings(string valueName, string keyLocation, Keys keyDefaultValue)
         {
-            Keys keyValue;
             string getkey = null;
+            Keys keyValue;
             try
             {
                 getkey = RegistryWorker.GetKeyValue<string>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
             }
             catch (System.IO.IOException) { }
 
-            try
+            if (getkey == null)
             {
-                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString());
-                keyValue = keyDefaultValue;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
-            }
-
-            if (getkey != null)
                 try
                 {
-                    keyValue = ConvertFromString(getkey);
+                    RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.String, valueName, keyDefaultValue.ToString());
+                    keyValue = keyDefaultValue;
                 }
-                catch { keyValue = keyDefaultValue; }
-
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+                }
+                return keyValue;
+            }
+            try
+            {
+                keyValue = ConvertFromString(getkey);
+            }
+            catch { keyValue = keyDefaultValue; }
             return keyValue;
         }
 
@@ -340,6 +383,92 @@ namespace Click_
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="keyValue"></param>
+        /// <param name="valueName"></param>
+        /// <param name="keyLocation"></param>
+        internal static List<Gbc.KeyModifierStuck> CheckRegistrySettings(string valueName, string keyLocation, List<Gbc.KeyModifierStuck> keyDefaultValue)
+        {
+            var keyValue = new List<Gbc.KeyModifierStuck>();
+
+            Func<List<Gbc.KeyModifierStuck>, string[]> fu = (gbc_list) =>
+            {
+                string[] test = new string[gbc_list.Count];
+                for (int i = 0; i < gbc_list.Count; i++)
+                    test[i] = gbc_list[i].ToString();
+                return test;
+            };
+
+            string[] getkey = null;
+            try
+            {
+                getkey = RegistryWorker.GetKeyValue<string[]>(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, valueName);
+            }
+            catch (System.IO.IOException) { }
+
+            if (getkey != null)
+            {
+                string[] keyValueReg = getkey;
+                Func<string, Gbc.KeyModifierStuck> func = (value) =>
+                {
+                    Gbc.KeyModifierStuck mod;
+                    #region switch-case shit
+                    switch (value)
+                    {
+                        case "Shift":
+                            mod = Gbc.KeyModifierStuck.Shift;
+                            break;
+                        case "Control":
+                            mod = Gbc.KeyModifierStuck.Control;
+                            break;
+                        case "Alt":
+                            mod = Gbc.KeyModifierStuck.Alt;
+                            break;
+                        case "Winkey":
+                            mod = Gbc.KeyModifierStuck.WinKey;
+                            break;
+                        case "ShiftAlt":
+                            mod = Gbc.KeyModifierStuck.ShiftAlt;
+                            break;
+                        case "ShiftControl":
+                            mod = Gbc.KeyModifierStuck.ShiftControl;
+                            break;
+                        case "ShiftControlALt":
+                            mod = Gbc.KeyModifierStuck.ShiftControlAlt;
+                            break;
+                        case "None":
+                            mod = Gbc.KeyModifierStuck.None;
+                            break;
+                        case "ControlAlt":
+                            mod = Gbc.KeyModifierStuck.ControlAlt;
+                            break;
+                        default:
+                            mod = Gbc.KeyModifierStuck.None;
+                            break;
+                    }
+                    #endregion
+                    return mod;
+
+                };
+                foreach (string keyV in keyValueReg)
+                    keyValue.Add(func(keyV));
+                return keyValue;
+            }
+
+            try
+            {
+                RegistryWorker.WriteKeyValue(Microsoft.Win32.RegistryHive.LocalMachine, keyLocation, Microsoft.Win32.RegistryValueKind.MultiString, valueName, fu(keyDefaultValue));
+                keyValue = keyDefaultValue;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Unable to write a value to HKEY_LOCAL_MACHINE\\" + keyLocation + "\\" + valueName, ex);
+            }
+            return keyValue;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="keystr"></param>
         /// <returns></returns>
         internal static Keys ConvertFromString(string keystr)
@@ -366,6 +495,13 @@ namespace Click_
             return process.ProcessName;
         }
 
+        internal static string GetClassName(IntPtr hWnd)
+        {
+            StringBuilder title = new StringBuilder(Constants._MAXTITLE);
+            int titleLength = WinApi.GetClassName(hWnd, title, title.Capacity + 1);
+            title.Length = titleLength;
 
+            return title.ToString();
+        }
     }
 }

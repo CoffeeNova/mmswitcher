@@ -42,8 +42,9 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
 
             if (childElement == null) { return null; } // not the right chrome.exe
             var firstEmptyCustom = TreeWalker.RawViewWalker.GetLastChild(childElement);
-
-            var secondEmptyCustom = firstEmptyCustom.FindAll(TreeScope.Children, Condition.TrueCondition)[1];
+            var firstEmptyCustomChildren = firstEmptyCustom.FindAll(TreeScope.Children, Condition.TrueCondition);
+            int penultChild = firstEmptyCustomChildren.Count - 2;
+            var secondEmptyCustom = firstEmptyCustomChildren[penultChild];
             var tabControlAE = secondEmptyCustom.FindFirst(TreeScope.Children, new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Tab));
 
             return tabControlAE;

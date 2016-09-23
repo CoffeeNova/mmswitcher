@@ -20,17 +20,29 @@ namespace Click_
         internal const string _LAST_USED_MOD = "lum";
         internal const string _MOST_NEW_MOD = "mnm";
         internal const string _ORDER_MOD = "om";
+        internal const string _UPDATE_KEY = "uk";
+        internal const string _UPDATE_MOD = "um";
         internal const string _LAST_USED_MENU_KEY = "lastused";
         internal const string _MOST_NEW_MENU_KEY = "mostnew";
         internal const string _ORDER_MENU_KEY = "order";
         internal const string _APPLICATION_NAME = "Click!";
         internal const string _NOTIFY_ICON_TEXT = _APPLICATION_NAME;
 
-
         internal const string _SKYPE_PROCESSNAME = "Skype";
         internal const string _TELEGRAM_PROCESSNAME = "Telegram";
-        internal  static readonly string[] _BROWSERS_PROCESSNAME = new string[4] { "chrome", "opera", "firefox", "iexplore" };
-        
+        internal const string CHROME_PROCESS_NAME = "chrome";
+        internal const string OPERA_PROCESS_NAME = "opera";
+        internal const string FIREFOX_PROCESS_NAME = "firefox";
+        internal const string TOR_PROCESS_NAME = "firefox";
+        internal const string IE_PROCESS_NAME = "iexplore";
+        internal static readonly string[] _BROWSERS_PROCESSNAMES = new string[4] { "chrome", "opera", "firefox", "iexplore" };
+        internal static readonly string[] _BROWSERS_CLASS_NAMES = new string[3] { "Chrome_WidgetWin_1", "firefox_CLASS_NAME", "iexplore_CLASS_NAME" };
+
+
+        internal const int _SWITCHING_DELAY = 50;
+        internal const int _MAXTITLE = 255;
+        internal const int _CHECK_FOR_WEB_MESSENGERS_DELAY = 500;
+
         internal struct MessengerCaption
         {
             public const string Skype = "Skype";

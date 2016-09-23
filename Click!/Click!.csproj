@@ -96,6 +96,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Controls\BindControl.cs">
       <SubType>UserControl</SubType>

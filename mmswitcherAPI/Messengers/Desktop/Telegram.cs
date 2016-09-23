@@ -18,7 +18,7 @@ namespace mmswitcherAPI.Messengers.Desktop
                 throw new ArgumentException();
         }
 
-        protected override void OnMessageTraced(object sender, IntPtr hWnd, ShellEvents shell) { }
+        //protected override void OnMessageTraced(object sender, IntPtr hWnd, ShellEvents shell) { }
 
         protected override string TrayButtonName
         {

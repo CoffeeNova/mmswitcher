@@ -22,10 +22,7 @@ namespace mmswitcherAPI.Messengers.Web
             var e = new AutomationPropertyChangedEventArgs(AutomationElement.NameProperty, String.Empty, String.Empty);
             var aElement = AutomationElement.FromHandle(hWnd);
             if (aElement != null)
-            {
-                Console.WriteLine(aElement.Current.ClassName);
                 _tabNameChanged.Invoke(hWnd, e);
-            }
         }
 
         private void TrySubscribeToTabNameChangeEvent()

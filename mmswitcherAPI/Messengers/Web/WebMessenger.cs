@@ -29,15 +29,13 @@ namespace mmswitcherAPI.Messengers.Web
                 InitBrowserSet(browserProcess);
 
             InitBrowserComponents();
-
-            if (_hManager == null)
-                InitHookManager();
+            InitHookManager();
 
             _selectedTab = _tabArray[0];
             _previousSelectedTab = _tabArray[1];
-            base.IncomeMessages = GetMessagesCount(base.IncomeMessageAE);
+            int? count = GetMessagesCount(base.IncomeMessageAE);
+            base.IncomeMessages = count.HasValue ? count.Value : base.IncomeMessages;
         }
-
 
         /// <summary>
         /// Добавляет к методу <see cref="BaseMessenger.OnMessageTraced"/> отслеживаение закрытия вкладки браузера и перенос вкладки в новое окно. Вызывает деструктор.
@@ -47,11 +45,14 @@ namespace mmswitcherAPI.Messengers.Web
         /// <param name="shell">Перечисление shell событий.</param>
         protected override void OnMessageTraced(object sender, IntPtr hWnd, ShellEvents shell)
         {
-            if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
-                return;
-            if (hWnd == (IntPtr)RenderTabWidgetAE.Cached.NativeWindowHandle)
+            //if (shell != ShellEvents.HSHELL_WINDOWDESTROYED)
+            //    return;
+            //Debug.WriteLine(hWnd.ToString("X"));
+            //if (hWnd == (IntPtr)_disposeAE.Cached.NativeWindowHandle)
+            //    Dispose(true);
+            if (!base.MessengerAE.Current.IsEnabled)
                 Dispose(true);
-            base.OnMessageTraced(sender, hWnd, shell);
+            //base.OnMessageTraced(sender, hWnd, shell);
         }
 
         void _hManager_TabClosed(object sender, AutomationFocusChangedEventArgs e)
@@ -93,6 +94,7 @@ namespace mmswitcherAPI.Messengers.Web
             if (_hManager != null) return;
             _hManager = new WebMessengerHookManager(base._windowHandle, _browserSet);
             _hManager.TabSelected += _hManager_TabSelected;
+            _hManager.ObjectNameChange += OnMessageProcessing;
         }
 
         private void InitBrowserComponents()
@@ -106,7 +108,7 @@ namespace mmswitcherAPI.Messengers.Web
             _tabControl = _browserSet.BrowserTabControl(_browserWindowAE);
             _tabCollection = CacheAutomationElementProperties(_tabControl, (s) => _browserSet.TabItems(s), SelectionItemPattern.Pattern);
 
-            CacheAutomationElementProperties(base._windowHandle, ref _renderTabWidgetAE, (s) => _browserSet.BrowserTabControlWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
+            //CacheAutomationElementProperties(base._windowHandle, ref _disposeAE, (s) => _browserSet.BrowserTabControlWindowAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
 
             _browserComponentsInitialized = true;
         }
@@ -130,7 +132,6 @@ namespace mmswitcherAPI.Messengers.Web
             {
                 bool isRestored = Tools.RestoreWindow(widgetHandle);
                 var tabElement = DefineTabAutomationAelement(widgetHandle);
-
                 if (isRestored)
                     Tools.MinimizeWindow(widgetHandle);
 
@@ -177,10 +178,10 @@ namespace mmswitcherAPI.Messengers.Web
         /// </summary>
         /// <param name="hWnd">Хэндл окна браузера.</param>
         /// <returns></returns>
-        protected override AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
-        {
-            return _browserSet.MessengerIncomeMessageAutomationElement(hWnd);
-        }
+        //protected override AutomationElement GetIncomeMessageAutomationElement(IntPtr hWnd)
+        //{
+        //    return _browserSet.MessengerIncomeMessageAutomationElement(hWnd);
+        //}
 
         public override void SetForeground()
         {
@@ -245,26 +246,30 @@ namespace mmswitcherAPI.Messengers.Web
         {
             var element = sender as AutomationElement;
             if (element == IncomeMessageAE)
-                base.IncomeMessages = GetMessagesCount(element);
+            {
+                int? count = GetMessagesCount(element);
+                base.IncomeMessages = count.HasValue ? count.Value : base.IncomeMessages;
+            }
         }
 
-        protected abstract int GetMessagesCount(AutomationElement element);
+        protected abstract int? GetMessagesCount(AutomationElement element);
 
         /// <summary>
         /// Регистрирует метод, который будет обрабатывать события изменения свойства <see cref="AutomationElement.NameProperty"/> 
         /// </summary>
         protected override void OnMessageProcessingSubscribe()
         {
-            propertyHandler = new AutomationPropertyChangedEventHandler(OnMessageProcessing);
-            Automation.AddAutomationPropertyChangedEventHandler(IncomeMessageAE, TreeScope.Element, propertyHandler, AutomationElement.NameProperty);
-            _onMessageProcessingSubsribed = true;
-            base.IncomeMessages = GetMessagesCount(IncomeMessageAE);
+            //propertyHandler = new AutomationPropertyChangedEventHandler(OnMessageProcessing);
+            //Automation.AddAutomationPropertyChangedEventHandler(IncomeMessageAE, TreeScope.Element, propertyHandler, AutomationElement.NameProperty);
+            //_onMessageProcessingSubsribed = true;
+            //base.IncomeMessages = GetMessagesCount(IncomeMessageAE);
         }
 
         protected override void OnMessageProcessingUnSubscribe()
         {
-            if (propertyHandler != null && _onMessageProcessingSubsribed)
-                Automation.RemoveAutomationPropertyChangedEventHandler(IncomeMessageAE, propertyHandler);
+            //if (propertyHandler != null && _onMessageProcessingSubsribed)
+            //Automation.RemoveAutomationPropertyChangedEventHandler(IncomeMessageAE, propertyHandler);
+            
         }
 
         private void _hManager_TabSelected(object sender, EventArgs e)
@@ -312,6 +317,7 @@ namespace mmswitcherAPI.Messengers.Web
                 if (_hManager != null)
                 {
                     _hManager.TabSelected -= _hManager_TabSelected;
+                    _hManager.ObjectNameChange -= OnMessageProcessing;
                     _hManager.Dispose();
                 }
                 _browserSet = null;
@@ -329,18 +335,18 @@ namespace mmswitcherAPI.Messengers.Web
         /// <summary>
         /// <see cref="AutomationElement"/> окна, которое непосредственно отображает рабочие элементы веб мессенджера и создается/уничтожается при создании/закрытии вкладки.
         /// </summary>
-        protected AutomationElement RenderTabWidgetAE
-        {
-            get
-            {
-                try
-                {
-                    var t = _renderTabWidgetAE.Current.Name;
-                    return _renderTabWidgetAE;
-                }
-                catch { Dispose(true); return null; }
-            }
-        }
+        //protected AutomationElement DisposeAE
+        //{
+        //    get
+        //    {
+        //        try
+        //        {
+        //            var t = _disposeAE.Current.Name;
+        //            return _disposeAE;
+        //        }
+        //        catch { Dispose(true); return null; }
+        //    }
+        //}
 
         #region protected fields
         protected BrowserSet _browserSet;
@@ -349,7 +355,7 @@ namespace mmswitcherAPI.Messengers.Web
         #region private fields
         private WebMessengerHookManager _hManager;
         private AutomationElement _browserWindowAE;
-        private AutomationElement _renderTabWidgetAE;
+        //private AutomationElement _disposeAE;
         private AutomationElement _tabControl;
         private AutomationElementCollection _tabCollection;
         private AutomationElement[] _tabArray = new AutomationElement[2];

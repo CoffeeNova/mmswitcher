@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace mmswitcherAPI
 {
@@ -18,7 +19,6 @@ namespace mmswitcherAPI
             _key = bindKey;
             Method = method;
             Behaviour = behaviour;
-            Execute = false;
             _ptrHookKey = IntPtr.Zero;
             _ptrHookModKey = IntPtr.Zero;
             _shiftDetected = false;
@@ -27,6 +27,7 @@ namespace mmswitcherAPI
             _tasks = modifiers;
             _bindFunctions = CreateBindActions(_tasks);
             _functionSuccessful = false;
+            DebugLog.WriteGlobalBindControllerCreated();
         }
 
         private BindFunctions CreateBindActions(List<KeyValuePair<KeyModifierStuck, Action>> modPairs)
@@ -94,61 +95,39 @@ namespace mmswitcherAPI
         //
         internal bool DoBindFunction(Keys key)
         {
+            if (_onDelay)
+                return true;
             //Условие 1: клавиша без модификатора.
             if (key == _key && !_shiftDetected && !_controlDetected && !_altDetected && !_winDetected && _bindFunctions.Nomod != null)
-            {
                 _bindFunctions.Nomod();
-                return true;
-            }
             //Условие 2: клавиша с модификатором shift.
-            if (key == _key && _shiftDetected && !_controlDetected && !_altDetected && !_winDetected && _bindFunctions.Shiftmod != null)
-            {
+            else if (key == _key && _shiftDetected && !_controlDetected && !_altDetected && !_winDetected && _bindFunctions.Shiftmod != null)
                 _bindFunctions.Shiftmod();
-                return true;
-            }
             //Условие 3: клавиша с модификатором ctrl.
-            if (key == _key && !_shiftDetected && _controlDetected && !_altDetected && !_winDetected && _bindFunctions.Controlmod != null)
-            {
+            else if (key == _key && !_shiftDetected && _controlDetected && !_altDetected && !_winDetected && _bindFunctions.Controlmod != null)
                 _bindFunctions.Controlmod();
-                return true;
-            }
             //Условие 4: клавиша с модификатором alt.
-            if (key == _key && !_shiftDetected && !_controlDetected && _altDetected && !_winDetected && _bindFunctions.Altmod != null)
-            {
+            else if (key == _key && !_shiftDetected && !_controlDetected && _altDetected && !_winDetected && _bindFunctions.Altmod != null)
                 _bindFunctions.Altmod();
-                return true;
-            }
             //Условие 5: клавиша с модификатором win.
-            if (key == _key && !_shiftDetected && !_controlDetected && !_altDetected && _winDetected && _bindFunctions.Winmod != null)
-            {
+            else if (key == _key && !_shiftDetected && !_controlDetected && !_altDetected && _winDetected && _bindFunctions.Winmod != null)
                 _bindFunctions.Winmod();
-                return true;
-            }
             //Условие 6: клавиша с модификатором ctrl+shift.
-            if (key == _key && _shiftDetected && _controlDetected && !_altDetected && !_winDetected && _bindFunctions.CtrlShiftmod != null)
-            {
+            else if (key == _key && _shiftDetected && _controlDetected && !_altDetected && !_winDetected && _bindFunctions.CtrlShiftmod != null)
                 _bindFunctions.CtrlShiftmod();
-                return true;
-            }
             //Условие 7: клавиша с модификатором ctrl+alt.
-            if (key == _key && !_shiftDetected && _controlDetected && _altDetected && !_winDetected && _bindFunctions.CtrlAltmod != null)
-            {
+            else if (key == _key && !_shiftDetected && _controlDetected && _altDetected && !_winDetected && _bindFunctions.CtrlAltmod != null)
                 _bindFunctions.CtrlAltmod();
-                return true;
-            }
             //Условие 8: клавиша с модификатором shift+alt.
-            if (key == _key && _shiftDetected && !_controlDetected && _altDetected && !_winDetected && _bindFunctions.ShiftAltmod != null)
-            {
+            else if (key == _key && _shiftDetected && !_controlDetected && _altDetected && !_winDetected && _bindFunctions.ShiftAltmod != null)
                 _bindFunctions.ShiftAltmod();
-                return true;
-            }
             //Условие 9: клавиша с модификатором shift+ctrl+alt.
-            if (key == _key && _shiftDetected && _controlDetected && _altDetected && !_winDetected && _bindFunctions.ShiftCtrlAltmod != null)
-            {
+            else if (key == _key && _shiftDetected && _controlDetected && _altDetected && !_winDetected && _bindFunctions.ShiftCtrlAltmod != null)
                 _bindFunctions.ShiftCtrlAltmod();
-                return true;
-            }
-            return false;
+            else
+                return false;
+            Delay();
+            return true;
         }
 
         private void BindFunction(bool state)
@@ -189,7 +168,7 @@ namespace mmswitcherAPI
                 });
                 _ptrHookKey = WinApi.SetWindowsHookEx(13, _keyKeyboardProcess, WinApi.GetModuleHandle(objCurrentModule.ModuleName), 0);
             }
-            else if (!state || Method == BindMethod.Hook)
+            else if (!state && Method == BindMethod.Hook)
             {
                 if (_ptrHookKey != IntPtr.Zero)
                 {
@@ -217,44 +196,33 @@ namespace mmswitcherAPI
                     _winKeyRegistred = WinApi.RegisterHotKey(this.Handle, Constants.WINKEY_REGISTER_ID, (int)KeyModifier.WinKey, _key.GetHashCode());
                 if (_bindFunctions.Nomod != null)
                     _keyRegistred = WinApi.RegisterHotKey(this.Handle, Constants.KEY_REGISTER_ID, (int)KeyModifier.None, _key.GetHashCode());
-
             }
             else if (!state && Method == BindMethod.RegisterHotKey)
             {
                 if (_keyRegistred)
-                {
-                    WinApi.UnregisterHotKey(this.Handle, Constants.KEY_REGISTER_ID);
-                    _keyRegistred = false;
-                }
+                    _keyRegistred = !WinApi.UnregisterHotKey(this.Handle, Constants.KEY_REGISTER_ID);
                 if (_shiftKeyRegistred)
-                {
-                    WinApi.UnregisterHotKey(this.Handle, Constants.SHIFTKEY_REGISTER_ID);
-                    _shiftKeyRegistred = false;
-                }
+                    _shiftKeyRegistred = !WinApi.UnregisterHotKey(this.Handle, Constants.SHIFTKEY_REGISTER_ID);
                 if (_controlKeyRegistred)
-                {
-                    WinApi.UnregisterHotKey(this.Handle, Constants.CTRLKEY_REGISTER_ID);
-                    _controlKeyRegistred = false;
-                }
+                    _controlKeyRegistred = !WinApi.UnregisterHotKey(this.Handle, Constants.CTRLKEY_REGISTER_ID);
                 if (_altKeyRegistred)
-                {
-                    WinApi.UnregisterHotKey(this.Handle, Constants.ALTKEY_REGISTER_ID);
-                    _altKeyRegistred = false;
-                }
+                    _altKeyRegistred = !WinApi.UnregisterHotKey(this.Handle, Constants.ALTKEY_REGISTER_ID);
                 if (_winKeyRegistred)
-                {
-                    WinApi.UnregisterHotKey(this.Handle, Constants.WINKEY_REGISTER_ID);
-                    _winKeyRegistred = false;
-                }
+                    _winKeyRegistred = !WinApi.UnregisterHotKey(this.Handle, Constants.WINKEY_REGISTER_ID);
             }
             #endregion
-
         }
 
+        private async void Delay()
+        {
+            _onDelay = true;
+            await System.Threading.Tasks.Task.Delay(KeyProcessingDelay);
+            _onDelay = false;
+        }
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == Constants.WM_HOTKEY)
+            if (m.Msg == Constants.WM_HOTKEY && _onDelay == false)
             {
                 /* Note that the three lines below are not needed if you only want to register one hotkey.
                  * The below lines are useful in case you want to register multiple keys, which you can use a switch with the id as argument, or if you want to know which key/modifier was pressed for some particular reason. */
@@ -265,20 +233,21 @@ namespace mmswitcherAPI
 
                 if (modifier == KeyModifier.None && _bindFunctions.Nomod != null)
                     _bindFunctions.Nomod();
-                if (modifier == KeyModifier.Shift && _bindFunctions.Shiftmod != null)
+                else if (modifier == KeyModifier.Shift && _bindFunctions.Shiftmod != null)
                     _bindFunctions.Shiftmod();
-                if (modifier == KeyModifier.Control && _bindFunctions.Controlmod != null)
+                else if (modifier == KeyModifier.Control && _bindFunctions.Controlmod != null)
                     _bindFunctions.Controlmod();
-                if (modifier == KeyModifier.Alt && _bindFunctions.Altmod != null)
+                else if (modifier == KeyModifier.Alt && _bindFunctions.Altmod != null)
                     _bindFunctions.Altmod();
-                if (modifier == KeyModifier.WinKey && _bindFunctions.Winmod != null)
+                else if (modifier == KeyModifier.WinKey && _bindFunctions.Winmod != null)
                     _bindFunctions.Winmod();
-                if (modifier == (KeyModifier.Shift | KeyModifier.Control) && _bindFunctions.CtrlShiftmod != null)
+                else if (modifier == (KeyModifier.Shift | KeyModifier.Control) && _bindFunctions.CtrlShiftmod != null)
                     _bindFunctions.CtrlShiftmod();
-                if (modifier == (KeyModifier.Shift | KeyModifier.Alt) && _bindFunctions.ShiftAltmod != null)
+                else if (modifier == (KeyModifier.Shift | KeyModifier.Alt) && _bindFunctions.ShiftAltmod != null)
                     _bindFunctions.ShiftAltmod();
-                if (modifier == (KeyModifier.Control | KeyModifier.Alt) && _bindFunctions.CtrlAltmod != null)
+                else if (modifier == (KeyModifier.Control | KeyModifier.Alt) && _bindFunctions.CtrlAltmod != null)
                     _bindFunctions.CtrlAltmod();
+                Delay();
             }
             base.WndProc(ref m);
 
@@ -322,6 +291,7 @@ namespace mmswitcherAPI
         private bool _winKeyRegistred;
         private bool _functionSuccessful;
         private bool _execute = false;
+        private bool _onDelay = false;
         private Keys _key;
         private WinApi.HookProc _modifierKeyboardProcess;
         private WinApi.HookProc _keyKeyboardProcess;
@@ -329,7 +299,9 @@ namespace mmswitcherAPI
         private IntPtr _ptrHookKey;
         private BindFunctions _bindFunctions;
         private List<KeyValuePair<KeyModifierStuck, Action>> _tasks;
-
+        private int _keyProcessingDelay = 0;
+        private static readonly int _maxDelay = 2000;
+        private static readonly int _minDelay = 0;
         #endregion
 
         #region public properties
@@ -340,7 +312,11 @@ namespace mmswitcherAPI
             set
             {
                 if (value != _execute)
+                {
                     BindFunction(value);
+                    DebugLog.WriteGlobalBindControllerExecuted(_key.ToString(), value);
+                    _execute = value;
+                }
             }
         }
         public BindMethod Method { get; private set; }
@@ -354,8 +330,8 @@ namespace mmswitcherAPI
             {
                 if (value != _key && _execute)
                 {
-                    _key = value;
                     Execute = false;
+                    _key = value;
                     Execute = true;
                     return;
                 }
@@ -369,8 +345,8 @@ namespace mmswitcherAPI
             {
                 if (value != _tasks && _execute)
                 {
-                    _tasks = value;
                     Execute = false;
+                    _tasks = value;
                     _bindFunctions = CreateBindActions(_tasks);
                     Execute = true;
                     return;
@@ -379,9 +355,21 @@ namespace mmswitcherAPI
             }
         }
 
+        public int KeyProcessingDelay
+        {
+            get { return _keyProcessingDelay; }
+            set
+            {
+                if (value > _maxDelay || value < _minDelay)
+                    throw new ArgumentOutOfRangeException("KeyProcessingDelay", string.Format("Must be within the range from {0} to {1}", _minDelay, _maxDelay));
+                _keyProcessingDelay = value;
+            }
+        }
+
         #endregion
 
         #region enums
+
         public enum BindMethod
         {
             Hook,
@@ -415,13 +403,6 @@ namespace mmswitcherAPI
             WinKey = 8
         }
 
-        //public enum Locks : ushort
-        //{
-        //    None = 0,
-        //    KeyboardScrollLockOn = 1,
-        //    KeyboardNumLockOn = 2,
-        //    KeyboardCapsLockOn = 4
-        //}
         #endregion
 
         private struct BindFunctions

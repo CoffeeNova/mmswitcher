@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
@@ -18,6 +14,7 @@ using mmswitcherAPI.Messengers.Desktop;
 using mmswitcherAPI.Messengers.Web;
 using mmswitcherAPI.Messengers.Exceptions;
 using mmswitcherAPI.AltTabSimulator;
+using mmswitcherAPI.winmsg;
 
 namespace Click_
 {
@@ -31,15 +28,15 @@ namespace Click_
             ManualInitializing();
             Settings();
 
-
             InitAdditionalMenus();
             BindEventsSubscribe();
 
             ActiveWindowStackInit();
 
-            Bind.KeyChanged += Bind_BindPairChanged;
-            Bind.ModsChanged += Bind_ModsChanged;
-            ControllerInit();
+            MessengerControllerBinds.KeyChanged += Bind_BindPairChanged;
+            MessengerControllerBinds.ModsChanged += Bind_ModsChanged;
+
+            ControllersInit();
 
             InitMenusCondition();
 
@@ -55,15 +52,25 @@ namespace Click_
             this.webVersionToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
             this.bindsToolStripMenuItem.DropDown.Closing += ToolStripDropDownMenu_Closing;
             this.notifyIcon1.Text = Constants._NOTIFY_ICON_TEXT;
+            UpdateBind = new Bind(_updateBindKey, _updateBindMods);
+            UpdateBind.KeyChanged += UpdateBind_KeyChanged;
+            UpdateBind.ModsChanged += UpdateBind_ModsChanged;
+
+            var list = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
+            foreach (var keyModStuck in UpdateBind.BindPair.Mods)
+                list.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(keyModStuck, () =>
+                {
+                    if (StartMessengerManually != null)
+                        StartMessengerManually();
+                }));
+            updateGBC = new Gbc(UpdateBind.BindPair.Key, Gbc.BindMethod.RegisterHotKey, Gbc.HookBehaviour.Replacement, list);
+            updateGBC.KeyProcessingDelay = Constants._CHECK_FOR_WEB_MESSENGERS_DELAY;
         }
-
-
 
         private void Settings()
         {
             try
             {
-
                 #region checked menu items
                 Internal.CheckRegistrySettings(ref DetectMessenger.Skype, Constants._SKYPE_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
                 Internal.CheckRegistrySettings(ref DetectMessenger.Telegram, Constants._TELEGRAM_REGISTRYKEY_VALUENAME, Constants._SETTINGS_LOCATION, false);
@@ -73,12 +80,14 @@ namespace Click_
                 #endregion
 
                 #region binds
-                Internal.CheckRegistrySettings(ref Bind.LastUsed.Key, Constants._LAST_USED_KEY, Constants._SETTINGS_LOCATION, Bind.LastUsed.Key);
-                Internal.CheckRegistrySettings(ref Bind.LastUsed.Mods, Constants._LAST_USED_MOD, Constants._SETTINGS_LOCATION, Bind.LastUsed.Mods);
-                Internal.CheckRegistrySettings(ref Bind.MostNew.Key, Constants._MOST_NEW_KEY, Constants._SETTINGS_LOCATION, Bind.MostNew.Key);
-                Internal.CheckRegistrySettings(ref Bind.MostNew.Mods, Constants._MOST_NEW_MOD, Constants._SETTINGS_LOCATION, Bind.MostNew.Mods);
-                Internal.CheckRegistrySettings(ref Bind.Order.Key, Constants._ORDER_KEY, Constants._SETTINGS_LOCATION, Bind.Order.Key);
-                Internal.CheckRegistrySettings(ref Bind.Order.Mods, Constants._ORDER_MOD, Constants._SETTINGS_LOCATION, Bind.Order.Mods);
+                MessengerControllerBinds.LastUsed.Key = Internal.CheckRegistrySettings(Constants._LAST_USED_KEY, Constants._SETTINGS_LOCATION, MessengerControllerBinds.LastUsed.Key);
+                MessengerControllerBinds.LastUsed.Mods = Internal.CheckRegistrySettings(Constants._LAST_USED_MOD, Constants._SETTINGS_LOCATION, MessengerControllerBinds.LastUsed.Mods);
+                MessengerControllerBinds.MostNew.Key = Internal.CheckRegistrySettings(Constants._MOST_NEW_KEY, Constants._SETTINGS_LOCATION, MessengerControllerBinds.MostNew.Key);
+                MessengerControllerBinds.MostNew.Mods = Internal.CheckRegistrySettings(Constants._MOST_NEW_MOD, Constants._SETTINGS_LOCATION, MessengerControllerBinds.MostNew.Mods);
+                MessengerControllerBinds.Order.Key = Internal.CheckRegistrySettings(Constants._ORDER_KEY, Constants._SETTINGS_LOCATION, MessengerControllerBinds.Order.Key);
+                MessengerControllerBinds.Order.Mods = Internal.CheckRegistrySettings(Constants._ORDER_MOD, Constants._SETTINGS_LOCATION, MessengerControllerBinds.Order.Mods);
+                UpdateBind.BindPair.Key = Internal.CheckRegistrySettings(Constants._UPDATE_KEY, Constants._SETTINGS_LOCATION, UpdateBind.BindPair.Key);
+                UpdateBind.BindPair.Mods = Internal.CheckRegistrySettings(Constants._UPDATE_MOD, Constants._SETTINGS_LOCATION, UpdateBind.BindPair.Mods);
                 #endregion
 
                 #region control menu
@@ -104,19 +113,24 @@ namespace Click_
 
             if (Control.Order)
                 AttachBindControlToToolStripMenuItem(_orderBindControl, this.orderMessengersToolStripMenuItem);
+
+            AttachBindControlToToolStripMenuItem(_updateBindControl, this.updateToolStripMenuItem);
         }
 
         private void BindEventsSubscribe()
         {
-            _lastUsedBindControl.SelectedBindChanged += (sender, e) => bindControl_SelectedBindChanged(sender, e, SwitchBy.Recent, Constants._LAST_USED_KEY, Constants._SETTINGS_LOCATION);
-            _lastUsedBindControl.SelectedModifierChanged += (sender, e) => bindControl_SelectedModifierChanged(sender, e, SwitchBy.Recent, Constants._LAST_USED_MOD, Constants._SETTINGS_LOCATION);
-            _mostNewBindControl.SelectedBindChanged += (sender, e) => bindControl_SelectedBindChanged(sender, e, SwitchBy.Activity, Constants._MOST_NEW_KEY, Constants._SETTINGS_LOCATION);
-            _mostNewBindControl.SelectedModifierChanged += (sender, e) => bindControl_SelectedModifierChanged(sender, e, SwitchBy.Activity, Constants._MOST_NEW_MOD, Constants._SETTINGS_LOCATION);
-            _orderBindControl.SelectedBindChanged += (sender, e) => bindControl_SelectedBindChanged(sender, e, SwitchBy.Queue, Constants._ORDER_KEY, Constants._SETTINGS_LOCATION);
-            _orderBindControl.SelectedModifierChanged += (sender, e) => bindControl_SelectedModifierChanged(sender, e, SwitchBy.Queue, Constants._ORDER_MOD, Constants._SETTINGS_LOCATION);
+            _lastUsedBindControl.SelectedBindChanged += (sender, e) => messengerBindControl_SelectedBindChanged(sender, e, SwitchBy.Recent, Constants._LAST_USED_KEY, Constants._SETTINGS_LOCATION);
+            _lastUsedBindControl.SelectedModifierChanged += (sender, e) => messengerBindControl_SelectedModifierChanged(sender, e, SwitchBy.Recent, Constants._LAST_USED_MOD, Constants._SETTINGS_LOCATION);
+            _mostNewBindControl.SelectedBindChanged += (sender, e) => messengerBindControl_SelectedBindChanged(sender, e, SwitchBy.Activity, Constants._MOST_NEW_KEY, Constants._SETTINGS_LOCATION);
+            _mostNewBindControl.SelectedModifierChanged += (sender, e) => messengerBindControl_SelectedModifierChanged(sender, e, SwitchBy.Activity, Constants._MOST_NEW_MOD, Constants._SETTINGS_LOCATION);
+            _orderBindControl.SelectedBindChanged += (sender, e) => messengerBindControl_SelectedBindChanged(sender, e, SwitchBy.Queue, Constants._ORDER_KEY, Constants._SETTINGS_LOCATION);
+            _orderBindControl.SelectedModifierChanged += (sender, e) => messengerBindControl_SelectedModifierChanged(sender, e, SwitchBy.Queue, Constants._ORDER_MOD, Constants._SETTINGS_LOCATION);
+            _updateBindControl.SelectedBindChanged += (sender, e) => bindControl_SelectedBindChanged(sender, e, UpdateBind, Constants._UPDATE_KEY, Constants._SETTINGS_LOCATION);
+            _updateBindControl.SelectedModifierChanged += (sender, e) => bindControl_SelectedModifierChanged(sender, e, UpdateBind, Constants._UPDATE_MOD, Constants._SETTINGS_LOCATION);
+
         }
 
-        private void InitMenusCondition()
+        void InitMenusCondition()
         {
             //1.Messengers menus.
             MenuItemsCondition(DetectMessenger.Skype, ref skypeToolStripMenuItem, Constants.MessengerCaption.Skype, Constants.MessengerCaption.Skype);
@@ -130,34 +144,37 @@ namespace Click_
             MenuItemsCondition(Control.Order, ref orderMessengersToolStripMenuItem, Constants.ControlCaption.Order, Constants.ControlCaption.Order);
             //3.Binds menus.
             if (Control.LastUsed)
-                MenuItemsBind(Bind.LastUsed.Key, Bind.LastUsed.Mods, ref _lastUsedBindControl);
+                MenuItemsBind(MessengerControllerBinds.LastUsed.Key, MessengerControllerBinds.LastUsed.Mods, ref _lastUsedBindControl);
             if (Control.MostNew)
-                MenuItemsBind(Bind.MostNew.Key, Bind.MostNew.Mods, ref _mostNewBindControl);
+                MenuItemsBind(MessengerControllerBinds.MostNew.Key, MessengerControllerBinds.MostNew.Mods, ref _mostNewBindControl);
             if (Control.Order)
-                MenuItemsBind(Bind.Order.Key, Bind.Order.Mods, ref _orderBindControl);
+                MenuItemsBind(MessengerControllerBinds.Order.Key, MessengerControllerBinds.Order.Mods, ref _orderBindControl);
+            MenuItemsBind(UpdateBind.BindPair.Key, UpdateBind.BindPair.Mods, ref _updateBindControl);
         }
 
         private void ActiveWindowStackInit()
         {
             _windows = ActiveWindowStack.GetInstance();
             _windows.Start();
+            _windowLifeCycle = new WindowLifeCycle();
         }
 
-        private void ControllerInit()
+        private void ControllersInit()
         {
             _mControl = MessengerController.GetInstance(_windows);
+            _mControl.ActionProcessingDelay = Constants._SWITCHING_DELAY;
+            MessengerControllerSubscribeRefresh();
 
-            ControllerSubscribeRefresh();
         }
 
-        private void ControllerSubscribeRefresh()
+        private void MessengerControllerSubscribeRefresh()
         {
             if (Control.LastUsed)
-                ControllerSubscribe(Bind.LastUsed.Key, Bind.LastUsed.Mods, SwitchBy.Recent);
+                ControllerSubscribe(MessengerControllerBinds.LastUsed.Key, MessengerControllerBinds.LastUsed.Mods, SwitchBy.Recent);
             if (Control.MostNew)
-                ControllerSubscribe(Bind.MostNew.Key, Bind.MostNew.Mods, SwitchBy.Activity);
+                ControllerSubscribe(MessengerControllerBinds.MostNew.Key, MessengerControllerBinds.MostNew.Mods, SwitchBy.Activity);
             if (Control.Order)
-                ControllerSubscribe(Bind.Order.Key, Bind.Order.Mods, SwitchBy.Queue);
+                ControllerSubscribe(MessengerControllerBinds.Order.Key, MessengerControllerBinds.Order.Mods, SwitchBy.Queue);
         }
 
         private void ControllerSubscribe(Keys key, List<Gbc.KeyModifierStuck> mod, SwitchBy switchBy)
@@ -182,35 +199,34 @@ namespace Click_
         private void MessengersInit()
         {
             if (DetectMessenger.Skype)
-                SubscribeFunctionForDesktopMessenger<Skype>(DetectMessenger.Skype, Messenger.Skype, Constants.MessengerCaption.Skype, Constants._SKYPE_PROCESSNAME);
+                SubscribeFunctionForMessenger<Skype>(DetectMessenger.Skype, Messenger.Skype, Constants.MessengerCaption.Skype, Constants._SKYPE_PROCESSNAME);
             if (DetectMessenger.Telegram)
-                SubscribeFunctionForDesktopMessenger<Telegram>(DetectMessenger.Telegram, Messenger.Telegram, Constants.MessengerCaption.Telegram, Constants._TELEGRAM_PROCESSNAME);
+                SubscribeFunctionForMessenger<Telegram>(DetectMessenger.Telegram, Messenger.Telegram, Constants.MessengerCaption.Telegram, Constants._TELEGRAM_PROCESSNAME);
             if (DetectMessenger.WebSkype)
-                SubscribeFunctionForWebMessenger<WebSkype>(DetectMessenger.WebSkype, Messenger.WebSkype, Constants.MessengerCaption.WebSkype);
+                SubscribeFunctionForMessenger<WebSkype>(DetectMessenger.WebSkype, Messenger.WebSkype, Constants.MessengerCaption.WebSkype, Constants.CHROME_PROCESS_NAME);
             if (DetectMessenger.WebWhatsApp)
-                SubscribeFunctionForWebMessenger<WebWhatsApp>(DetectMessenger.WebWhatsApp, Messenger.WebWhatsApp, Constants.MessengerCaption.WebWhatsApp);
+                SubscribeFunctionForMessenger<WebWhatsApp>(DetectMessenger.WebWhatsApp, Messenger.WebWhatsApp, Constants.MessengerCaption.WebWhatsApp, Constants.CHROME_PROCESS_NAME);
             if (DetectMessenger.WebTelegram)
-                SubscribeFunctionForWebMessenger<WebTelegram>(DetectMessenger.WebTelegram, Messenger.WebTelegram, Constants.MessengerCaption.WebTelegram);
+                SubscribeFunctionForMessenger<WebTelegram>(DetectMessenger.WebTelegram, Messenger.WebTelegram, Constants.MessengerCaption.WebTelegram, Constants.CHROME_PROCESS_NAME);
         }
 
-        //for web messengers version
-        private void MessengerStart<T>(string caption) where T : WebMessenger
-        {
-            var processNameList = Constants._BROWSERS_PROCESSNAME;
-
-            foreach (var processName in processNameList)
-                MessengerStart<T>(processName, caption + " - " + processName);
-
-        }
-
-        private void MessengerStart<T>(string processName, string caption) where T : IMessenger
+        private Task MessengerStartAsync<T>(string processName, string caption) where T : IMessenger
         {
             var exist = MessengerBase.MessengersCollection.Any((p) => p.GetType() == typeof(T));
             if (exist)
-                return;
+                return null;
+            return Task.Run(() => MessengerStart<T>(processName, caption));
+        }
+
+        private bool MessengerStart<T>(string processName, string caption) where T : IMessenger
+        {
+            var exist = MessengerBase.MessengersCollection.Any((p) => p.GetType() == typeof(T));
+            if (exist)
+                return false;
+
             var processes = Process.GetProcessesByName(processName);
             if (processes.Count() == 0)
-                return;
+                return false;
             Process process = null;
 
             if (typeof(T).BaseType == typeof(WebMessenger))
@@ -218,28 +234,22 @@ namespace Click_
             if (typeof(T).BaseType == typeof(DesktopMessenger))
                 process = processes.FirstOrDefault();
             if (process == null)
+                return false;
 
-                return;
-            ThreadPool.QueueUserWorkItem((state) =>
+            Thread.Sleep(1000); //delay to load window 
+            try
             {
-                bool created = false;
-                while (!created)
-                {
-                    try
-                    {
-                        var messenger = MessengerBase.Create<T>(process);
-                        messenger.Caption = caption;
-                        messenger.GotNewMessage += messenger_GotNewMessage;
-                        messenger.MessageGone += messenger_MessageGone;
-                        created = true;
-                    }
-                    catch (MessengerBuildException ex)
-                    {
-                        ExceptionHandler.Handle(ex, typeof(T).ToString(), false);
-                        System.Threading.Thread.Sleep(2000);
-                    }
-                }
-            });
+                var messenger = MessengerBase.Create<T>(process);
+                messenger.Caption = caption;
+                messenger.GotNewMessage += messenger_GotNewMessage;
+                messenger.MessageGone += messenger_MessageGone;
+            }
+            catch (MessengerBuildException ex)
+            {
+                ExceptionHandler.Handle(ex, typeof(T).ToString(), false);
+                return false;
+            }
+            return true;
         }
 
         void messenger_MessageGone(MessengerBase wss)
@@ -307,19 +317,19 @@ namespace Click_
                     bindControl = _lastUsedBindControl;
                     menuItem = this.lastUsedToolStripMenuItem;
                     state = Control.LastUsed;
-                    bindPair = Bind.LastUsed;
+                    bindPair = MessengerControllerBinds.LastUsed;
                     break;
                 case SwitchBy.Activity:
                     bindControl = _mostNewBindControl;
                     menuItem = this.mostNewToolStripMenuItem;
                     state = Control.MostNew;
-                    bindPair = Bind.MostNew;
+                    bindPair = MessengerControllerBinds.MostNew;
                     break;
                 case SwitchBy.Queue:
                     bindControl = _orderBindControl;
                     menuItem = this.orderMessengersToolStripMenuItem;
                     state = Control.Order;
-                    bindPair = Bind.Order;
+                    bindPair = MessengerControllerBinds.Order;
                     break;
             }
 
@@ -344,13 +354,13 @@ namespace Click_
             switch (switchBy)
             {
                 case SwitchBy.Recent:
-                    bindPair = Bind.LastUsed;
+                    bindPair = MessengerControllerBinds.LastUsed;
                     break;
                 case SwitchBy.Activity:
-                    bindPair = Bind.MostNew;
+                    bindPair = MessengerControllerBinds.MostNew;
                     break;
                 case SwitchBy.Queue:
-                    bindPair = Bind.Order;
+                    bindPair = MessengerControllerBinds.Order;
                     break;
             }
             if (state)
@@ -359,12 +369,18 @@ namespace Click_
                 ControllerUnsubscribe(switchBy);
         }
 
-        private void SubscribeFunctionForDesktopMessenger<T>(bool isSubscribe, Messenger messenger, string messengerCaption, string processName) where T : DesktopMessenger
+        private async void SubscribeFunctionForMessenger<T>(bool isSubscribe, Messenger messenger, string messengerCaption, string processName) where T : IMessenger
         {
             if (isSubscribe)
             {
-                MessengerStart<T>(messengerCaption, processName);
-                _windows.onActiveWindowStackChanged += (action, hWnd) => _windows_onActiveWindowStackChanged(action, hWnd, messenger);
+                await MessengerStartAsync<T>(processName, messengerCaption);
+                if (typeof(T).BaseType.Equals(typeof(DesktopMessenger)))
+                    _windowLifeCycle.onMessageTraced += (sender, hWnd, shell) => _windowLifeCycle_onMessageTraced(sender, hWnd, shell, messenger);
+                if (typeof(T).BaseType.Equals(typeof(WebMessenger)))
+                {
+                    StartMessengerManually += () => Click_StartMessengerManually<T>(processName, messengerCaption);
+                    updateGBC.Execute = true;
+                }
             }
             else
             {
@@ -377,30 +393,20 @@ namespace Click_
                     }
                     return false;
                 });
-                _windows.onActiveWindowStackChanged -= (action, hWnd) => _windows_onActiveWindowStackChanged(action, hWnd, messenger);
+                if (typeof(T).BaseType.Equals(typeof(DesktopMessenger)))
+                    _windowLifeCycle.onMessageTraced -= (sender, hWnd, shell) => _windowLifeCycle_onMessageTraced(sender, hWnd, shell, messenger);
+                if (typeof(T).BaseType.Equals(typeof(WebMessenger)))
+                {
+                    StartMessengerManually -= () => Click_StartMessengerManually<T>(processName, messengerCaption);
+                    if (StartMessengerManually == null)
+                        updateGBC.Execute = false;
+                }
             }
         }
 
-        private void SubscribeFunctionForWebMessenger<T>(bool isSubscribe, Messenger messenger, string messengerCaption) where T : WebMessenger
+        private void Click_StartMessengerManually<T>(string processName, string caption) where T : IMessenger
         {
-            if (isSubscribe)
-            {
-                MessengerStart<T>(messengerCaption);
-                _windows.onActiveWindowStackChanged += (action, hWnd) => _windows_onActiveWindowStackChanged(action, hWnd, messenger);
-            }
-            else
-            {
-                MessengerBase.MessengersCollection.RemoveAll((x) =>
-                {
-                    if (x.GetType() == typeof(T))
-                    {
-                        x.Dispose();
-                        return true;
-                    }
-                    return false;
-                });
-                _windows.onActiveWindowStackChanged -= (action, hWnd) => _windows_onActiveWindowStackChanged(action, hWnd, messenger);
-            }
+            MessengerStartAsync<T>(processName, caption);
         }
 
         #region MOUSE CLICK MENUS CALLBACKS
@@ -410,7 +416,6 @@ namespace Click_
             ToolStripMenuStateOperator(lastUsedToolStripMenuItem, ref Control.LastUsed, Constants._LAST_USED_MENU_KEY, Constants.ControlCaption.LastUsed, Constants.ControlCaption.LastUsed);
             ControllerAction(SwitchBy.Recent, Control.LastUsed);
             ControlMenuRefresh(SwitchBy.Recent);
-            //lastUsedToolStripMenuItem.DropDown.Refresh();
         }
 
         private void lastActiveMessengerToolStripMenuItem_Click(object sender, EventArgs e)
@@ -436,31 +441,31 @@ namespace Click_
         private void skypeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(sender as ToolStripMenuItem, ref DetectMessenger.Skype, Constants._SKYPE_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.Skype, Constants.MessengerCaption.Skype);
-            SubscribeFunctionForDesktopMessenger<Skype>(DetectMessenger.Skype, Messenger.Skype, Constants.MessengerCaption.Skype, Constants._SKYPE_PROCESSNAME);
+            SubscribeFunctionForMessenger<Skype>(DetectMessenger.Skype, Messenger.Skype, Constants.MessengerCaption.Skype, Constants._SKYPE_PROCESSNAME);
         }
 
         private void telegramToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(telegramToolStripMenuItem, ref DetectMessenger.Telegram, Constants._TELEGRAM_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.Telegram, Constants.MessengerCaption.Telegram);
-            SubscribeFunctionForDesktopMessenger<Telegram>(DetectMessenger.Telegram, Messenger.Telegram, Constants.MessengerCaption.Telegram, Constants._TELEGRAM_PROCESSNAME);
+            SubscribeFunctionForMessenger<Telegram>(DetectMessenger.Telegram, Messenger.Telegram, Constants.MessengerCaption.Telegram, Constants._TELEGRAM_PROCESSNAME);
         }
 
         private void webSkypeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(webSkypeToolStripMenuItem, ref DetectMessenger.WebSkype, Constants._WEBSKYPE_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.WebSkype, Constants.MessengerCaption.WebSkype);
-            SubscribeFunctionForWebMessenger<WebSkype>(DetectMessenger.WebSkype, Messenger.WebSkype, Constants.MessengerCaption.WebSkype);
+            SubscribeFunctionForMessenger<WebSkype>(DetectMessenger.WebSkype, Messenger.WebSkype, Constants.MessengerCaption.WebSkype, Constants.CHROME_PROCESS_NAME);
         }
 
         private void webWhatsAppToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(webWhatsAppToolStripMenuItem, ref DetectMessenger.WebWhatsApp, Constants._WEBWHATSAPP_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.WebWhatsApp, Constants.MessengerCaption.WebWhatsApp);
-            SubscribeFunctionForWebMessenger<WebWhatsApp>(DetectMessenger.WebWhatsApp, Messenger.WebWhatsApp, Constants.MessengerCaption.WebWhatsApp);
+            SubscribeFunctionForMessenger<WebWhatsApp>(DetectMessenger.WebWhatsApp, Messenger.WebWhatsApp, Constants.MessengerCaption.WebWhatsApp, Constants.CHROME_PROCESS_NAME);
         }
 
         private void webTelegramToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToolStripMenuStateOperator(webTelegramToolStripMenuItem, ref DetectMessenger.WebTelegram, Constants._WEBTELEGRAM_REGISTRYKEY_VALUENAME, Constants.MessengerCaption.WebTelegram, Constants.MessengerCaption.WebTelegram);
-            SubscribeFunctionForWebMessenger<WebTelegram>(DetectMessenger.WebTelegram, Messenger.WebTelegram, Constants.MessengerCaption.WebTelegram);
+            SubscribeFunctionForMessenger<WebTelegram>(DetectMessenger.WebTelegram, Messenger.WebTelegram, Constants.MessengerCaption.WebTelegram, Constants.CHROME_PROCESS_NAME);
         }
 
         #endregion
@@ -470,7 +475,11 @@ namespace Click_
             bool tempSavedValue = savedValue;
             try
             {
-                var saveAction = new Action<bool>((value) => { Internal.SaveRegistrySettings(ref tempSavedValue, regValueName, Constants._SETTINGS_LOCATION, value); });
+                var saveAction = new Action<bool>((value) =>
+                {
+                    Internal.SaveRegistrySettings(ref tempSavedValue, regValueName, Constants._SETTINGS_LOCATION, value);
+                    _log.Info("Now value name \"{0}\" of registry key \"{1}\" has a \"{2}\" value.", regValueName, Constants._SETTINGS_LOCATION, value);
+                });
 
                 ToolStripMenuItemsConditionChanger(tsmi, textFalse, textTrue, saveAction, saveAction);
             }
@@ -579,17 +588,17 @@ namespace Click_
             throw new ArgumentException("Not described BindControl");
         }
 
-        void bindControl_SelectedBindChanged(object sender, EventArgs e, SwitchBy switchBy, string valueName, string keyLocation)
+        void messengerBindControl_SelectedBindChanged(object sender, EventArgs e, SwitchBy switchBy, string valueName, string keyLocation)
         {
-            BindPair bp = Bind.DefineBindPair(switchBy);
+            BindPair bp = MessengerControllerBinds.DefineBindPair(switchBy);
             var bindControl = sender as BindControl;
-
             if (bindControl.Bind == bp.Key)
                 return;
 
             try
             {
-                Internal.SaveRegistrySettings(ref bp.Key, valueName, keyLocation, bindControl.Bind);
+                bp.Key = Internal.SaveRegistrySettings(valueName, keyLocation, bindControl.Bind);
+                _log.Info("Now value name \"{0}\" of registry key \"{1}\" has a \"{2}\" value.", valueName, keyLocation, bindControl.Bind);
             }
             catch (InvalidOperationException ex)
             {
@@ -597,17 +606,51 @@ namespace Click_
             }
         }
 
-        void bindControl_SelectedModifierChanged(object sender, EventArgs e, SwitchBy switchBy, string keyName, string keyLocation)
+        void messengerBindControl_SelectedModifierChanged(object sender, EventArgs e, SwitchBy switchBy, string valueName, string keyLocation)
         {
-            BindPair bp = Bind.DefineBindPair(switchBy);
+            BindPair bp = MessengerControllerBinds.DefineBindPair(switchBy);
             var bindControl = sender as BindControl;
-            var mod = bp.Mods;
 
-            if (bindControl.Modifier == mod.First())
+            if (bindControl.Modifier == bp.Mods.First())
                 return;
             try
             {
-                Internal.SaveRegistrySettings(ref mod, keyName, keyLocation, new List<Gbc.KeyModifierStuck> { bindControl.Modifier });
+                bp.Mods = Internal.SaveRegistrySettings(valueName, keyLocation, new List<Gbc.KeyModifierStuck> { bindControl.Modifier });
+                _log.Info("Now value name \"{0}\" of registry key \"{1}\" has a \"{2}\" value.", valueName, keyLocation, bindControl.Modifier.ToString());
+            }
+            catch (InvalidOperationException ex)
+            {
+                ExceptionHandler.Handle(ex, true);
+            }
+        }
+
+        void bindControl_SelectedBindChanged(object sender, EventArgs e, Bind bind, string valueName, string keyLocation)
+        {
+            var bindControl = sender as BindControl;
+            if (bindControl.Bind == bind.BindPair.Key)
+                return;
+
+            try
+            {
+                bind.BindPair.Key = Internal.SaveRegistrySettings(valueName, keyLocation, bindControl.Bind);
+                _log.Info("Now value name \"{0}\" of registry key \"{1}\" has a \"{2}\" value.", valueName, keyLocation, bindControl.Bind);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ExceptionHandler.Handle(ex, true);
+            }
+        }
+
+        void bindControl_SelectedModifierChanged(object sender, EventArgs e, Bind bind, string valueName, string keyLocation)
+        {
+            var bindControl = sender as BindControl;
+            if (bindControl.Modifier == bind.BindPair.Mods.First())
+                return;
+
+            try
+            {
+                bind.BindPair.Mods = Internal.SaveRegistrySettings(valueName, keyLocation, new List<Gbc.KeyModifierStuck> { bindControl.Modifier });
+                _log.Info("Now value name \"{0}\" of registry key \"{1}\" has a \"{2}\" value.", valueName, keyLocation, bindControl.Modifier.ToString());
             }
             catch (InvalidOperationException ex)
             {
@@ -637,48 +680,63 @@ namespace Click_
             mp.ModSetter(bindPair.Mods);
         }
 
-        void _windows_onActiveWindowStackChanged(StackAction action, IntPtr hWnd, Messenger messenger)
+        void UpdateBind_KeyChanged(BindPair bindPair)
         {
-            if (action != StackAction.Added)
-                return;
+            updateGBC.Key = bindPair.Key;
+        }
 
+        void UpdateBind_ModsChanged(BindPair bindPair)
+        {
+            var list = new List<KeyValuePair<Gbc.KeyModifierStuck, Action>>();
+            foreach (var keyModStuck in UpdateBind.BindPair.Mods)
+                list.Add(new KeyValuePair<Gbc.KeyModifierStuck, Action>(keyModStuck, () =>
+                {
+                    if (StartMessengerManually != null)
+                        StartMessengerManually();
+                }));
+            updateGBC.Tasks = list;
+        }
+
+        void _windowLifeCycle_onMessageTraced(object sender, IntPtr hWnd, ShellEvents shell, Messenger messenger)
+        {
+            if (shell != ShellEvents.HSHELL_WINDOWCREATED)
+                return;
             var processName = Internal.DefineProcessName(hWnd);
             switch (messenger)
             {
                 case (Messenger.Skype):
                     if (processName.Equals(Constants._SKYPE_PROCESSNAME))
-                        MessengerStart<Skype>(processName, Constants.MessengerCaption.Skype);
+                        MessengerStartAsync<Skype>(processName, Constants.MessengerCaption.Skype);
                     break;
                 case (Messenger.Telegram):
                     if (processName.Equals(Constants._TELEGRAM_PROCESSNAME))
-                        MessengerStart<Telegram>(processName, Constants.MessengerCaption.Telegram);
-                    break;
-                case (Messenger.WebSkype):
-                    if (Constants._BROWSERS_PROCESSNAME.Any((p) => p.Equals(processName)))
-                        MessengerStart<WebSkype>(processName, Constants.MessengerCaption.WebSkype);
-                    break;
-                case (Messenger.WebTelegram):
-                    if (Constants._BROWSERS_PROCESSNAME.Any((p) => p.Equals(processName)))
-                        MessengerStart<WebTelegram>(processName, Constants.MessengerCaption.WebTelegram);
-                    break;
-                case (Messenger.WebWhatsApp):
-                    if (Constants._BROWSERS_PROCESSNAME.Any((p) => p.Equals(processName)))
-                        MessengerStart<WebWhatsApp>(processName, Constants.MessengerCaption.WebWhatsApp);
+                        MessengerStartAsync<Telegram>(processName, Constants.MessengerCaption.Telegram);
                     break;
             }
 
         }
         #endregion
 
+        #region events
+        private delegate void StartMessengerDel();
+        private static event StartMessengerDel StartMessengerManually;
+        #endregion
+
         #region private variables
         private static MessengerController _mControl;
         private ActiveWindowStack _windows;
+        private WindowLifeCycle _windowLifeCycle;
         private BindControl _lastUsedBindControl = new BindControl();
         private BindControl _mostNewBindControl = new BindControl();
         private BindControl _orderBindControl = new BindControl();
+        private BindControl _updateBindControl = new BindControl();
         private System.ComponentModel.ComponentResourceManager _resources =
             new System.ComponentModel.ComponentResourceManager(typeof(Click));
         private static Logger _log = LogManager.GetCurrentClassLogger();
+        private GlobalBindController updateGBC;
+        private Bind UpdateBind;
+        private static readonly Keys _updateBindKey = Keys.C;
+        private static readonly List<Gbc.KeyModifierStuck> _updateBindMods = new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt};
         #endregion
 
         #region private properties
@@ -689,96 +747,4 @@ namespace Click_
 
     }
 
-    internal struct DetectMessenger
-    {
-        public static bool Skype = false;
-        public static bool Telegram = false;
-        public static bool WebSkype = false;
-        public static bool WebWhatsApp = false;
-        public static bool WebTelegram = false;
-    }
-
-    internal struct Control
-    {
-        public static bool LastUsed = false;
-        public static bool MostNew = false;
-        public static bool Order = false;
-    }
-
-    internal struct Bind
-    {
-        public static BindPair DefineBindPair(SwitchBy switchBy)
-        {
-            switch (switchBy)
-            {
-                case SwitchBy.Recent:
-                    return LastUsed;
-                case SwitchBy.Activity:
-                    return MostNew;
-                case SwitchBy.Queue:
-                    return Order;
-            }
-            return null;
-        }
-
-        public delegate void BindEvent(SwitchBy switchBy, BindPair bindPair);
-
-        public static event BindEvent KeyChanged;
-        public static event BindEvent ModsChanged;
-
-        private static BindPair _lastUsed = new BindPair(Keys.Z, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
-        private static BindPair _mostNew = new BindPair(Keys.X, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
-        private static BindPair _order = new BindPair(Keys.A, new List<Gbc.KeyModifierStuck>() { Gbc.KeyModifierStuck.Alt });
-
-        public static BindPair LastUsed
-        {
-            get { return _lastUsed; }
-            set
-            {
-                if (_mostNew.Key != value.Key)
-                    KeyChanged(SwitchBy.Recent, value);
-                if (_mostNew.Mods != value.Mods)
-                    ModsChanged(SwitchBy.Recent, value);
-                _lastUsed = value;
-            }
-        }
-
-        public static BindPair MostNew
-        {
-            get { return _mostNew; }
-            set
-            {
-                if (_mostNew.Key != value.Key)
-                    KeyChanged(SwitchBy.Activity, value);
-                if (_mostNew.Mods != value.Mods)
-                    ModsChanged(SwitchBy.Activity, value);
-                _mostNew = value;
-            }
-        }
-
-        public static BindPair Order
-        {
-            get { return _order; }
-            set
-            {
-                if (_mostNew.Key != value.Key)
-                    KeyChanged(SwitchBy.Queue, value);
-                if (_mostNew.Mods != value.Mods)
-                    ModsChanged(SwitchBy.Queue, value);
-                _order = value;
-            }
-        }
-    }
-
-    internal class BindPair
-    {
-        public BindPair(Keys key, List<Gbc.KeyModifierStuck> mods)
-        {
-            Key = key;
-            Mods = mods;
-        }
-
-        public Keys Key;
-        public List<Gbc.KeyModifierStuck> Mods;
-    }
 }

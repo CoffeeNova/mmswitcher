@@ -89,6 +89,7 @@ namespace mmswitcherAPI.Messengers
 
             gbc = new Gbc(key.Key, Gbc.BindMethod.RegisterHotKey, Gbc.HookBehaviour.Replacement, list);
             gbc.Execute = true;
+            gbc.KeyProcessingDelay = ActionProcessingDelay;
             subscribed = true;
         }
 
@@ -105,6 +106,8 @@ namespace mmswitcherAPI.Messengers
             if (_activeWindowStack.Suspended)
                 throw new InvalidOperationException("Cannot do method MessengerController.Recent() properly while _activeWindowStack.Suspended is true.");
             if (MessengerBase.MessengersCollection.Count == 0)
+                return;
+            if (MessengerBase.LastActive.Disposed)
                 return;
             try
             {
@@ -153,11 +156,10 @@ namespace mmswitcherAPI.Messengers
                 return;
             try
             {
-
                 var focusedMessenger = MessengerBase.MessengersCollection.FirstOrDefault((x) => x.Focused);
                 if (focusedMessenger == null)
                 {
-                    Recent();
+                    MessengerBase.MessengersCollection.First().SetForeground();
                     return;
                 }
                 var nextMessengerIndex = MessengerBase.MessengersCollection.IndexOf(focusedMessenger) + 1;
@@ -197,10 +199,12 @@ namespace mmswitcherAPI.Messengers
         private DateTime _foregroundChangedTime;
 
         public static MessengerController Instance { get; private set; }
-
-        //public KeyValuePair<Keys, Gbc.KeyModifierStuck> RecentBind { get; set; }
-        //public KeyValuePair<Keys, Gbc.KeyModifierStuck> ActivityBind { get; set; }
-        //public KeyValuePair<Keys, Gbc.KeyModifierStuck> QueueBind { get; set; }
+        
+        /// <summary>
+        /// Delay switching messengers.
+        /// <remarks>Must be in range from 0 to 2000ms. Resubscribe action after changing this value.</remarks>
+        /// </summary>
+        public int ActionProcessingDelay = 0;
 
         public Keys ActivityKey
         {

@@ -48,6 +48,7 @@ namespace Click_
             this.orderMessengersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.updateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -58,7 +59,7 @@ namespace Click_
             this.bindsToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(137, 70);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 92);
             // 
             // messengersToolStripMenuItem
             // 
@@ -66,7 +67,7 @@ namespace Click_
             this.desctopToolStripMenuItem,
             this.webVersionToolStripMenuItem});
             this.messengersToolStripMenuItem.Name = "messengersToolStripMenuItem";
-            this.messengersToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.messengersToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.messengersToolStripMenuItem.Text = "Messengers";
             // 
             // desctopToolStripMenuItem
@@ -75,14 +76,14 @@ namespace Click_
             this.skypeToolStripMenuItem,
             this.telegramToolStripMenuItem});
             this.desctopToolStripMenuItem.Name = "desctopToolStripMenuItem";
-            this.desctopToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.desctopToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.desctopToolStripMenuItem.Text = "Desktop";
             // 
             // skypeToolStripMenuItem
             // 
             this.skypeToolStripMenuItem.CheckOnClick = true;
             this.skypeToolStripMenuItem.Name = "skypeToolStripMenuItem";
-            this.skypeToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.skypeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.skypeToolStripMenuItem.Text = "Skype";
             this.skypeToolStripMenuItem.Click += new System.EventHandler(this.skypeToolStripMenuItem_Click);
             // 
@@ -90,7 +91,7 @@ namespace Click_
             // 
             this.telegramToolStripMenuItem.CheckOnClick = true;
             this.telegramToolStripMenuItem.Name = "telegramToolStripMenuItem";
-            this.telegramToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+            this.telegramToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.telegramToolStripMenuItem.Text = "Telegram";
             this.telegramToolStripMenuItem.Click += new System.EventHandler(this.telegramToolStripMenuItem_Click);
             // 
@@ -101,14 +102,14 @@ namespace Click_
             this.webWhatsAppToolStripMenuItem,
             this.webTelegramToolStripMenuItem});
             this.webVersionToolStripMenuItem.Name = "webVersionToolStripMenuItem";
-            this.webVersionToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.webVersionToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.webVersionToolStripMenuItem.Text = "Web Version";
             // 
             // webSkypeToolStripMenuItem
             // 
             this.webSkypeToolStripMenuItem.CheckOnClick = true;
             this.webSkypeToolStripMenuItem.Name = "webSkypeToolStripMenuItem";
-            this.webSkypeToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+            this.webSkypeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.webSkypeToolStripMenuItem.Text = "Skype";
             this.webSkypeToolStripMenuItem.Click += new System.EventHandler(this.webSkypeToolStripMenuItem_Click);
             // 
@@ -116,7 +117,7 @@ namespace Click_
             // 
             this.webWhatsAppToolStripMenuItem.CheckOnClick = true;
             this.webWhatsAppToolStripMenuItem.Name = "webWhatsAppToolStripMenuItem";
-            this.webWhatsAppToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+            this.webWhatsAppToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.webWhatsAppToolStripMenuItem.Text = "WhatsApp";
             this.webWhatsAppToolStripMenuItem.Click += new System.EventHandler(this.webWhatsAppToolStripMenuItem_Click);
             // 
@@ -124,7 +125,7 @@ namespace Click_
             // 
             this.webTelegramToolStripMenuItem.CheckOnClick = true;
             this.webTelegramToolStripMenuItem.Name = "webTelegramToolStripMenuItem";
-            this.webTelegramToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+            this.webTelegramToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.webTelegramToolStripMenuItem.Text = "Telegram";
             this.webTelegramToolStripMenuItem.Click += new System.EventHandler(this.webTelegramToolStripMenuItem_Click);
             // 
@@ -133,10 +134,11 @@ namespace Click_
             this.bindsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lastUsedToolStripMenuItem,
             this.mostNewToolStripMenuItem,
-            this.orderMessengersToolStripMenuItem});
+            this.orderMessengersToolStripMenuItem,
+            this.updateToolStripMenuItem});
             this.bindsToolStripMenuItem.Name = "bindsToolStripMenuItem";
-            this.bindsToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
-            this.bindsToolStripMenuItem.Text = "Select by";
+            this.bindsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.bindsToolStripMenuItem.Text = "Bindings";
             // 
             // lastUsedToolStripMenuItem
             // 
@@ -165,7 +167,7 @@ namespace Click_
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -176,6 +178,12 @@ namespace Click_
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
             this.notifyIcon1.Visible = true;
             this.notifyIcon1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseClick);
+            // 
+            // updateToolStripMenuItem
+            // 
+            this.updateToolStripMenuItem.Name = "updateToolStripMenuItem";
+            this.updateToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
+            this.updateToolStripMenuItem.Text = "Update";
             // 
             // Click
             // 
@@ -214,6 +222,7 @@ namespace Click_
         private System.Windows.Forms.ToolStripMenuItem webWhatsAppToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem webTelegramToolStripMenuItem;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
+        private ToolStripMenuItem updateToolStripMenuItem;
     }
 }
 

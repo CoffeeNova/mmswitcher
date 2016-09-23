@@ -263,7 +263,8 @@ namespace mmswitcherAPI.Messengers.Web.Browsers
                 throw new ArgumentNullException("hWnd");
             if (hWnd == IntPtr.Zero)
                 throw new ArgumentException("Window handle should not be IntPtr.Zero");
-            return BrowserMainWindowAutomationElement(hWnd);
+            //return BrowserMainWindowAutomationElement(hWnd);
+            return MessengerTab(hWnd);
         }
 
         /// <summary>

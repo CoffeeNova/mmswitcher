@@ -19,9 +19,12 @@ namespace mmswitcherAPI.Messengers.Web
                 throw new ArgumentException();
         }
 
-        protected override int GetMessagesCount(AutomationElement tab)
+        protected override int? GetMessagesCount(AutomationElement ae)
         {
-            return tab.Current.Name.ParseNumber();
+            string name = ae.Current.Name;
+            if (!name.Contains(base._browserSet.MessengerCaption))
+                return null;
+            return ae.Current.Name.ParseNumber();
         }
 
         private bool _disposed = false;

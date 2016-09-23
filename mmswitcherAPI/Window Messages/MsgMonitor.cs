@@ -184,6 +184,10 @@ namespace mmswitcherAPI.winmsg
         /// </summary>
         public object MessagesTrapper { get { return _messagesTrapper; } }
 
+        /// <summary>
+        /// Массив зарегестрированных сообщений Windows.
+        /// <remarks>https://wiki.winehq.org/List_Of_Windows_Messages</remarks>
+        /// </summary>
         public readonly uint[] MsgNotify;
         private bool _disposed = false;
         private HwndSource _hwndWindow;

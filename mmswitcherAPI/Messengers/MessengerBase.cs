@@ -66,7 +66,7 @@ namespace mmswitcherAPI.Messengers
             {
                 if (value > _incomeMessages)
                 {
-                    DebugLog.WriteNewMessages(Caption, value);
+                    DebugLog.WriteBaseMessengerNewMessages(Caption, value);
                     _incomeMessages = value;
                     PushToActivity(this);
                     if (GotNewMessage != null)
@@ -74,7 +74,7 @@ namespace mmswitcherAPI.Messengers
                 }
                 else if (value < _incomeMessages)
                 {
-                    DebugLog.WriteNewMessages(Caption, value);
+                    DebugLog.WriteBaseMessengerNewMessages(Caption, value);
                     _incomeMessages = value;
                     PullFromActivity(this);
                     if (MessageGone != null)
@@ -90,16 +90,19 @@ namespace mmswitcherAPI.Messengers
             get { return _focused; }
             private set
             {
-                object t = this;
                 if (value != _focused && value)
                 {
                     if (GotFocus != null)
                         GotFocus(this, new EventArgs());
                     _lastActive = this;
+                    DebugLog.WriteBaseMessengerFocused(Caption, value);
                 }
                 if (value != _focused && !value)
+                {
                     if (LostFocus != null)
                         LostFocus(this, new EventArgs());
+                    DebugLog.WriteBaseMessengerFocused(Caption, value);
+                }
                 _focused = value;
             }
         }
@@ -179,7 +182,6 @@ namespace mmswitcherAPI.Messengers
             {
                 _messengerAE = AutomationElement.RootElement;
                 var aEdel = new GetMessengerAEDel(GetMainAutomationElement);
-                Focused = true;
                 CacheAutomationElementProperties(msgProcess, out hWnd, ref _messengerAE, aEdel, AutomationElement.NativeWindowHandleProperty);
                 CacheAutomationElementProperties(hWnd, ref _incomeMessageAE, (s) => GetIncomeMessageAutomationElement(s), AutomationElement.NativeWindowHandleProperty);
                 CacheAutomationElementProperties(hWnd, ref _focusableAE, (s) => GetFocusRecieverAutomationElement(s), AutomationElement.ClassNameProperty, AutomationElement.NativeWindowHandleProperty);
@@ -191,19 +193,16 @@ namespace mmswitcherAPI.Messengers
             }
 
             _windowHandle = hWnd;
-
             GotNewMessage += MessengerBase_GotNewMessage;
             _wmmon = new WindowLifeCycle();
             _wmmon.onMessageTraced += OnMessageTraced;
             _hManager = new MessengerHookManager(_windowHandle);
-
-            _messengersCollection.Add(this);
-            _activity.Add(this);
             SetForeground();
-
             OnFocusChangedSubscribe();
             OnMessageProcessingSubscribe();
-            System.Threading.Thread.Sleep(2000);
+            _messengersCollection.Add(this);
+            _activity.Add(this);
+            _lastActive = this;
         }
 
         /// <summary>
@@ -423,7 +422,7 @@ namespace mmswitcherAPI.Messengers
         protected abstract void OnMessageProcessingUnSubscribe();
 
 
-        private bool _disposed = false;
+        public bool Disposed = false;
 
         public void Dispose()
         {
@@ -432,7 +431,7 @@ namespace mmswitcherAPI.Messengers
         }
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposed)
+            if (Disposed)
                 return;
             if (disposing)
             {
@@ -448,7 +447,7 @@ namespace mmswitcherAPI.Messengers
             OnMessageProcessingUnSubscribe();
             _messengersCollection.Remove(this);
             _activity.Remove(this);
-            _disposed = true;
+            Disposed = true;
         }
         ~MessengerBase()
         {

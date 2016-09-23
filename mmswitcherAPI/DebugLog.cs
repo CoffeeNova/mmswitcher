@@ -19,9 +19,25 @@ namespace mmswitcherAPI
                 Debug.WriteLine(String.Format("Previous selected tab ({0}): {1}", browserSet.MessengerCaption, tabArray[1].Current.BoundingRectangle));
         }
 
-        public static void WriteNewMessages(string caption, int messagesCount)
+        public static void WriteBaseMessengerNewMessages(string caption, int messagesCount)
         {
             Debug.WriteLine(string.Format("Messenger caption: {0}, new messages: {1}", caption, messagesCount));
+        }
+
+        public static void WriteBaseMessengerFocused(string caption, bool isFocused)
+        {
+            string s = isFocused == true ? "got focus" : "lost focus";
+            Debug.WriteLine(string.Format("Messenger {0} is {1}", caption, s));
+        }
+
+        public static void WriteGlobalBindControllerCreated()
+        {
+            Debug.WriteLine(string.Format("Instance of the class GlobalBindController created."));
+        }
+
+        public static void WriteGlobalBindControllerExecuted(string keyName, bool condition)
+        {
+            Debug.WriteLine(string.Format("GlobalBindController for {0} key {1}.", keyName, condition == true ? "registred" : "unregistered"));
         }
     }
 }
